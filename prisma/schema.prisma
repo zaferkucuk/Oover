@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  username      String?       @unique
+  fullName      String?
+  avatarUrl     String?
+  role          UserRole      @default(USER)
+  isActive      Boolean       @default(true)
+  emailVerified Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  lastLoginAt   DateTime?
+  predictions   Prediction[]
+  settings      UserSettings?
+  userStats     UserStats?
+
+  @@map("users")
+}
+
+model UserStats {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  totalPredictions   Int      @default(0)
+  correctPredictions Int      @default(0)
+  accuracy           Float    @default(0)
+  currentStreak      Int      @default(0)
+  longestStreak      Int      @default(0)
+  totalPoints        Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+}
+
+model UserSettings {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  theme                String   @default("light")
+  language             String   @default("en")
+  notificationsEnabled Boolean  @default(true)
+  emailNotifications   Boolean  @default(true)
+  favoriteSports       String[] @default([])
+  favoriteLeagues      String[] @default([])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model Sport {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  slug         String   @unique
+  icon         String?
+  isActive     Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  leagues      League[]
+  matches      Match[]
+
+  @@map("sports")
+}
+
+model League {
+  id         String   @id @default(uuid())
+  sportId    String
+  name       String
+  country    String?
+  logo       String?
+  externalId String?  @unique
+  season     String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  sport      Sport    @relation(fields: [sportId], references: [id], onDelete: Cascade)
+  matches    Match[]
+  teams      Team[]
+
+  @@unique([sportId, name, season])
+  @@map("leagues")
+}
+
+model Team {
+  id          String      @id @default(uuid())
+  leagueId    String
+  name        String
+  shortName   String?
+  logo        String?
+  externalId  String?     @unique
+  country     String?
+  founded     Int?
+  venue       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  awayMatches Match[]     @relation("AwayTeam")
+  homeMatches Match[]     @relation("HomeTeam")
+  stats       TeamStats[]
+  league      League      @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@unique([leagueId, name])
+  @@map("teams")
+}
+
+model Match {
+  id           String           @id @default(uuid())
+  sportId      String
+  leagueId     String
+  homeTeamId   String
+  awayTeamId   String
+  externalId   String?          @unique
+  matchDate    DateTime
+  status       MatchStatus      @default(SCHEDULED)
+  venue        String?
+  round        String?
+  homeScore    Int?
+  awayScore    Int?
+  halfTimeHome Int?
+  halfTimeAway Int?
+  rawData      Json?
+  lastSyncedAt DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  analysis     MatchAnalysis?
+  statistics   MatchStatistics?
+  awayTeam     Team             @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  homeTeam     Team             @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  league       League           @relation(fields: [leagueId], references: [id])
+  sport        Sport            @relation(fields: [sportId], references: [id])
+  predictions  Prediction[]
+
+  @@index([matchDate])
+  @@index([status])
+  @@index([leagueId, matchDate])
+  @@map("matches")
+}
+
+model MatchStatistics {
+  id                String   @id @default(uuid())
+  matchId           String   @unique
+  homePossession    Float?
+  homeShotsOnTarget Int?
+  homeTotalShots    Int?
+  homeCorners       Int?
+  homeFouls         Int?
+  homeYellowCards   Int?
+  homeRedCards      Int?
+  awayPossession    Float?
+  awayShotsOnTarget Int?
+  awayTotalShots    Int?
+  awayCorners       Int?
+  awayFouls         Int?
+  awayYellowCards   Int?
+  awayRedCards      Int?
+  rawData           Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  match             Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("match_statistics")
+}
+
+model TeamStats {
+  id               String   @id @default(uuid())
+  teamId           String
+  season           String
+  matchesPlayed    Int      @default(0)
+  wins             Int      @default(0)
+  draws            Int      @default(0)
+  losses           Int      @default(0)
+  goalsFor         Int      @default(0)
+  goalsAgainst     Int      @default(0)
+  cleanSheets      Int      @default(0)
+  form             String?
+  avgGoalsScored   Float    @default(0)
+  avgGoalsConceded Float    @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  team             Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, season])
+  @@map("team_stats")
+}
+
+model Prediction {
+  id                 String            @id @default(uuid())
+  userId             String
+  matchId            String
+  predictedOutcome   PredictionOutcome
+  confidence         Float
+  predictedHomeScore Int?
+  predictedAwayScore Int?
+  reasoning          String?
+  isCorrect          Boolean?
+  pointsEarned       Int               @default(0)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  match              Match             @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+  @@index([userId, createdAt])
+  @@map("predictions")
+}
+
+model MatchAnalysis {
+  id                 String   @id @default(uuid())
+  matchId            String   @unique
+  homeWinProbability Float
+  drawProbability    Float
+  awayWinProbability Float
+  keyFactors         Json?
+  headToHead         Json?
+  formAnalysis       Json?
+  riskLevel          String?
+  analyzedAt         DateTime @default(now())
+  modelVersion       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  match              Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@map("match_analysis")
+}
+
+model DataSyncLog {
+  id               String    @id @default(uuid())
+  source           String
+  syncType         String
+  status           String
+  recordsProcessed Int       @default(0)
+  recordsFailed    Int       @default(0)
+  errorMessage     String?
+  metadata         Json?
+  startedAt        DateTime
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([source, syncType])
+  @@index([startedAt])
+  @@map("data_sync_logs")
+}
+
+enum UserRole {
+  USER
+  PREMIUM
+  ADMIN
+}
+
+enum MatchStatus {
+  SCHEDULED
+  LIVE
+  FINISHED
+  POSTPONED
+  CANCELLED
+}
+
+enum PredictionOutcome {
+  HOME_WIN
+  DRAW
+  AWAY_WIN
+}
