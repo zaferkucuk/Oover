@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-28 18:15 UTC
+**Last Updated**: 2025-10-28 18:25 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -10,18 +10,18 @@
 
 **🎯 ACTIVE FEATURE**: Backend Setup ⭐ **IN PROGRESS**
 **📍 CURRENT LAYER**: Backend Layer (Django + DRF + Supabase)
-**🚧 ACTIVE TASK**: Phase 2.1 - Supabase Integration ✅ **COMPLETE!** → Next: Phase 4 (Countries App)
-**✅ LAST COMPLETED**: Phase 2.1 - Supabase Database Connection Verified
-**📝 NEXT TASK**: Phase 4.1 - Create Country Models
+**🚧 ACTIVE TASK**: Phase 4.1 - Country Models ✅ **COMPLETE!** → Next: Phase 4.2 (Country ViewSet)
+**✅ LAST COMPLETED**: Phase 4.1 - Country, League, and Team Models Created
+**📝 NEXT TASK**: Phase 4.2 - Create Country ViewSet
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: Phase 2.1 complete - Supabase integration verified
+**🔗 Last Commit**: Phase 4.1 complete - Models created
 
 **💬 Quick Start Message for Next Session**:
 ```
-✅ Phase 2.1 TAMAMLANDI! Supabase bağlantısı doğrulandı.
-Şimdi: Phase 4 - Countries App (Models & ViewSets)
-Sıradaki: apps/core/models.py oluşturulması
+✅ Phase 4.1 TAMAMLANDI! Country, League, Team modelleri oluşturuldu.
+Şimdi: Phase 4.2 - Country ViewSet (API endpoints)
+Sıradaki: apps/core/views/country.py oluşturulması
 ```
 
 ---
@@ -30,7 +30,7 @@ Sıradaki: apps/core/models.py oluşturulması
 
 | Feature | Status | Progress | Priority | Target Date |
 |---------|--------|----------|----------|-------------|
-| 🔧 **Backend Setup** | 🚧 **ACTIVE** | 25% | **CRITICAL** | 2025-11-03 |
+| 🔧 **Backend Setup** | 🚧 **ACTIVE** | 35% | **CRITICAL** | 2025-11-03 |
 | 🎨 **UI Foundations** | ⏸️ PAUSED | 25% | CRITICAL | 2025-11-08 |
 | 🌍 Countries | ⏸️ PAUSED | 85% | HIGH | 2025-11-12 |
 | 🏆 Leagues | 📝 TODO | 0% | HIGH | 2025-11-19 |
@@ -46,7 +46,7 @@ Sıradaki: apps/core/models.py oluşturulması
 
 ## 🔧 FEATURE: Backend Setup ⭐ **ACTIVE NOW**
 
-**Status**: 🚧 IN PROGRESS (25% complete)
+**Status**: 🚧 IN PROGRESS (35% complete)
 **Priority**: CRITICAL (Blocks all backend features)
 **Start Date**: 2025-10-28
 **Target Date**: 2025-11-03 (5 days)
@@ -57,7 +57,7 @@ Backend infrastructure setup for the entire application:
 - Django project structure ✅
 - Supabase database integration ✅
 - Django REST Framework configuration ✅
-- Countries app (first feature app) 📝
+- Countries app (first feature app) 🚧 IN PROGRESS
 - API endpoints ready for frontend consumption 📝
 
 ---
@@ -177,36 +177,49 @@ All DRF configuration is already done in `settings.py`:
 
 ---
 
-### 4. 🌍 COUNTRIES APP [░░░░░░░░░░] 0% 📝
+### 4. 🌍 COUNTRIES APP [█████░░░░░] 50% 🚧
 
-**Status**: 📝 READY TO START
+**Status**: 🚧 IN PROGRESS
 
-**Note**: Mevcut `apps/core` klasöründe zaten Country serializers var. Bunu kullanacağız.
+**Note**: Mevcut `apps/core` klasöründe zaten Country serializers var. Bunu kullanıyoruz.
 
-#### 4.1. Create Countries Models 📝 **NEXT STEP**
+#### 4.1. Create Countries Models ✅ **COMPLETE**
+**Completed**: 2025-10-28 18:25
 **Purpose**: Django models for Supabase countries table
 
-**Tasks**:
-- [ ] Create `apps/core/models.py`
-- [ ] Define Country model (managed=False for existing table)
-- [ ] Match Supabase schema exactly
-- [ ] Add Meta class with db_table='countries'
+**What Was Done**:
+- ✅ Created `apps/core/models.py`
+- ✅ Defined Country model (managed=False for existing table)
+- ✅ Defined League model (with foreign key to Country)
+- ✅ Defined Team model (with foreign key to Country)
+- ✅ Matched Supabase schema exactly
+- ✅ Added Meta classes with db_table settings
+- ✅ Added __str__ and __repr__ methods
+- ✅ Added comprehensive help_text for all fields
+- ✅ Pushed to GitHub
 
-**Estimated Time**: 5 minutes
+**Models Created**:
+- ✅ Country (id, name, code, flag, is_international, is_active, timestamps)
+- ✅ League (id, name, country FK, logo, type, API IDs, is_active, timestamps)
+- ✅ Team (id, name, country FK, logo, venue info, founded, API IDs, is_active, timestamps)
+
+**GitHub Commit**: `0b658ce8be5658a7d7088fce50c484df71626bd7`
 
 ---
 
-#### 4.2. Create Countries ViewSet 📝
+#### 4.2. Create Countries ViewSet 📝 **NEXT STEP**
 **Purpose**: API endpoints for Countries
 
 **What's Already Done**:
 - ✅ Serializers exist in `apps/core/serializers/country.py`
+- ✅ Models created in `apps/core/models.py`
 
 **What Needs To Be Done**:
 - [ ] Create `apps/core/views/country.py`
-- [ ] Create CountryViewSet
+- [ ] Create CountryViewSet with CRUD operations
 - [ ] Use existing serializers
-- [ ] Add to `apps/core/urls.py`
+- [ ] Add filtering, search, ordering
+- [ ] Add to `apps/core/urls.py` with router
 
 **Estimated Time**: 5 minutes
 
@@ -232,24 +245,19 @@ All DRF configuration is already done in `settings.py`:
 
 ## 🔗 Next Steps
 
-**Sıradaki 3 Adım**:
+**Sıradaki 2 Adım**:
 
-1. **Create Country Models** (5 min)
-   - Create apps/core/models.py
-   - Define Country model
-   - Match Supabase schema
-
-2. **Create Country ViewSet** (5 min)
+1. **Create Country ViewSet** (5 min)
    - Create apps/core/views/country.py
-   - Use existing serializers
-   - Wire up URLs
+   - Create CountryViewSet
+   - Wire up URLs with router
 
-3. **Test API Endpoints** (5 min)
+2. **Test API Endpoints** (5 min)
    - Start Django server
    - Test /api/countries/
    - Test Swagger UI
 
-**Total Time**: ~15 minutes to working API! 🚀
+**Total Time**: ~10 minutes to working API! 🚀
 
 ---
 
@@ -262,10 +270,20 @@ All DRF configuration is already done in `settings.py`:
 - ✅ API Documentation: **drf-spectacular** ✅ Configured
 - ✅ CORS: **django-cors-headers** ✅ Configured
 - ✅ Environment Variables: **python-dotenv** ✅ Setup done
+- ✅ Models: **Country, League, Team** ✅ Created
 
 ---
 
 ## 🎉 Recent Achievements
+
+### 2025-10-28 18:25
+- ✅ **Phase 4.1 COMPLETE!** Country, League, Team models created
+- ✅ 3 Django models (Country, League, Team) created
+- ✅ All models use managed=False (Supabase-managed)
+- ✅ Foreign key relationships established
+- ✅ Comprehensive field documentation
+- ✅ __str__ and __repr__ methods added
+- ✅ models.py pushed to GitHub
 
 ### 2025-10-28 18:15
 - ✅ **Phase 2.1 COMPLETE!** Supabase integration verified
