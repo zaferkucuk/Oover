@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-28 13:45 UTC
+**Last Updated**: 2025-10-28 16:30 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -8,20 +8,21 @@
 
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
-**🎯 ACTIVE FEATURE**: UI Foundations ⭐ **PROGRESSING!**
-**📍 CURRENT LAYER**: Frontend Layer (UI Base Setup)
-**🚧 ACTIVE TASK**: 2.1. TanStack Query Setup 📝
-**✅ LAST COMPLETED**: shadcn/ui Library Setup (100%)
-**📝 NEXT TASK**: Setup State Management (TanStack Query + Zustand)
+**🎯 ACTIVE FEATURE**: Backend Setup ⭐ **STARTING NOW!**
+**📍 CURRENT LAYER**: Backend Layer (Django + DRF + Supabase)
+**🚧 ACTIVE TASK**: 1.1. Create Django Project Directory 📝
+**✅ LAST COMPLETED**: shadcn/ui Library Setup (from UI Foundations)
+**📝 NEXT TASK**: Setup basic Django project structure
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: shadcn/ui setup complete with Button component
+**🔗 Last Commit**: shadcn/ui setup complete
 
 **💬 Quick Start Message for Next Session**:
 ```
-Merhaba! shadcn/ui kurulumu tamamlandı! 🎉
-Şu an: State Management setup'a hazırız.
-Sıradaki: TanStack Query + Zustand kurulumu.
+Merhaba! Backend Setup başlıyor! 🚀
+UI Foundations PAUSED edildi (shadcn/ui setup tamamlandı).
+Şimdi: Django + DRF + Supabase kurulumu yapacağız.
+Sıradaki: Django project structure oluşturma.
 ```
 
 ---
@@ -30,7 +31,8 @@ Sıradaki: TanStack Query + Zustand kurulumu.
 
 | Feature | Status | Progress | Priority | Target Date |
 |---------|--------|----------|----------|-------------|
-| 🎨 **UI Foundations** | 🚧 **ACTIVE** | 25% | **CRITICAL** | 2025-11-08 |
+| 🔧 **Backend Setup** | 🚧 **ACTIVE** | 0% | **CRITICAL** | 2025-11-03 |
+| 🎨 **UI Foundations** | ⏸️ PAUSED | 25% | CRITICAL | 2025-11-08 |
 | 🌍 Countries | ⏸️ PAUSED | 85% | HIGH | 2025-11-12 |
 | 🏆 Leagues | 📝 TODO | 0% | HIGH | 2025-11-19 |
 | ⚽ Teams | 📝 TODO | 0% | MEDIUM | 2025-11-26 |
@@ -43,448 +45,740 @@ Sıradaki: TanStack Query + Zustand kurulumu.
 
 ---
 
-## 🎨 FEATURE: UI Foundations ⭐ **ACTIVE NOW**
+## 🔧 FEATURE: Backend Setup ⭐ **ACTIVE NOW**
 
-**Status**: 🚧 IN PROGRESS (25% complete)
-**Priority**: CRITICAL (Blocks all feature UIs)
+**Status**: 🚧 IN PROGRESS (0% complete)
+**Priority**: CRITICAL (Blocks all backend features)
 **Start Date**: 2025-10-28
-**Target Date**: 2025-11-08
+**Target Date**: 2025-11-03 (5 days)
 **Assignee**: Self
 
 ### 🎯 OVERVIEW
-Frontend'in temel yapısını oluşturma. Tüm feature'lar için kullanılacak:
-- ✅ Component library (shadcn/ui)
-- 📝 State management
-- 📝 API client pattern
-- 📝 Design system
-- 📝 Layout structure
-- 📝 Base components
+Backend infrastructure setup for the entire application:
+- Django project structure
+- Supabase database integration
+- Django REST Framework configuration
+- Countries app (first feature app)
+- API endpoints ready for frontend consumption
+
+**WHY SMALL STEPS?**
+- ✅ Avoid conversation limit timeouts
+- ✅ Easy to resume if interrupted
+- ✅ Clear checkpoints after each step
+- ✅ Better error handling
+- ✅ Can test incrementally
 
 ### 🎯 ACTIVE NOW
-- **Current Task**: 2.1. TanStack Query Setup 📝 **← YOU ARE HERE**
+- **Current Task**: 1.1. Create Django Project Directory 📝 **← YOU ARE HERE**
 - **Blocking Issues**: None
-- **Next Action**: Install and configure TanStack Query
+- **Next Action**: Create `/backend` directory structure
 
 ---
 
-### 1. 🎨 COMPONENT LIBRARY [██████████] 100% ✅
-
-**Status**: ✅ COMPLETED
-
-#### 1.1. UI Component Library Selection ✅ **COMPLETED**
-**Status**: ✅ DONE
-**Chosen**: shadcn/ui
-
-**Decision Rationale**:
-- ✅ Perfect for admin panels
-- ✅ Tailwind CSS based (matches our stack)
-- ✅ Copy-paste approach (no bloat)
-- ✅ Excellent TypeScript support
-- ✅ Highly customizable
-- ✅ Active community & updates
-- ✅ Built on Radix UI (accessible)
-
-**Completed Deliverables**:
-- ✅ Dependencies installed (clsx, tailwind-merge, CVA, lucide-react, @radix-ui/react-slot)
-- ✅ components.json configuration created
-- ✅ lib/utils.ts with cn() function
-- ✅ globals.css updated with CSS variables (light + dark mode)
-- ✅ Button component implemented
-- ✅ Test page created with all variants
-
-**Files Created**:
-- `/components.json` - shadcn/ui config
-- `/lib/utils.ts` - cn() utility
-- `/components/ui/button.tsx` - Button component
-- `/app/globals.css` - Updated with theme variables
-- `/app/page.tsx` - Test page with Button examples
-
-**GitHub Commits**:
-- `bc50794` - feat: add shadcn/ui dependencies
-- `26b7ddd` - feat: add shadcn/ui configuration
-- `736d7a0` - feat: add cn utility function
-- `2fafb6f` - feat: add shadcn/ui CSS variables
-- `d9d85de` - feat: add Button component
-- `1969806` - feat: add test page
-
----
-
-### 2. 🔄 STATE MANAGEMENT [░░░░░░░░░░] 0%
+### 1. 🗂️ DJANGO PROJECT STRUCTURE [░░░░░░░░░░] 0%
 
 **Status**: 📝 READY TO START
 
-#### 2.1. TanStack Query Setup 📝 **NEXT**
-**Purpose**: Server state management (API calls, cache, refetch)
+#### 1.1. Create Django Project Directory 📝 **NEXT**
+**Purpose**: Setup basic folder structure
 
 **Tasks**:
-- [ ] Install @tanstack/react-query
-- [ ] Install @tanstack/react-query-devtools
-- [ ] Configure QueryClient
-- [ ] Setup QueryClientProvider in layout
-- [ ] Configure default options (retry, staleTime, cacheTime)
-- [ ] Setup React Query DevTools
-- [ ] Create base query hooks pattern
-- [ ] Create example hook (useCountries)
+- [ ] Create `/backend` directory
+- [ ] Create `/backend/oover_backend` (project dir)
+- [ ] Create `/backend/apps` (for Django apps)
+- [ ] Create `/backend/config` (for settings)
 
 **Deliverables**:
-- `/lib/react-query/client.ts` - QueryClient configuration
-- `/lib/react-query/provider.tsx` - QueryClientProvider wrapper
-- `/hooks/api/use-countries.ts` - Example hook
-- Documentation in code comments
+```
+backend/
+├── oover_backend/      # Main project
+├── apps/               # Django apps go here
+└── config/             # Configuration files
+```
 
-**Configuration Notes**:
-```typescript
-// Recommended defaults for our app
-{
-  queries: {
-    staleTime: 60 * 1000, // 1 minute
-    cacheTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
-    refetchOnWindowFocus: false,
-  },
+**Estimated Time**: 2 minutes
+**Files**: Directories only
+
+---
+
+#### 1.2. Initialize Django Project 📝
+**Purpose**: Create Django project files
+
+**Tasks**:
+- [ ] Install Django in backend directory
+- [ ] Run `django-admin startproject`
+- [ ] Create `manage.py`
+- [ ] Create basic `settings.py`
+- [ ] Create `urls.py`
+- [ ] Create `wsgi.py` and `asgi.py`
+
+**Deliverables**:
+```
+backend/
+├── manage.py
+├── oover_backend/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
+```
+
+**Estimated Time**: 3 minutes
+**Files**: 5 Python files
+
+---
+
+#### 1.3. Create requirements.txt 📝
+**Purpose**: Document Python dependencies
+
+**Tasks**:
+- [ ] Create `requirements.txt`
+- [ ] Add Django
+- [ ] Add psycopg2-binary (PostgreSQL driver)
+- [ ] Add python-dotenv (environment variables)
+- [ ] Add other essentials
+
+**Dependencies**:
+```
+Django==5.0.1
+djangorestframework==3.14.0
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+django-cors-headers==4.3.1
+drf-spectacular==0.27.1
+```
+
+**Deliverables**:
+- `/backend/requirements.txt`
+
+**Estimated Time**: 2 minutes
+**Files**: 1 file
+
+---
+
+#### 1.4. Create .env Template 📝
+**Purpose**: Setup environment variables
+
+**Tasks**:
+- [ ] Create `.env.example` (template)
+- [ ] Create `.env` (actual file, gitignored)
+- [ ] Add Supabase connection variables
+- [ ] Add Django SECRET_KEY
+- [ ] Add DEBUG flag
+
+**Variables**:
+```env
+# Django
+DEBUG=True
+SECRET_KEY=your-secret-key-here
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Supabase Database
+DB_NAME=postgres
+DB_USER=postgres
+DB_PASSWORD=your-supabase-password
+DB_HOST=db.rmyxqqcozxbapyldeicm.supabase.co
+DB_PORT=5432
+```
+
+**Deliverables**:
+- `/backend/.env.example`
+- `/backend/.env` (gitignored)
+
+**Estimated Time**: 2 minutes
+**Files**: 2 files
+
+---
+
+### 2. 🗄️ SUPABASE INTEGRATION [░░░░░░░░░░] 0%
+
+**Status**: 📝 NOT STARTED
+
+#### 2.1. Configure Database Settings 📝
+**Purpose**: Connect Django to Supabase PostgreSQL
+
+**Tasks**:
+- [ ] Update `settings.py` DATABASES section
+- [ ] Configure psycopg2 settings
+- [ ] Add connection pool settings
+- [ ] Set connection timeout
+- [ ] Add SSL mode configuration
+
+**Configuration**:
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+        'OPTIONS': {
+            'sslmode': 'require',
+        },
+        'CONN_MAX_AGE': 600,
+    }
 }
 ```
 
-#### 2.2. Zustand Setup 📝
-**Purpose**: Client state management (UI state, sidebar, theme, etc.)
+**Deliverables**:
+- Updated `settings.py` (DATABASES section)
+
+**Estimated Time**: 3 minutes
+**Files**: 1 file modified
+
+---
+
+#### 2.2. Test Database Connection 📝
+**Purpose**: Verify Django can connect to Supabase
 
 **Tasks**:
-- [ ] Install zustand
-- [ ] Create base store structure
-- [ ] Setup UI state store (sidebar, theme, etc.)
-- [ ] Setup auth state store (future)
-- [ ] Create store hooks
-- [ ] Add persistence (localStorage)
+- [ ] Create test management command
+- [ ] Test connection with `python manage.py dbshell`
+- [ ] Test with simple query
+- [ ] Verify SSL connection
+- [ ] Check connection pooling
+
+**Test Command**:
+```bash
+python manage.py dbshell
+# Should connect to Supabase PostgreSQL
+```
 
 **Deliverables**:
-- `/stores/ui-store.ts` - UI state (sidebar, theme)
-- `/stores/auth-store.ts` - Auth state (future)
-- Type definitions
-- Usage examples
-- Documentation
+- `/backend/apps/core/management/commands/test_db.py` (test command)
+- Connection verification output
+
+**Estimated Time**: 3 minutes
+**Files**: 1 management command
 
 ---
 
-### 3. 🌐 API CLIENT ARCHITECTURE [░░░░░░░░░░] 0%
+### 3. 🔧 DJANGO REST FRAMEWORK SETUP [░░░░░░░░░░] 0%
 
 **Status**: 📝 NOT STARTED
 
-#### 3.1. API Client Strategy Decision 📝
-**Options**:
-- Manual typed hooks (custom fetch wrappers)
-- OpenAPI codegen (auto-generated from backend)
-- Hybrid approach
+#### 3.1. Install and Configure DRF 📝
+**Purpose**: Setup REST API framework
 
-**Decision Factors**:
-- [ ] Type safety
-- [ ] Maintenance overhead
-- [ ] Team size
-- [ ] API stability
-- [ ] Development speed
-
-**Recommendation**: Start with manual typed hooks, evaluate codegen later
-
-#### 3.2. API Client Implementation 📝
 **Tasks**:
-- [ ] Choose strategy (manual vs codegen)
-- [ ] Create base API client class
-- [ ] Setup request/response interceptors
-- [ ] Configure error handling
-- [ ] Add authentication headers
-- [ ] Create type-safe wrappers
-- [ ] Setup environment variables
+- [ ] Add DRF to INSTALLED_APPS
+- [ ] Configure REST_FRAMEWORK settings
+- [ ] Set default renderer classes
+- [ ] Set default parser classes
+- [ ] Configure authentication classes
+- [ ] Set default permission classes
+
+**Configuration**:
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # For now
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
+}
+```
 
 **Deliverables**:
-- `/lib/api/client.ts` - Base API client
-- `/lib/api/endpoints/` - Endpoint modules
-- `/hooks/api/` - React Query hooks
-- Type definitions
-- Error handling utilities
+- Updated `settings.py` (REST_FRAMEWORK section)
 
-**Example Structure**:
-```
-lib/
-├── api/
-│   ├── client.ts           # Base fetch wrapper
-│   ├── endpoints/
-│   │   ├── countries.ts    # Countries API
-│   │   ├── leagues.ts      # Leagues API
-│   │   └── ...
-│   └── types.ts            # Shared API types
-hooks/
-├── api/
-│   ├── use-countries.ts    # React Query hook
-│   ├── use-country.ts
-│   └── ...
-```
+**Estimated Time**: 4 minutes
+**Files**: 1 file modified
 
 ---
 
-### 4. 🎨 DESIGN SYSTEM [█░░░░░░░░░] 10%
+#### 3.2. Configure CORS 📝
+**Purpose**: Allow frontend to call backend API
 
-**Status**: 📝 PARTIAL (CSS variables done, needs refinement)
+**Tasks**:
+- [ ] Add django-cors-headers to INSTALLED_APPS
+- [ ] Add CORS middleware
+- [ ] Configure ALLOWED_ORIGINS
+- [ ] Set CORS_ALLOW_CREDENTIALS
+- [ ] Allow necessary headers
 
-#### 4.1. Design System Configuration 📝
-
-**Color Palette**:
-- [x] ✅ Base colors defined (via shadcn/ui)
-- [ ] Review and customize primary color
-- [ ] Review and customize secondary color
-- [ ] Review accent colors
-- [ ] Review semantic colors (success, warning, error, info)
-- [x] ✅ Neutral scale configured (zinc)
-- [x] ✅ Dark mode colors ready
-
-**Typography**:
-- [x] ✅ Font family configured (Geist Sans/Mono)
-- [ ] Define type scale (h1-h6, body, small)
-- [ ] Define font weights
-- [ ] Configure Tailwind typography plugin
-
-**Spacing**:
-- [ ] Define spacing scale (4px based)
-- [ ] Configure Tailwind spacing
-- [ ] Define component padding/margin standards
-
-**Breakpoints**:
-- [x] ✅ Tailwind default breakpoints
-- [ ] Verify if defaults work for our use case
-
-**Dark Mode**:
-- [x] ✅ CSS variables approach (class-based)
-- [ ] System preference detection
-- [ ] User toggle component
-- [ ] Persistent storage
+**Configuration**:
+```python
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Next.js dev server
+    "http://127.0.0.1:3000",
+]
+CORS_ALLOW_CREDENTIALS = True
+```
 
 **Deliverables**:
-- `tailwind.config.ts` updated (needs creation)
-- `/lib/design-tokens.ts` - Design tokens
-- `/components/ui/theme-toggle.tsx` - Theme switcher
-- Documentation
+- Updated `settings.py` (CORS section)
+
+**Estimated Time**: 3 minutes
+**Files**: 1 file modified
 
 ---
 
-### 5. 📐 LAYOUT STRUCTURE [░░░░░░░░░░] 0%
+#### 3.3. Configure API Documentation (drf-spectacular) 📝
+**Purpose**: Auto-generate OpenAPI/Swagger docs
+
+**Tasks**:
+- [ ] Add drf-spectacular to INSTALLED_APPS
+- [ ] Configure SPECTACULAR_SETTINGS
+- [ ] Add schema view to urls.py
+- [ ] Add Swagger UI endpoint
+- [ ] Add ReDoc endpoint
+
+**Configuration**:
+```python
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Oover API',
+    'DESCRIPTION': 'Sport Prediction API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+```
+
+**Deliverables**:
+- Updated `settings.py` (SPECTACULAR section)
+- Updated `urls.py` (API docs endpoints)
+
+**Estimated Time**: 4 minutes
+**Files**: 2 files modified
+
+---
+
+### 4. 🌍 COUNTRIES APP [░░░░░░░░░░] 0%
 
 **Status**: 📝 NOT STARTED
 
-#### 5.1. Admin Layout Implementation 📝
+#### 4.1. Create Countries App Structure 📝
+**Purpose**: Create Django app for Countries
 
-**Layout Components**:
-- [ ] DashboardLayout (main wrapper)
-- [ ] Sidebar navigation
-- [ ] Header (user menu, notifications)
-- [ ] Main content area
-- [ ] Footer (optional)
-
-**Route Groups**:
-- [ ] (auth) - Public pages (login, register)
-- [ ] (dashboard) - Protected pages (admin panel)
-
-**File Structure**:
-```
-app/
-├── (auth)/
-│   ├── layout.tsx          # Auth layout
-│   ├── login/
-│   └── register/
-├── (dashboard)/
-│   ├── layout.tsx          # Dashboard layout (Sidebar + Header)
-│   ├── page.tsx            # Dashboard home
-│   ├── countries/
-│   ├── leagues/
-│   └── settings/
-└── api/                    # API routes (if needed)
-```
+**Tasks**:
+- [ ] Run `python manage.py startapp countries`
+- [ ] Move to `/backend/apps/countries/`
+- [ ] Add to INSTALLED_APPS
+- [ ] Create `urls.py` in countries app
+- [ ] Create `serializers.py`
 
 **Deliverables**:
-- Layout components
-- Route structure
-- Navigation menu
-- Protected route HOC
-- Loading states
+```
+backend/apps/countries/
+├── __init__.py
+├── admin.py
+├── apps.py
+├── models.py
+├── serializers.py
+├── views.py
+├── urls.py
+├── tests.py
+└── migrations/
+    └── __init__.py
+```
+
+**Estimated Time**: 3 minutes
+**Files**: 8 Python files
 
 ---
 
-### 6. 🧱 CORE COMPONENTS [█░░░░░░░░░] 10%
+#### 4.2. Create Countries Model 📝
+**Purpose**: Define Countries database model
 
-**Status**: 📝 STARTED (Button done)
+**Tasks**:
+- [ ] Create `Country` model in `models.py`
+- [ ] Add fields: name, code, flag_url, enabled
+- [ ] Add Meta class (ordering, verbose_name)
+- [ ] Add __str__ method
+- [ ] Add custom methods if needed
 
-#### 6.1. Base Components 📝
-From shadcn/ui (to be added as needed):
-- [x] ✅ Button
-- [ ] Input
-- [ ] Select
-- [ ] Checkbox
-- [ ] Radio
-- [ ] Switch
-- [ ] Label
-- [ ] Card
-- [ ] Dialog/Modal
-- [ ] Dropdown Menu
-- [ ] Tooltip
-- [ ] Badge
-- [ ] Avatar
-- [ ] Skeleton
-- [ ] Table
-
-**Strategy**: Add components incrementally as features need them, not all upfront.
-
-#### 6.2. Composite Components 📝
-Custom reusable components:
-- [ ] DataTable (with sorting, filtering, pagination)
-- [ ] FormField (with validation display)
-- [ ] SearchBar
-- [ ] FilterPanel
-- [ ] EmptyState
-- [ ] ErrorState
-- [ ] LoadingSpinner
-- [ ] ConfirmDialog
-
-#### 6.3. Layout Components 📝
-- [ ] PageHeader
-- [ ] PageContainer
-- [ ] ContentSection
-- [ ] Breadcrumbs
+**Model Definition**:
+```python
+class Country(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=3, unique=True)  # ISO 3166-1 alpha-3
+    flag_url = models.URLField(blank=True, null=True)
+    enabled = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'countries'
+        ordering = ['name']
+        verbose_name = 'Country'
+        verbose_name_plural = 'Countries'
+    
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+```
 
 **Deliverables**:
-- `/components/ui/` - Base components
-- `/components/common/` - Composite components
-- `/components/layout/` - Layout components
-- Component documentation
+- `/backend/apps/countries/models.py`
+
+**Estimated Time**: 5 minutes
+**Files**: 1 file
 
 ---
 
-### 7. 📊 DATA TABLE SETUP [░░░░░░░░░░] 0%
+#### 4.3. Create Countries Serializer 📝
+**Purpose**: Serialize Country data for API
+
+**Tasks**:
+- [ ] Create `CountrySerializer` in `serializers.py`
+- [ ] Add all model fields
+- [ ] Add read-only fields (created_at, updated_at)
+- [ ] Add validation rules
+
+**Serializer Definition**:
+```python
+from rest_framework import serializers
+from .models import Country
+
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ['id', 'name', 'code', 'flag_url', 'enabled', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def validate_code(self, value):
+        """Ensure country code is uppercase"""
+        return value.upper()
+```
+
+**Deliverables**:
+- `/backend/apps/countries/serializers.py`
+
+**Estimated Time**: 4 minutes
+**Files**: 1 file
+
+---
+
+#### 4.4. Create Countries ViewSet 📝
+**Purpose**: Create API endpoints for Countries
+
+**Tasks**:
+- [ ] Create `CountryViewSet` in `views.py`
+- [ ] Configure queryset
+- [ ] Configure serializer_class
+- [ ] Add filtering
+- [ ] Add search functionality
+- [ ] Add ordering
+
+**ViewSet Definition**:
+```python
+from rest_framework import viewsets, filters
+from .models import Country
+from .serializers import CountrySerializer
+
+class CountryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for Countries
+    
+    Provides:
+    - list: GET /api/countries/
+    - retrieve: GET /api/countries/{id}/
+    - create: POST /api/countries/
+    - update: PUT /api/countries/{id}/
+    - partial_update: PATCH /api/countries/{id}/
+    - destroy: DELETE /api/countries/{id}/
+    """
+    queryset = Country.objects.all()
+    serializer_class = CountrySerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'code']
+    ordering_fields = ['name', 'code', 'created_at']
+    ordering = ['name']
+```
+
+**Deliverables**:
+- `/backend/apps/countries/views.py`
+
+**Estimated Time**: 5 minutes
+**Files**: 1 file
+
+---
+
+#### 4.5. Configure Countries URLs 📝
+**Purpose**: Wire up Countries API endpoints
+
+**Tasks**:
+- [ ] Create router in `countries/urls.py`
+- [ ] Register CountryViewSet
+- [ ] Include in main `urls.py`
+- [ ] Test URL routing
+
+**URL Configuration**:
+```python
+# countries/urls.py
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CountryViewSet
+
+router = DefaultRouter()
+router.register(r'countries', CountryViewSet, basename='country')
+
+urlpatterns = [
+    path('', include(router.urls)),
+]
+
+# Main urls.py
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('apps.countries.urls')),
+]
+```
+
+**Deliverables**:
+- `/backend/apps/countries/urls.py`
+- Updated `/backend/oover_backend/urls.py`
+
+**Estimated Time**: 4 minutes
+**Files**: 2 files
+
+---
+
+### 5. 🔄 DATABASE MIGRATION [░░░░░░░░░░] 0%
 
 **Status**: 📝 NOT STARTED
 
-#### 7.1. TanStack Table Implementation 📝
+#### 5.1. Create Migrations 📝
+**Purpose**: Generate migration files
 
-**Features to Implement**:
-- [ ] Column definitions
-- [ ] Sorting (multi-column)
-- [ ] Filtering (per column)
-- [ ] Pagination (client & server)
-- [ ] Row selection
-- [ ] Column visibility toggle
-- [ ] Column resizing
-- [ ] Export functionality
+**Tasks**:
+- [ ] Run `python manage.py makemigrations`
+- [ ] Review migration file
+- [ ] Check field types
+- [ ] Verify constraints
 
-**Use Cases**:
-- Countries list
-- Leagues list
-- Teams list
-- Matches list
-- Users list (admin)
+**Command**:
+```bash
+python manage.py makemigrations countries
+```
+
+**Expected Output**:
+- `0001_initial.py` migration file
 
 **Deliverables**:
-- `/components/common/data-table/` - DataTable component
-- Column definition utilities
-- Filter builders
-- Export utilities
-- Usage examples
+- `/backend/apps/countries/migrations/0001_initial.py`
+
+**Estimated Time**: 2 minutes
+**Files**: 1 migration file
 
 ---
 
-### 8. 🔐 AUTHENTICATION UI [░░░░░░░░░░] 0%
+#### 5.2. Run Migrations 📝
+**Purpose**: Apply migrations to Supabase
 
-**Status**: 📝 NOT STARTED (May come later)
+**Tasks**:
+- [ ] Run `python manage.py migrate`
+- [ ] Verify no errors
+- [ ] Check SQL output
 
-#### 8.1. Auth Components 📝
-- [ ] LoginForm
-- [ ] RegisterForm
-- [ ] ForgotPasswordForm
-- [ ] ResetPasswordForm
-- [ ] ProfileSettings
-- [ ] PasswordChange
+**Command**:
+```bash
+python manage.py migrate
+```
 
-#### 8.2. Auth Flow 📝
-- [ ] Protected route HOC
-- [ ] Auth context/provider
-- [ ] Redirect logic
-- [ ] Session management
+**Expected**: Countries table created in Supabase
+
+**Deliverables**:
+- Countries table in Supabase database
+
+**Estimated Time**: 2 minutes
+**Files**: Database changes only
 
 ---
 
-### 9. 📚 DOCUMENTATION [░░░░░░░░░░] 0%
+#### 5.3. Verify Tables in Supabase 📝
+**Purpose**: Confirm table creation
+
+**Tasks**:
+- [ ] Login to Supabase dashboard
+- [ ] Check Table Editor
+- [ ] Verify `countries` table exists
+- [ ] Check columns match model
+- [ ] Verify indexes
+
+**Verification Checklist**:
+- [x] Table name: `countries`
+- [x] Columns: id, name, code, flag_url, enabled, created_at, updated_at
+- [x] Primary key: id
+- [x] Unique constraints: name, code
+
+**Deliverables**:
+- Screenshot or confirmation of table
+
+**Estimated Time**: 2 minutes
+**Files**: None (visual verification)
+
+---
+
+### 6. 🧪 API TESTING [░░░░░░░░░░] 0%
 
 **Status**: 📝 NOT STARTED
 
-#### 9.1. Frontend Documentation 📝
-- [ ] Component library guide
-- [ ] State management guide
-- [ ] API client guide
-- [ ] Design system guide
-- [ ] Folder structure explanation
-- [ ] Coding standards
+#### 6.1. Create Seed Data 📝
+**Purpose**: Add sample countries for testing
+
+**Tasks**:
+- [ ] Create management command `seed_countries`
+- [ ] Add 5-10 sample countries
+- [ ] Use real country data (Turkey, Germany, etc.)
+
+**Sample Data**:
+```python
+countries = [
+    {"name": "Turkey", "code": "TUR", "enabled": True},
+    {"name": "Germany", "code": "DEU", "enabled": True},
+    {"name": "England", "code": "ENG", "enabled": True},
+    {"name": "Spain", "code": "ESP", "enabled": True},
+    {"name": "Italy", "code": "ITA", "enabled": True},
+]
+```
 
 **Deliverables**:
-- `docs/FRONTEND_ARCHITECTURE.md`
-- `docs/COMPONENT_LIBRARY.md`
-- `docs/STATE_MANAGEMENT.md`
-- `docs/API_CLIENT.md`
+- `/backend/apps/countries/management/commands/seed_countries.py`
+
+**Estimated Time**: 5 minutes
+**Files**: 1 management command
 
 ---
 
-### 10. 🧪 TESTING SETUP [░░░░░░░░░░] 0%
+#### 6.2. Test API Endpoints 📝
+**Purpose**: Verify all CRUD operations work
 
-**Status**: 📝 NOT STARTED (Optional for Phase 1)
+**Tasks**:
+- [ ] Start Django dev server
+- [ ] Test GET /api/countries/ (list)
+- [ ] Test GET /api/countries/{id}/ (detail)
+- [ ] Test POST /api/countries/ (create)
+- [ ] Test PUT /api/countries/{id}/ (update)
+- [ ] Test DELETE /api/countries/{id}/ (delete)
 
-#### 10.1. Testing Infrastructure 📝
-- [ ] Jest configuration
-- [ ] React Testing Library setup
-- [ ] Mock service worker (MSW)
-- [ ] Test utilities
-- [ ] Example tests
+**Test Commands**:
+```bash
+# Start server
+python manage.py runserver
+
+# Test in another terminal
+curl http://localhost:8000/api/countries/
+curl http://localhost:8000/api/countries/1/
+```
+
+**Deliverables**:
+- Working API endpoints
+- Test results documentation
+
+**Estimated Time**: 5 minutes
+**Files**: None (testing only)
+
+---
+
+#### 6.3. Test from Frontend (Optional) 📝
+**Purpose**: Verify frontend can call backend
+
+**Tasks**:
+- [ ] Update Next.js API client
+- [ ] Call countries endpoint from frontend
+- [ ] Verify CORS works
+- [ ] Check data display
+
+**Test**: Open Next.js app, try to fetch countries
+
+**Deliverables**:
+- Frontend successfully calls backend
+- Data displays correctly
+
+**Estimated Time**: 5 minutes
+**Files**: Frontend code (if needed)
+
+---
+
+### 7. 📚 DOCUMENTATION [░░░░░░░░░░] 0%
+
+**Status**: 📝 NOT STARTED
+
+#### 7.1. Create Backend README 📝
+**Purpose**: Document backend setup and usage
+
+**Tasks**:
+- [ ] Create `/backend/README.md`
+- [ ] Document installation steps
+- [ ] Document environment variables
+- [ ] Document API endpoints
+- [ ] Add code examples
+
+**Sections**:
+- Setup Instructions
+- Environment Variables
+- Running the Server
+- API Endpoints
+- Database Migrations
+- Testing
+
+**Deliverables**:
+- `/backend/README.md`
+
+**Estimated Time**: 10 minutes
+**Files**: 1 markdown file
 
 ---
 
 ## 🔗 Related Resources
 
-**Completed Files**:
-- ✅ `/components.json` - shadcn/ui config
-- ✅ `/lib/utils.ts` - cn() utility
-- ✅ `/components/ui/button.tsx` - Button component
-- ✅ `/app/globals.css` - Theme variables
-- ✅ `/package.json` - Updated with dependencies
+**Files to Create** (Total: ~25 files):
 
-**Files to Create**:
-- `/lib/react-query/client.ts`
-- `/lib/react-query/provider.tsx`
-- `/stores/ui-store.ts`
-- `/stores/auth-store.ts`
-- `/lib/api/client.ts`
-- `/hooks/api/*.ts`
-- `/components/ui/*.tsx` (more components)
-- `/components/common/*.tsx`
-- `/components/layout/*.tsx`
-- `tailwind.config.ts` (create)
-- `docs/FRONTEND_ARCHITECTURE.md`
+**Phase 1 - Project Structure**:
+- `/backend/` (directory)
+- `/backend/oover_backend/` (directory)
+- `/backend/apps/` (directory)
+- `/backend/manage.py`
+- `/backend/oover_backend/settings.py`
+- `/backend/oover_backend/urls.py`
+- `/backend/oover_backend/wsgi.py`
+- `/backend/oover_backend/asgi.py`
+- `/backend/requirements.txt`
+- `/backend/.env.example`
+- `/backend/.env`
 
-**Dependencies Installed**:
-```json
-{
-  "class-variance-authority": "^0.7.1",
-  "clsx": "^2.1.1",
-  "tailwind-merge": "^2.7.0",
-  "lucide-react": "^0.462.0",
-  "@radix-ui/react-slot": "^1.1.1"
-}
+**Phase 2 - Countries App**:
+- `/backend/apps/countries/` (directory)
+- `/backend/apps/countries/models.py`
+- `/backend/apps/countries/serializers.py`
+- `/backend/apps/countries/views.py`
+- `/backend/apps/countries/urls.py`
+- `/backend/apps/countries/admin.py`
+- `/backend/apps/countries/migrations/0001_initial.py`
+
+**Phase 3 - Testing & Docs**:
+- `/backend/apps/countries/management/commands/seed_countries.py`
+- `/backend/README.md`
+
+**Dependencies**:
+```txt
+Django==5.0.1
+djangorestframework==3.14.0
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+django-cors-headers==4.3.1
+drf-spectacular==0.27.1
 ```
 
-**Dependencies Needed**:
-```json
-{
-  "@tanstack/react-query": "^5.x",
-  "@tanstack/react-query-devtools": "^5.x",
-  "@tanstack/react-table": "^8.x",
-  "zustand": "^4.x",
-  "react-hook-form": "^7.x",
-  "zod": "^3.x",
-  "axios": "^1.x",
-  "date-fns": "^3.x"
-}
+**Supabase Connection**:
+```
+Host: db.rmyxqqcozxbapyldeicm.supabase.co
+Port: 5432
+Database: postgres
+User: postgres
+Password: [from .env]
 ```
 
 ---
@@ -492,92 +786,135 @@ Custom reusable components:
 ### 📝 Strategic Decisions
 
 **✅ CONFIRMED**:
-- ✅ UI Component Library: **shadcn/ui** (New York style)
-- ✅ State Management: TanStack Query + Zustand
-- ✅ Data Fetching: React Query + Axios/Fetch
-- ✅ Forms: React Hook Form + Zod
-- ✅ Data Table: TanStack Table
-- ✅ Component Architecture: Multi-layer (base → composite → feature)
-- ✅ Dark Mode: Class-based CSS variables (implemented)
+- ✅ Backend Framework: **Django 5.0.1**
+- ✅ API Framework: **Django REST Framework**
+- ✅ Database: **Supabase (PostgreSQL)**
+- ✅ API Documentation: **drf-spectacular (OpenAPI)**
+- ✅ CORS: **django-cors-headers**
+- ✅ Environment Variables: **python-dotenv**
+- ✅ Database Driver: **psycopg2-binary**
 
-**🚧 PENDING DECISION**:
-- ❓ API Client: Manual hooks vs OpenAPI codegen
-- ❓ Design System Colors: Keep defaults or customize?
-- ❓ Dark Mode Toggle: Implement now or later?
-- ❓ i18n: TR+EN or TR only?
-- ❓ Testing: Jest or Vitest?
+**🚧 APPROACH**:
+- ✅ Small incremental steps (avoid conversation limits)
+- ✅ Test after each major step
+- ✅ Clear checkpoints
+- ✅ Can resume easily if interrupted
+- ✅ Documentation as we go
 
 ---
 
 ### 🚧 Blockers & Issues
 
 **Current**: 
-- None! 🎉
+- None! Ready to start 🚀
 
-**Notes**:
-- shadcn/ui setup complete and tested
-- Countries feature still paused until State Management is ready
-- Backend API is complete and waiting
+**Potential Issues**:
+- ⚠️ Supabase connection might need special characters escaped in password
+- ⚠️ CORS might need additional configuration
+- ⚠️ Migration conflicts if tables exist
+
+**Mitigation**:
+- Test connection early
+- Configure CORS carefully
+- Check Supabase before migrations
 
 ---
 
 ### ✅ Completion Criteria
 
-UI Foundations is DONE when:
-- [x] ✅ UI component library chosen and configured
-- [ ] State management setup complete
-- [ ] API client pattern established
-- [ ] Design system refined
-- [ ] Layout structure created
-- [ ] Core components built (at least 10)
-- [ ] Data table working
-- [ ] Documentation complete
+Backend Setup is DONE when:
+- [x] Django project structure created
+- [x] Supabase connection working
+- [x] DRF configured with CORS
+- [x] Countries app fully functional
+- [x] Migrations applied to Supabase
+- [x] API endpoints tested and working
+- [x] Seed data loaded
+- [x] Documentation complete
 
-**Progress**: 25% complete (2/8 major tasks)
+**Progress**: 0% complete (0/7 major phases)
 
-**Then**: Resume Countries feature UI development
+**Then**: Resume UI Foundations, then Countries frontend
+
+---
+
+## 🎨 FEATURE: UI Foundations ⏸️ **PAUSED**
+
+**Status**: ⏸️ PAUSED (25% complete - waiting for backend)
+**Priority**: CRITICAL
+**Start Date**: 2025-10-28
+**Paused Date**: 2025-10-28 16:30
+**Resume After**: Backend Setup Phase 1 complete
+
+### 📊 Current Progress
+
+**What's Done:**
+- ✅ UI Component Library: shadcn/ui configured (100%)
+- ✅ Button component with all variants (100%)
+- ✅ CSS variables for theming (100%)
+- ✅ cn() utility function (100%)
+- ✅ Test page created (100%)
+
+**What's Waiting:**
+- ⏸️ State Management (TanStack Query + Zustand)
+- ⏸️ API Client pattern
+- ⏸️ Design system refinement
+- ⏸️ Layout structure
+- ⏸️ Core components
+- ⏸️ Data table setup
+
+**Resume Plan:**
+Once Backend Setup is done, we'll continue with:
+1. TanStack Query setup
+2. Zustand setup
+3. API client pattern
+4. Layout components
+5. More shadcn/ui components
+
+**Why Paused?**
+Backend needs to be ready first so we can:
+- Test API integration properly
+- Build real data fetching hooks
+- Verify CORS and authentication
+- Have actual endpoints to call
 
 ---
 
 ## 🌍 FEATURE: Countries ⏸️ **PAUSED**
 
-**Status**: ⏸️ PAUSED (85% complete - waiting for UI foundations)
+**Status**: ⏸️ PAUSED (85% complete - waiting for UI foundations + backend)
 **Priority**: HIGH
 **Start Date**: 2025-10-27
 **Paused Date**: 2025-10-28
-**Resume After**: UI Foundations Phase 1 complete
+**Resume After**: Backend Setup + UI Foundations Phase 1 complete
 
 ### 📊 Current Progress
 
 **What's Done:**
-- ✅ Database schema (100%)
-- ✅ Backend API (100%)
+- ✅ Database schema design (100%)
 - ✅ TypeScript types (100%)
-- ✅ Serializers (100%)
 - ✅ Documentation (100%)
 
 **What's Waiting:**
-- ⏸️ Frontend UI components (needs UI foundations)
-- ⏸️ Data fetching hooks (needs TanStack Query setup)
-- ⏸️ Pages/routes (needs layout structure)
+- ⏸️ Backend API (will be done in Backend Setup)
+- ⏸️ Frontend UI (needs UI Foundations + Backend)
+- ⏸️ Data fetching hooks
+- ⏸️ Pages/routes
 
 **Resume Plan:**
-Once UI Foundations Phase 1 is done (State Management + API Client + Layout), we'll create:
-1. Countries data fetching hooks (useCountries, useCountry)
-2. Countries list page with DataTable
-3. Country detail page
-4. Country form (create/edit)
-5. Countries feature testing
+1. Complete Backend Setup (Countries app)
+2. Complete UI Foundations (State Management + Layout)
+3. Build Countries frontend with real API integration
 
 ---
 
-## 🎯 NEXT FEATURES (After UI Foundations + Countries)
+## 🎯 NEXT FEATURES (After Backend + UI + Countries)
 
 | Feature | Dependencies | Priority | Status |
 |---------|-------------|----------|---------|
-| 🏆 Leagues | UI Foundations + Countries | HIGH | 📝 TODO |
-| ⚽ Teams | UI Foundations + Countries + Leagues | MEDIUM | 📝 TODO |
-| 🎯 Matches | UI Foundations + All above | HIGH | 📝 TODO |
+| 🏆 Leagues | Backend Setup + UI + Countries | HIGH | 📝 TODO |
+| ⚽ Teams | Backend + UI + Countries + Leagues | MEDIUM | 📝 TODO |
+| 🎯 Matches | Backend + UI + All above | HIGH | 📝 TODO |
 
 ---
 
@@ -613,11 +950,11 @@ Once UI Foundations Phase 1 is done (State Management + API Client + Layout), we
 ## 🎉 Recent Achievements
 
 ### 2025-10-28
-- ✅ shadcn/ui fully configured and tested
-- ✅ Button component with 6 variants + 4 sizes
-- ✅ Dark mode CSS variables ready
-- ✅ cn() utility function
-- ✅ Test page with comprehensive examples
+- ✅ Backend Setup feature created and activated
+- ✅ UI Foundations paused (shadcn/ui complete)
+- ✅ Countries feature remains paused
+- ✅ Detailed task breakdown created (small steps)
+- ✅ Ready to start Django backend development
 
 ---
 
