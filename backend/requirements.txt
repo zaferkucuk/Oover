@@ -1,0 +1,82 @@
+# ==============================================================================
+# Core Django Framework
+# ==============================================================================
+Django==5.0.1
+djangorestframework==3.14.0
+
+# ==============================================================================
+# Database Drivers
+# ==============================================================================
+psycopg2-binary==2.9.9  # PostgreSQL driver for Supabase
+
+# ==============================================================================
+# Environment Variables & Configuration
+# ==============================================================================
+python-dotenv==1.0.0  # Load environment variables from .env file
+
+# ==============================================================================
+# CORS Support
+# ==============================================================================
+django-cors-headers==4.3.1  # Allow frontend to call backend API
+
+# ==============================================================================
+# API Documentation (OpenAPI/Swagger)
+# ==============================================================================
+drf-spectacular==0.27.1  # Auto-generate API documentation
+
+# ==============================================================================
+# Async Task Processing (Optional - for future use)
+# ==============================================================================
+celery==5.3.4  # Distributed task queue
+redis==5.0.1   # Message broker for Celery (optional)
+
+# ==============================================================================
+# HTTP Requests & External APIs
+# ==============================================================================
+requests==2.31.0  # HTTP library for calling external APIs
+httpx==0.25.2     # Alternative HTTP client with async support
+
+# ==============================================================================
+# Data Validation & Serialization
+# ==============================================================================
+pydantic==2.5.3  # Data validation using Python type hints
+
+# ==============================================================================
+# Date & Time Utilities
+# ==============================================================================
+python-dateutil==2.8.2  # Extensions to standard datetime module
+pytz==2023.3.post1      # Timezone calculations
+
+# ==============================================================================
+# Testing & Development Tools
+# ==============================================================================
+pytest==7.4.3                # Testing framework
+pytest-django==4.7.0         # Django-specific pytest plugins
+pytest-cov==4.1.0            # Test coverage plugin
+factory-boy==3.3.0           # Test fixtures
+faker==22.0.0                # Generate fake data for testing
+
+# ==============================================================================
+# Code Quality & Linting
+# ==============================================================================
+black==23.12.1     # Code formatter
+flake8==7.0.0      # Style guide enforcement
+isort==5.13.2      # Import statement organizer
+mypy==1.8.0        # Static type checker
+
+# ==============================================================================
+# Production Server (Optional)
+# ==============================================================================
+gunicorn==21.2.0   # WSGI HTTP Server
+uvicorn==0.25.0    # ASGI HTTP Server (for async support)
+
+# ==============================================================================
+# Monitoring & Logging (Optional)
+# ==============================================================================
+sentry-sdk==1.39.2  # Error tracking and monitoring
+
+# ==============================================================================
+# Additional Utilities
+# ==============================================================================
+python-slugify==8.0.1  # Generate URL-friendly slugs
+Pillow==10.1.0         # Image processing (for logos, flags, etc.)
