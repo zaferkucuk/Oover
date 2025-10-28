@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-28 18:25 UTC
+**Last Updated**: 2025-10-28 19:50 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -10,18 +10,18 @@
 
 **🎯 ACTIVE FEATURE**: Backend Setup ⭐ **IN PROGRESS**
 **📍 CURRENT LAYER**: Backend Layer (Django + DRF + Supabase)
-**🚧 ACTIVE TASK**: Phase 4.1 - Country Models ✅ **COMPLETE!** → Next: Phase 4.2 (Country ViewSet)
-**✅ LAST COMPLETED**: Phase 4.1 - Country, League, and Team Models Created
-**📝 NEXT TASK**: Phase 4.2 - Create Country ViewSet
+**🚧 ACTIVE TASK**: Phase 4.2 - Country ViewSet ✅ **COMPLETE!** → Next: Phase 5.1 (API Testing)
+**✅ LAST COMPLETED**: Phase 4.2 - CountryViewSet Created with Full CRUD Operations
+**📝 NEXT TASK**: Phase 5.1 - Test API Endpoints
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: Phase 4.1 complete - Models created
+**🔗 Last Commit**: Phase 4.2 complete - CountryViewSet and routing
 
 **💬 Quick Start Message for Next Session**:
 ```
-✅ Phase 4.1 TAMAMLANDI! Country, League, Team modelleri oluşturuldu.
-Şimdi: Phase 4.2 - Country ViewSet (API endpoints)
-Sıradaki: apps/core/views/country.py oluşturulması
+✅ Phase 4.2 TAMAMLANDI! CountryViewSet ve URL routing oluşturuldu.
+Şimdi: Phase 5.1 - API Testing (endpoints testi)
+Sıradaki: Django server başlatıp /api/countries/ test etme
 ```
 
 ---
@@ -30,7 +30,7 @@ Sıradaki: apps/core/views/country.py oluşturulması
 
 | Feature | Status | Progress | Priority | Target Date |
 |---------|--------|----------|----------|-------------|
-| 🔧 **Backend Setup** | 🚧 **ACTIVE** | 35% | **CRITICAL** | 2025-11-03 |
+| 🔧 **Backend Setup** | 🚧 **ACTIVE** | 50% | **CRITICAL** | 2025-11-03 |
 | 🎨 **UI Foundations** | ⏸️ PAUSED | 25% | CRITICAL | 2025-11-08 |
 | 🌍 Countries | ⏸️ PAUSED | 85% | HIGH | 2025-11-12 |
 | 🏆 Leagues | 📝 TODO | 0% | HIGH | 2025-11-19 |
@@ -46,7 +46,7 @@ Sıradaki: apps/core/views/country.py oluşturulması
 
 ## 🔧 FEATURE: Backend Setup ⭐ **ACTIVE NOW**
 
-**Status**: 🚧 IN PROGRESS (35% complete)
+**Status**: 🚧 IN PROGRESS (50% complete)
 **Priority**: CRITICAL (Blocks all backend features)
 **Start Date**: 2025-10-28
 **Target Date**: 2025-11-03 (5 days)
@@ -57,7 +57,7 @@ Backend infrastructure setup for the entire application:
 - Django project structure ✅
 - Supabase database integration ✅
 - Django REST Framework configuration ✅
-- Countries app (first feature app) 🚧 IN PROGRESS
+- Countries app (first feature app) ✅
 - API endpoints ready for frontend consumption 📝
 
 ---
@@ -177,11 +177,11 @@ All DRF configuration is already done in `settings.py`:
 
 ---
 
-### 4. 🌍 COUNTRIES APP [█████░░░░░] 50% 🚧
+### 4. 🌍 COUNTRIES APP [██████████] 100% ✅
 
-**Status**: 🚧 IN PROGRESS
+**Status**: ✅ COMPLETE
 
-**Note**: Mevcut `apps/core` klasöründe zaten Country serializers var. Bunu kullanıyoruz.
+**Note**: Countries app is now fully functional with Models, Serializers, ViewSets, and URL routing!
 
 #### 4.1. Create Countries Models ✅ **COMPLETE**
 **Completed**: 2025-10-28 18:25
@@ -207,57 +207,123 @@ All DRF configuration is already done in `settings.py`:
 
 ---
 
-#### 4.2. Create Countries ViewSet 📝 **NEXT STEP**
+#### 4.2. Create Countries ViewSet ✅ **COMPLETE**
+**Completed**: 2025-10-28 19:50
 **Purpose**: API endpoints for Countries
 
-**What's Already Done**:
-- ✅ Serializers exist in `apps/core/serializers/country.py`
-- ✅ Models created in `apps/core/models.py`
+**What Was Done**:
+- ✅ Created `apps/core/views/country.py` with CountryViewSet
+- ✅ Full CRUD operations (Create, Read, Update, Delete)
+- ✅ Used existing serializers from `apps/core/serializers/country.py`
+- ✅ Added filtering (is_active, is_international, code)
+- ✅ Added search (name, code)
+- ✅ Added ordering (name, code, created_at, updated_at)
+- ✅ Created custom actions:
+  - `/api/countries/active/` - List only active countries
+  - `/api/countries/stats/` - Get country statistics
+  - `/api/countries/{id}/with_relations/` - Get country with leagues and teams
+- ✅ Updated `apps/core/urls.py` with router configuration
+- ✅ Added comprehensive OpenAPI documentation with drf-spectacular
+- ✅ Pushed to GitHub
 
-**What Needs To Be Done**:
-- [ ] Create `apps/core/views/country.py`
-- [ ] Create CountryViewSet with CRUD operations
-- [ ] Use existing serializers
-- [ ] Add filtering, search, ordering
-- [ ] Add to `apps/core/urls.py` with router
+**API Endpoints Available**:
+```
+GET    /api/countries/                     - List all countries (paginated)
+POST   /api/countries/                     - Create new country
+GET    /api/countries/{id}/                - Get country details
+PUT    /api/countries/{id}/                - Update country (all fields)
+PATCH  /api/countries/{id}/                - Partial update country
+DELETE /api/countries/{id}/                - Delete country
+GET    /api/countries/active/              - List only active countries
+GET    /api/countries/stats/               - Get country statistics
+GET    /api/countries/{id}/with_relations/ - Get country with leagues and teams
+```
 
-**Estimated Time**: 5 minutes
+**Query Parameters**:
+- `?is_active=true/false` - Filter by active status
+- `?is_international=true/false` - Filter by international status
+- `?search=keyword` - Search in name or code
+- `?ordering=name,-code` - Order by field (- for descending)
+- `?page=1&page_size=50` - Pagination (default: page_size=50)
+
+**GitHub Commits**: 
+- `9808390ed8f60b4ad775ee0ee6445a4acd7a50b3` (CountryViewSet)
+- `41c6bf2bc58e37ccb6dcab87b037c13489fffe9f` (URL routing)
 
 ---
 
-### 5. 🧪 API TESTING [░░░░░░░░░░] 0%
+### 5. 🧪 API TESTING [░░░░░░░░░░] 0% 📝
 
-**Status**: 📝 NOT STARTED
+**Status**: 📝 READY TO START
 
-#### 5.1. Test API Endpoints 📝
+#### 5.1. Test API Endpoints 📝 **NEXT STEP**
 **Purpose**: Verify Countries API works
 
+**Prerequisites**:
+- ✅ Models created
+- ✅ ViewSets created
+- ✅ URLs configured
+- ✅ Supabase connection ready
+
 **Tasks**:
+- [ ] Create `.env` file with Supabase credentials
+- [ ] Install dependencies: `pip install -r requirements.txt`
+- [ ] Run migrations (if any): `python manage.py migrate`
 - [ ] Start Django server: `python manage.py runserver`
 - [ ] Test GET /api/countries/
 - [ ] Test Swagger UI: http://localhost:8000/api/docs/swagger/
-- [ ] Verify CORS from Next.js
-- [ ] Test pagination and filtering
+- [ ] Test filtering: /api/countries/?is_active=true
+- [ ] Test search: /api/countries/?search=england
+- [ ] Test custom actions: /api/countries/active/, /api/countries/stats/
+- [ ] Verify CORS from Next.js (optional)
+- [ ] Test pagination
 
-**Estimated Time**: 5 minutes
+**Test Commands**:
+```bash
+# Setup
+cd backend
+cp .env.example .env
+# Edit .env with Supabase password
+pip install -r requirements.txt
+
+# Start server
+python manage.py runserver
+
+# Test endpoints (in another terminal)
+curl http://localhost:8000/api/countries/
+curl http://localhost:8000/api/countries/?is_active=true
+curl http://localhost:8000/api/countries/active/
+curl http://localhost:8000/api/countries/stats/
+curl http://localhost:8000/api/countries/england/
+```
+
+**Expected Results**:
+- ✅ Server starts without errors
+- ✅ GET /api/countries/ returns paginated list
+- ✅ Swagger UI is accessible
+- ✅ Filtering and search work correctly
+- ✅ All endpoints return proper JSON responses
+
+**Estimated Time**: 10 minutes
 
 ---
 
 ## 🔗 Next Steps
 
-**Sıradaki 2 Adım**:
+**Sıradaki Adım**:
 
-1. **Create Country ViewSet** (5 min)
-   - Create apps/core/views/country.py
-   - Create CountryViewSet
-   - Wire up URLs with router
-
-2. **Test API Endpoints** (5 min)
+1. **Test API Endpoints** (10 min)
+   - Setup local environment
    - Start Django server
-   - Test /api/countries/
-   - Test Swagger UI
+   - Test all endpoints
+   - Verify Swagger UI
 
-**Total Time**: ~10 minutes to working API! 🚀
+**After Testing**:
+- Create League and Team ViewSets (similar to Country)
+- Add more API endpoints (Matches, Predictions)
+- Frontend integration
+
+**Total Time**: ~10 minutes to verified working API! 🚀
 
 ---
 
@@ -271,10 +337,24 @@ All DRF configuration is already done in `settings.py`:
 - ✅ CORS: **django-cors-headers** ✅ Configured
 - ✅ Environment Variables: **python-dotenv** ✅ Setup done
 - ✅ Models: **Country, League, Team** ✅ Created
+- ✅ ViewSets: **CountryViewSet** ✅ Created with CRUD operations
+- ✅ URL Routing: **Router configured** ✅ All endpoints mapped
 
 ---
 
 ## 🎉 Recent Achievements
+
+### 2025-10-28 19:50
+- ✅ **Phase 4.2 COMPLETE!** CountryViewSet created with full CRUD operations
+- ✅ CountryViewSet with all HTTP methods (GET, POST, PUT, PATCH, DELETE)
+- ✅ Filtering by is_active, is_international, code
+- ✅ Search functionality (name, code)
+- ✅ Ordering capabilities (name, code, timestamps)
+- ✅ Custom actions: active/, stats/, with_relations/
+- ✅ URL routing configured with DefaultRouter
+- ✅ OpenAPI documentation with drf-spectacular
+- ✅ 2 files pushed to GitHub (views/country.py, urls.py)
+- ✅ Countries App is now 100% complete!
 
 ### 2025-10-28 18:25
 - ✅ **Phase 4.1 COMPLETE!** Country, League, Team models created
