@@ -1,0 +1,1 @@
+file content will be read from /home/claude/backend/apps/core/views/__init__.py

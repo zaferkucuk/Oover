@@ -1,0 +1,1 @@
+file content will be read from /home/claude/docs/COUNTRY_VIEWSET_GUIDE.md
