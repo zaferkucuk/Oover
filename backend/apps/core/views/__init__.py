@@ -1,1 +1,9 @@
-file content will be read from /home/claude/backend/apps/core/views/__init__.py
+"""
+Views module initialization
+
+Exports all ViewSets for easy importing in urls.py
+"""
+
+from .country import CountryViewSet
+
+__all__ = ['CountryViewSet']
