@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-29 22:15 UTC
+**Last Updated**: 2025-10-29 23:45 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -8,40 +8,43 @@
 
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
-**🎯 NEXT FEATURE**: Countries 🌍 **READY TO START!**
-**✅ LAST COMPLETED**: Leagues Feature - 100% COMPLETE! 🎉
-**📍 CURRENT STATUS**: Ready for next feature
+**🎯 ACTIVE FEATURE**: Teams ⚽ **Phase 1 COMPLETE!**
+**✅ LAST COMPLETED**: Teams Phase 1 - Database Layer
+**📍 CURRENT STATUS**: Database restructured, ready for Phase 2 (Backend)
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: Mark Leagues feature as 100% complete
+**🔗 Last Commit**: Teams Feature Phase 1 Complete
 
 **💬 Quick Start Message for Next Session**:
 ```
-🎉🎉🎉 LEAGUES FEATURE 100% COMPLETE! 🎉🎉🎉
+⚽ TEAMS FEATURE - PHASE 1 COMPLETE! ⚽
 
-✅ FULLY COMPLETED - ALL PHASES DONE!
-- ✅ Phase 1: Database Layer (100%)
-- ✅ Phase 2: Backend Layer (100%)
-- ✅ Phase 3: Frontend Data Layer (100%)
-- ✅ Phase 4: Frontend UI Layer (100%)
-  - ✅ 10 Components (including DataTable!)
-  - ✅ 4 Pages with routing
-- ✅ Phase 5: Documentation (SKIPPED per user request)
+✅ DATABASE LAYER DONE (100%)
+- ✅ Teams table restructured with new schema
+- ✅ Removed: league_id, shortName, venue, country (text)
+- ✅ Added: code, website, market_value, is_active
+- ✅ All columns now snake_case
+- ✅ country_id (UUID) kept for FK relationship
+- ✅ Performance indexes added
+- ✅ 6 teams in database
 
-✨ DATATABLE FEATURES:
-- Column sorting (click headers!)
-- Global search across all leagues
-- Column visibility toggle
-- Pagination with customizable page sizes
-- Beautiful shadcn/ui styling
-- TanStack Table v8 powered
+📊 NEW SCHEMA:
+- id (text PK)
+- code (3-letter team code)
+- name (team name)
+- external_id (API reference)
+- country_id (UUID FK → countries)
+- logo (team logo URL)
+- founded (year)
+- website (official site)
+- market_value (EUR value)
+- is_active (boolean)
+- created_at, updated_at (timestamps)
 
-📦 NEW DEPENDENCIES INSTALLED:
-- @tanstack/react-table@^8.20.5
-- @radix-ui/react-dropdown-menu@^2.1.2
-
-🎯 NEXT FEATURE: COUNTRIES 🌍
-Backend already exists, ready to start frontend!
-Estimated time: ~70 minutes (Backend 15min + Data Layer 10min + UI 45min)
+🎯 NEXT: Phase 2 - Backend Layer (~25 min)
+- Django Model
+- 4 Serializers
+- ViewSet (CRUD + filters)
+- URL Configuration
 ```
 
 ---
@@ -54,7 +57,7 @@ Estimated time: ~70 minutes (Backend 15min + Data Layer 10min + UI 45min)
 | 🔧 **Backend Setup** | ⏸️ | 95% | N/A | N/A | N/A | 90% | CRITICAL | 2025-11-03 |
 | 🏆 **Leagues** | ✅ | 100% ✅ | 100% ✅ | 100% ✅ | 100% ✅ | SKIP ⏭️ | HIGH | ✅ Done |
 | 🌍 **Countries** | 📝 | 50% | 0% | 0% | 0% | 0% | HIGH | 2025-11-12 |
-| ⚽ **Teams** | 📝 | 0% | 0% | 0% | 0% | 0% | MEDIUM | 2025-11-26 |
+| ⚽ **Teams** | 🔄 | 10% | 0% | 0% | 0% | 0% | MEDIUM | 2025-11-26 |
 | 🎯 **Matches** | 📝 | 0% | 0% | 0% | 0% | 0% | HIGH | 2025-12-03 |
 | 📊 **Predictions** | 📝 | 0% | 0% | 0% | 0% | 0% | HIGH | 2025-12-10 |
 
@@ -103,6 +106,166 @@ Feature Development Phases:
 ---
 
 # 📋 DETAILED FEATURE TRACKING
+
+---
+
+## ⚽ FEATURE: Teams 🔄 IN PROGRESS
+
+**Status**: 🔄 IN PROGRESS (Phase 1 Complete - 10%)
+**Priority**: MEDIUM
+**Start Date**: 2025-10-29
+**Target**: 2025-11-26
+**Estimated Time**: ~100 minutes
+
+### 🎯 OVERVIEW
+Football teams management system (e.g., Fenerbahçe, Manchester United). Teams are populated via external APIs (one-time load).
+
+**Key Features:**
+- 🎯 Team profiles with detailed information
+- 🎯 No direct league relationship (removed league_id)
+- 🎯 Country-based organization (UUID FK)
+- 🎯 Market value tracking
+- 🎯 Status management (active/inactive)
+
+---
+
+### 📊 DATABASE SCHEMA
+
+```sql
+teams:
+  -- PRIMARY KEY
+  id              text PRIMARY KEY
+  
+  -- CORE INFO (snake_case)
+  code            text                    -- 3-letter team code (MUN, BAR, FNB)
+  name            text NOT NULL
+  external_id     text                    -- External API reference
+  
+  -- RELATIONSHIPS
+  country_id      uuid (FK → countries.id) -- Country reference
+  
+  -- BRANDING & INFO
+  logo            text                    -- Team logo URL
+  founded         integer                 -- Foundation year
+  website         text                    -- Official website
+  market_value    bigint                  -- Team market value in EUR
+  
+  -- STATUS
+  is_active       boolean DEFAULT true
+  
+  -- TIMESTAMPS
+  created_at      timestamp DEFAULT CURRENT_TIMESTAMP
+  updated_at      timestamp
+
+-- INDEXES
+idx_teams_country_id    ON country_id
+idx_teams_code          ON code
+idx_teams_is_active     ON is_active
+idx_teams_external_id   ON external_id
+```
+
+**Data Status**: ✅ 6 teams (Arsenal, Man City, Liverpool, Chelsea, Man Utd, Tottenham)
+
+---
+
+### 🗂️ PHASES & TASKS
+
+### **Phase 1: Database Layer** [██████████] 100% ✅
+**Status**: ✅ COMPLETE | **Time**: 8 minutes | **Completed**: 2025-10-29 23:45
+
+✅ **Migration Applied**: `restructure_teams_table_v2`
+
+**Changes Made:**
+- ❌ Removed: `league_id`, `shortName`, `venue`, `country` (text)
+- ✅ Added: `code`, `website`, `market_value`, `is_active`
+- ✅ Renamed: `externalId` → `external_id`, `createdAt` → `created_at`, `updatedAt` → `updated_at`
+- ✅ Kept: `country_id` (UUID) for foreign key relationship
+- ✅ Indexes created for performance
+- ✅ Table comments added for documentation
+- ✅ Backup created: `teams_backup_20251029`
+
+**Technical Details:**
+- Dropped 2 foreign key constraints (league_id relations)
+- Dropped 4 columns
+- Renamed 3 columns to snake_case
+- Added 4 new columns
+- Created 4 performance indexes
+- 6 teams preserved during migration
+
+🔗 [GitHub Commit](https://github.com/zaferkucuk/Oover/commit/TBD)
+
+---
+
+### **Phase 2: Backend Layer** [░░░░░░░░░░] 0% ⏳
+**Status**: ⏳ TODO | **Estimated Time**: 25 minutes
+
+**Tasks:**
+1. ⏳ Django Model
+   - Update existing model with new schema
+   - Add new fields: code, website, market_value, is_active
+   - Remove: league_id field
+   - Update field names to snake_case
+
+2. ⏳ Serializers (4 types)
+   - TeamListSerializer (minimal fields for lists)
+   - TeamDetailSerializer (all fields + nested country)
+   - TeamCreateSerializer (validation rules)
+   - TeamUpdateSerializer (partial updates)
+
+3. ⏳ ViewSet
+   - Full CRUD operations
+   - Filters: country_id, is_active, market_value range
+   - Search: name, code
+   - Custom actions: by_country, top_by_market_value
+
+4. ⏳ URL Configuration
+   - Register ViewSet in router
+   - Configure custom action URLs
+
+---
+
+### **Phase 3: Frontend Data Layer** [░░░░░░░░░░] 0% ⏳
+**Status**: ⏳ TODO | **Estimated Time**: 15 minutes
+
+**Tasks:**
+1. ⏳ TypeScript Types
+   - Team interface
+   - TeamFormData DTO
+   - TeamFilters interface
+   - Response types
+
+2. ⏳ API Client Service
+   - 10+ methods (CRUD + custom queries)
+   - Error handling
+   - Type safety
+
+3. ⏳ TanStack Query Hooks
+   - 10+ hooks (queries + mutations)
+   - Optimistic updates
+   - Cache management
+
+---
+
+### **Phase 4: Frontend UI Layer** [░░░░░░░░░░] 0% ⏳
+**Status**: ⏳ TODO | **Estimated Time**: 40 minutes
+
+**4.1: UI Components** (25 min)
+- ⏳ TeamsList (with DataTable)
+- ⏳ TeamCard (compact view)
+- ⏳ TeamDetail (full display)
+- ⏳ TeamForm (create/edit)
+- ⏳ TeamFilters (search + filters)
+
+**4.2: Pages & Routes** (15 min)
+- ⏳ /admin/teams (list page)
+- ⏳ /admin/teams/[id] (detail page)
+- ⏳ /admin/teams/create (create page)
+- ⏳ /admin/teams/[id]/edit (edit page)
+
+---
+
+### **Phase 5: Documentation** [░░░░░░░░░░] 0% ⏸️
+**Status**: ⏸️ OPTIONAL (Can skip per user preference)
 
 ---
 
@@ -166,86 +329,6 @@ leagues:
 
 ---
 
-### 🗂️ PHASES & TASKS
-
-### **Phase 1: Database Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 3 minutes | **Completed**: 2025-10-29 11:35
-
-✅ Backup created (19 leagues)
-✅ Schema verified (already correct)
-✅ No migration needed
-
-🔗 [GitHub Commit](https://github.com/zaferkucuk/Oover/commit/a45f9481d9403bf30eb9f88aa3932a495e3e916e)
-
----
-
-### **Phase 2: Backend Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 10 minutes | **Completed**: 2025-10-29 12:35
-
-✅ Django Model (UUIDField, snake_case)
-✅ 4 Serializers (List, Detail, Create, Update)
-✅ ViewSet (CRUD + filters + search + custom actions)
-✅ URL configuration
-
-**API Endpoints:**
-- GET /api/v1/leagues/ (list)
-- GET /api/v1/leagues/{id}/ (detail)
-- POST /api/v1/leagues/ (create)
-- PATCH /api/v1/leagues/{id}/ (update)
-- DELETE /api/v1/leagues/{id}/ (delete)
-- GET /api/v1/leagues/active/ (custom)
-- GET /api/v1/leagues/by-country/{id}/ (custom)
-
-🔗 [Model Commit](https://github.com/zaferkucuk/Oover/commit/8526cc1ab45f20c35100dd0d3cd68d56beef6c6c)
-🔗 [Serializer Commit](https://github.com/zaferkucuk/Oover/commit/c21d68c3a3e9d605ab7c5fcff87e9174c03042fc)
-
----
-
-### **Phase 3: Frontend Data Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 4 minutes | **Completed**: 2025-10-29 17:00
-
-✅ TypeScript Types (Sport, League, DTOs)
-✅ API Client (9 methods)
-✅ TanStack Query Hooks (8 hooks: 5 query + 3 mutation)
-✅ Optimistic updates & cache management
-
-🔗 [Types Commit](https://github.com/zaferkucuk/Oover/commit/df06b3adb18e825cb95ca71f5271648a34ac591f)
-🔗 [API Client Commit](https://github.com/zaferkucuk/Oover/commit/90472d90e07ad4de52a5faf65f4377bc2f3f4149)
-
----
-
-### **Phase 4: Frontend UI Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 37 minutes | **Completed**: 2025-10-29 21:40
-
-**10 Components Created:**
-1. ✅ LeaguesListComponent (with DataTable)
-2. ✅ LeaguesColumns (sortable column definitions)
-3. ✅ DataTable (reusable TanStack Table wrapper)
-4. ✅ Table UI Components (semantic HTML)
-5. ✅ Input Component (search field)
-6. ✅ Dropdown Menu (column visibility & actions)
-7. ✅ LeagueCard (compact view)
-8. ✅ LeagueDetail (full display)
-9. ✅ LeagueForm (create/edit dual-mode)
-10. ✅ LeagueFilters (search & filters)
-
-**4 Pages Created:**
-1. ✅ /admin/leagues (list page with DataTable)
-2. ✅ /admin/leagues/[id] (detail page)
-3. ✅ /admin/leagues/create (create page)
-4. ✅ /admin/leagues/[id]/edit (edit page)
-
-🔗 [All Component Commits](https://github.com/zaferkucuk/Oover/commits/main/components/admin/leagues)
-🔗 [All Page Commits](https://github.com/zaferkucuk/Oover/commits/main/app/admin/leagues)
-
----
-
-### **Phase 5: Documentation** [⏭️ SKIPPED]
-**Status**: ⏭️ SKIPPED (per user request)
-**Reason**: User requested to skip documentation and mark feature as complete
-
----
-
 ## 🌍 FEATURE: Countries
 
 **Status**: 📝 TODO (Backend 50%, Frontend 0%)
@@ -287,48 +370,6 @@ leagues:
   - ⏳ /admin/countries/[id]/edit
 
 **Phase 5: Documentation** (OPTIONAL - can skip)
-
----
-
-## ⚽ FEATURE: Teams
-
-**Status**: 📝 TODO (0%)
-**Priority**: MEDIUM
-**Target**: 2025-11-26
-**Estimated Time**: ~100 minutes
-
-### 📋 Phases
-
-**Phase 1: Database Layer** (10 min)
-- Schema design
-- Migrations
-- Seed data
-
-**Phase 2: Backend Layer** (25 min)
-- Django Model
-- Serializers (4 types)
-- ViewSet (CRUD + filters)
-- URLs
-
-**Phase 3: Frontend Data Layer** (15 min)
-- TypeScript Types
-- API Client (10+ methods)
-- TanStack Query Hooks (10+ hooks)
-
-**Phase 4: Frontend UI Layer** (40 min)
-- 4.1: Components (25 min)
-  - TeamsList (with DataTable, roster view)
-  - TeamCard
-  - TeamDetail (with players)
-  - TeamForm
-  - TeamFilters (by league)
-- 4.2: Pages (15 min)
-  - /admin/teams
-  - /admin/teams/[id]
-  - /admin/teams/create
-  - /admin/teams/[id]/edit
-
-**Phase 5: Documentation** (OPTIONAL)
 
 ---
 
@@ -421,6 +462,18 @@ leagues:
 
 ## 🎉 Recent Achievements
 
+### 2025-10-29 23:45 ⚽ **TEAMS PHASE 1 COMPLETE!**
+- ⚽ **TEAMS DATABASE LAYER DONE!**
+- ✅ Teams table restructured successfully
+- ✅ Removed league_id (no direct league relationship)
+- ✅ Added new fields: code, website, market_value, is_active
+- ✅ All columns now snake_case
+- ✅ Performance indexes created
+- ✅ 6 teams preserved during migration
+- ✅ Backup created for safety
+- 🔗 [Migration Commit](https://github.com/zaferkucuk/Oover/commit/TBD)
+- 🎯 **Next: Phase 2 - Backend Layer!**
+
 ### 2025-10-29 22:15 🎉🎉🎉 **LEAGUES FEATURE 100% COMPLETE!**
 - 🏆 **LEAGUES FEATURE COMPLETED!**
 - ✅ All 5 phases complete (documentation skipped)
@@ -430,100 +483,31 @@ leagues:
 - ✅ DataTable with advanced features
 - 🎯 **Ready for next feature: Countries!**
 
-### 2025-10-29 21:40 ✨
-- ✨ **DATATABLE INTEGRATION COMPLETE!**
-- ✨ **5 NEW UI COMPONENTS!**
-  - DataTable (TanStack Table wrapper) ✅
-  - Table (semantic HTML components) ✅
-  - Input (search field) ✅
-  - Dropdown Menu (Radix UI) ✅
-  - Leagues Columns (sortable definitions) ✅
-- ✨ **LEAGUES LIST UPGRADED!**
-  - Sortable columns (click to sort) ✅
-  - Global search ✅
-  - Column visibility toggle ✅
-  - Better pagination ✅
-  - Action dropdown menu ✅
-- 📦 **NEW DEPENDENCIES ADDED!**
-  - @tanstack/react-table@^8.20.5 ✅
-  - @radix-ui/react-dropdown-menu@^2.1.2 ✅
-- 🔗 **6 GitHub Commits**
-- ✅ **Leagues Progress Updated**: 95% → 98%
-
-### 2025-10-29 18:40 🛠️
-- ✅ **BUILD ERROR FIXED!**
-- ✅ Changed `leagueId` prop to `id` in `LeagueDetail` component
-- ✅ TypeScript compilation successful
-- ✅ `npm run build` now works perfectly
-- ✅ Code is production-ready
-- 🔗 [Fix Commit fbb78b6](https://github.com/zaferkucuk/Oover/commit/fbb78b60f1a0e274bd9762223359d87c111d016b)
-
-### 2025-10-29 18:15 🎊
-- ✅ **PHASE 4.2 COMPLETE!** League Pages & Routes
-- ✅ **4 PAGES CREATED IN 12 MINUTES!**
-  - /admin/leagues (list page) ✅
-  - /admin/leagues/[id] (detail page) ✅
-  - /admin/leagues/create (create page) ✅
-  - /admin/leagues/[id]/edit (edit page) ✅
-- ✅ **All GitHub commits successful**
-- ✅ **Perfect Next.js App Router structure**
-- ✅ **SEO metadata on all pages**
-- ✅ **Breadcrumb navigation complete**
-- ✅ **Leagues Progress Updated**: 80% → 95%
-
-### 2025-10-29 18:05 🎊
-- ✅ **PHASE 4.1 COMPLETE!** League UI Components
-- ✅ **5 Components Created**
-  - LeaguesListComponent (table view) ✅
-  - LeagueCard (card view + skeleton) ✅
-  - LeagueDetail (comprehensive display) ✅
-  - LeagueForm (dual-mode form) ✅
-  - LeagueFilters (search + filters) ✅
-- ✅ **All GitHub commits successful**
-- ✅ **Leagues Progress Updated**: 60% → 80%
-
-### 2025-10-29 17:00 🎊
-- ✅ **PHASE 3 COMPLETE!** Frontend Data Layer
-- ✅ **use-leagues.ts verified** (8 hooks)
-- ✅ Optimistic updates working
-- ✅ Cache management implemented
-
-### 2025-10-29 12:35 🎊
-- ✅ **PHASE 2 COMPLETE!** Backend Layer
-- ✅ ViewSet with full CRUD
-- ✅ 4 Serializers
-- ✅ Custom actions
-
-### 2025-10-29 11:35 🏆
-- ✅ **PHASE 1 COMPLETE!** Database Layer
-- ✅ 19 leagues verified
-- ✅ Schema perfect
-
 ---
 
 ## 📈 NEXT STEPS
 
-### Immediate (Ready to Start!)
-1. **Start Countries Feature** 🌍
-   - Phase 2: Backend (Serializers + ViewSet + URLs) ~15 min
-   - Phase 3: Frontend Data Layer ~10 min
-   - Phase 4: Frontend UI (Components + Pages) ~35 min
-   - **Total**: ~60 minutes
+### Immediate (Next Task!)
+1. **Teams Phase 2: Backend Layer** ⚽ (~25 min)
+   - Update Django Model with new schema
+   - Create 4 Serializers
+   - Build ViewSet with CRUD + filters
+   - Configure URLs
 
 ### Short Term (This Week)
-2. Complete Countries feature
-3. Start Teams feature
+2. Complete Teams Phase 3 (Frontend Data Layer)
+3. Complete Teams Phase 4 (Frontend UI)
+4. Teams Feature 100% COMPLETE!
 
 ### Medium Term (Next 2 Weeks)
-4. Complete Teams feature
-5. Start Matches feature
-6. Complete Matches feature
+5. Start Countries feature
+6. Complete Countries feature
+7. Start Matches feature
 
 ### Long Term (Next Month)
-7. Start Predictions feature
-8. Complete Predictions feature
-9. Testing & refinement
-10. Production deployment
+8. Complete Matches feature
+9. Start Predictions feature
+10. Complete Predictions feature
 
 ---
 
