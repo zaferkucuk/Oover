@@ -76,7 +76,7 @@ export const queryKeys = {
       [...queryKeys.leagues.lists(), { countryId }] as const,
   },
 
-  // Teams (future)
+  // Teams
   teams: {
     all: ['teams'] as const,
     lists: () => [...queryKeys.teams.all, 'list'] as const,
@@ -84,8 +84,8 @@ export const queryKeys = {
       [...queryKeys.teams.lists(), filters] as const,
     details: () => [...queryKeys.teams.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.teams.details(), id] as const,
-    byLeague: (leagueId: string) => 
-      [...queryKeys.teams.lists(), { leagueId }] as const,
+    byCountry: (countryId: string) => 
+      [...queryKeys.teams.lists(), { countryId }] as const,
   },
 
   // Matches (future)
