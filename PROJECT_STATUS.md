@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-29 11:42 UTC
+**Last Updated**: 2025-10-29 12:17 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -10,35 +10,34 @@
 
 **🎯 ACTIVE FEATURE**: Leagues 🏆 **IN PROGRESS**
 **📍 CURRENT LAYER**: Backend Layer (Django Integration)
-**🚧 ACTIVE TASK**: Phase 3.1 - Create Django League Model
-**✅ LAST COMPLETED**: Phase 2 - Seed Data Verification ✅
-**📝 NEXT TASK**: Create Django League model with snake_case fields
+**🚧 ACTIVE TASK**: Phase 3.2 - Create League Serializer
+**✅ LAST COMPLETED**: Phase 3.1 - Django League Model (UUIDField) ✅
+**📝 NEXT TASK**: Create LeagueSerializer with nested data
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: docs: Add Leagues data quality report (Phase 2.1)
+**🔗 Last Commit**: refactor: Update League model id field to UUIDField
 
 **💬 Quick Start Message for Next Session**:
 ```
-🏆🏆 LEAGUES FEATURE - PHASE 2 COMPLETE! 🏆🏆
+🏆🏆 LEAGUES FEATURE - PHASE 3.1 COMPLETE! 🏆🏆
 
-✅ PHASES 1 & 2 DONE:
+✅ PHASES 1, 2 & 3.1 DONE:
 - Phase 1: Database backup + schema verification ✅
 - Phase 2: Seed data verification + quality report ✅
+- Phase 3.1: Django League model (UUIDField) ✅
 
-📊 DATA QUALITY: EXCELLENT (⭐⭐⭐⭐⭐)
-- 19 leagues: 100% valid ✅
-- 10 countries: 100% coverage ✅
-- All foreign keys: Valid ✅
-- Data completeness: 95% (logo missing)
-- Quality report: Created & pushed ✅
+✅ LEAGUE MODEL UPDATED:
+- id field: TextField → UUIDField ✅
+- Matches database schema exactly ✅
+- Consistent with Country model ✅
+- All foreign keys correct (snake_case) ✅
 
-🎯 NEXT: Phase 3 - Django Backend
-- Create League model (snake_case)
-- Create serializer with nested data
-- Create ViewSet (CRUD endpoints)
-- Test API integration
+🎯 NEXT: Phase 3.2 - League Serializer
+- Create LeagueSerializer
+- Add nested country/sport data
+- Include all fields with proper validation
 
-⏱️ REMAINING TIME: ~25 minutes (3 phases left)
+⏱️ REMAINING TIME: ~22 minutes (3 phases left)
 ```
 
 ---
@@ -50,7 +49,7 @@
 | 🎨 **UI Foundations** | ✅ **COMPLETE!** | 100% | **CRITICAL** | 2025-11-08 |
 | 🔧 **Backend Setup** | ⏸️ PAUSED | 95% | CRITICAL | 2025-11-03 |
 | 🌍 Countries | 📝 TODO | 0% | HIGH | 2025-11-12 |
-| 🏆 **Leagues** | 🚧 **IN PROGRESS** | 40% | **HIGH** | 2025-11-19 |
+| 🏆 **Leagues** | 🚧 **IN PROGRESS** | 45% | **HIGH** | 2025-11-19 |
 | ⚽ Teams | 📝 TODO | 0% | MEDIUM | 2025-11-26 |
 | 🎯 Matches | 📝 TODO | 0% | HIGH | 2025-12-03 |
 | 📊 Predictions | 📝 TODO | 0% | HIGH | 2025-12-10 |
@@ -63,10 +62,10 @@
 
 ## 🏆 FEATURE: Leagues 🚧 **IN PROGRESS**
 
-**Status**: 🚧 IN PROGRESS (Phase 2 Complete - Moving to Phase 3)
+**Status**: 🚧 IN PROGRESS (Phase 3.1 Complete - Moving to 3.2)
 **Priority**: HIGH (Critical for matches and predictions)
 **Start Date**: 2025-10-29
-**Estimated Completion**: 2025-10-29 (~25 minutes remaining)
+**Estimated Completion**: 2025-10-29 (~22 minutes remaining)
 **Assignee**: Self
 
 ### 🎯 OVERVIEW
@@ -74,6 +73,7 @@ Complete leagues management system with:
 - ✅ Database schema backup (COMPLETE)
 - ✅ Schema already correct (snake_case, no deprecated fields)
 - ✅ Seed data verified (EXCELLENT quality)
+- ✅ Django League Model (UUIDField)
 - ⏳ Django REST API with full CRUD
 - 📝 Frontend TypeScript integration
 - 📝 Comprehensive documentation
@@ -81,13 +81,18 @@ Complete leagues management system with:
 ### 📋 KEY DECISIONS MADE
 
 #### 1️⃣ Naming Convention: **snake_case** (FINAL) ✅
-**Status**: ✅ VERIFIED IN DATABASE
+**Status**: ✅ VERIFIED IN DATABASE & MODEL
 
 #### 2️⃣ Season Field: **REMOVED** (FINAL) ✅
 **Status**: ✅ VERIFIED - Not in database
 
 #### 3️⃣ Country Field: **REMOVED** (FINAL) ✅
 **Status**: ✅ VERIFIED - Using country_id
+
+#### 4️⃣ ID Field Type: **UUIDField** (FINAL) ✅
+**Status**: ✅ UPDATED - Consistent with Country model
+**Date**: 2025-10-29 12:17
+**Reason**: Best practice, matches database schema exactly
 
 ---
 
@@ -188,51 +193,82 @@ leagues:
 
 ---
 
-### **Phase 3: Django Backend** [░░░░░░░░░░] 0%
+### **Phase 3: Django Backend** [███░░░░░░░] 25%
 
-**Status**: ⏳ **NEXT PHASE**
+**Status**: 🚧 **IN PROGRESS**
 **Estimated Time**: 15 minutes
 **Purpose**: Create Django model, serializer, ViewSet, and API endpoints
 
-#### 3.1. Create Django League Model ⏳ **NEXT TASK**
-**Status**: 📝 TODO
-**Time**: 4 minutes
+#### 3.1. Create Django League Model ✅ **COMPLETE!**
+**Status**: ✅ COMPLETE!
+**Completed**: 2025-10-29 12:17
+**Time**: 2 minutes
 
 **File**: `backend/apps/core/models.py`
 
-**What To Do:**
+**What Was Done:**
+- ✅ Updated id field from TextField to UUIDField
+- ✅ Aligned with Country model (best practice)
+- ✅ Updated docstring to reflect UUID type
+- ✅ Maintained all snake_case foreign keys
+- ✅ Verified all fields match database schema
+
+**Model Structure:**
 ```python
 class League(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    sport_id = models.ForeignKey(Sport, on_delete=models.CASCADE, db_column='sport_id')
-    external_id = models.CharField(max_length=255, blank=True, null=True)
-    name = models.CharField(max_length=255)
-    country_id = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True, db_column='country_id')
-    logo = models.URLField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)  ✅
+    name = models.TextField()
+    sport = models.ForeignKey(Sport, db_column='sport_id')  ✅
+    country = models.ForeignKey(Country, db_column='country_id')  ✅
+    logo = models.TextField(null=True, blank=True)
+    external_id = models.TextField(null=True, blank=True)  ✅
+    is_active = models.BooleanField(default=True)  ✅
+    created_at = models.DateTimeField(default=timezone.now)  ✅
+    updated_at = models.DateTimeField(null=True, blank=True)  ✅
     
     class Meta:
-        db_table = 'leagues'
-        ordering = ['name']
-        
-    def __str__(self):
-        return self.name
+        db_table = 'leagues'  ✅
+        managed = False  ✅
+        ordering = ['name']  ✅
 ```
+
+**GitHub Commit**:
+🔗 [refactor: Update League model id field to UUIDField](https://github.com/zaferkucuk/Oover/commit/8526cc1ab45f20c35100dd0d3cd68d56beef6c6c)
 
 **Success Criteria:**
 - ✅ Model uses snake_case
 - ✅ Foreign keys properly defined
 - ✅ Matches database schema exactly
+- ✅ UUIDField for id (consistent)
 
 ---
 
-#### 3.2. Create Serializer 📝
+#### 3.2. Create Serializer ⏳ **NEXT TASK**
 **Status**: 📝 TODO
 **Time**: 3 minutes
 
-**File**: `backend/apps/core/serializers.py`
+**File**: `backend/apps/core/serializers/league_serializer.py`
+
+**What To Do:**
+```python
+from rest_framework import serializers
+from apps.core.models import League, Country, Sport
+
+class LeagueSerializer(serializers.ModelSerializer):
+    country_name = serializers.CharField(source='country.name', read_only=True)
+    country_flag = serializers.CharField(source='country.flag', read_only=True)
+    sport_name = serializers.CharField(source='sport.name', read_only=True)
+    
+    class Meta:
+        model = League
+        fields = [
+            'id', 'name', 'logo', 'external_id', 'is_active',
+            'sport', 'sport_name',
+            'country', 'country_name', 'country_flag',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+```
 
 **Success Criteria:**
 - ✅ LeagueSerializer created
@@ -245,7 +281,7 @@ class League(models.Model):
 **Status**: 📝 TODO
 **Time**: 5 minutes
 
-**File**: `backend/apps/core/views.py`
+**File**: `backend/apps/core/views/league_views.py`
 
 **Features:**
 - GET /api/leagues/ (list with filters)
@@ -290,6 +326,17 @@ class League(models.Model):
 ---
 
 ## 🎉 Recent Achievements
+
+### 2025-10-29 12:17 🔧
+- ✅ **Phase 3.1 COMPLETE!** Django League Model Updated
+- ✅ **UUIDField Implementation!**
+  - id field: TextField → UUIDField ✅
+  - Consistent with Country model ✅
+  - Best practice alignment ✅
+  - Database schema match: Perfect ✅
+- ✅ **Phase 3 started!** (25% complete)
+- ✅ Model pushed to GitHub
+- ✅ PROJECT_STATUS.md updated
 
 ### 2025-10-29 11:42 📊
 - ✅ **Phase 2 COMPLETE!** Seed Data Verification
