@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { StoresDemo } from "@/components/stores-demo"
 import { useCountries } from "@/hooks/api/use-countries"
 
 export default function Home() {
@@ -22,7 +23,7 @@ export default function Home() {
               🚀 Oover Frontend Setup Complete!
             </h1>
             <p className="text-muted-foreground">
-              TanStack Query + Dark Mode + shadcn/ui working perfectly!
+              TanStack Query + Dark Mode + Zustand + shadcn/ui working perfectly!
             </p>
           </div>
           <ThemeToggle />
@@ -35,12 +36,22 @@ export default function Home() {
             <li>✅ shadcn/ui components (20 components)</li>
             <li>✅ TanStack Query installed & configured</li>
             <li>✅ Dark Mode working (next-themes)</li>
+            <li>✅ Zustand stores (Sidebar, Filter, Modal)</li>
             <li>✅ Unified Providers (Query + Theme)</li>
             <li>✅ QueryClient configured (1 min stale, 5 min cache)</li>
             <li>✅ useCountries hook created</li>
             <li>✅ React Query DevTools enabled</li>
           </ul>
         </Card>
+
+        {/* Zustand Stores Demo */}
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold">🎯 Zustand Stores Demo</h2>
+          <p className="text-sm text-muted-foreground">
+            Test all three Zustand stores: Sidebar (UI state), Filter (search/sort/pagination), and Modal (dialog management).
+          </p>
+          <StoresDemo />
+        </div>
 
         {/* Dark Mode Demo */}
         <Card className="p-6 space-y-4">
@@ -164,8 +175,8 @@ export default function Home() {
           <ul className="space-y-2 text-sm">
             <li>✅ <strong>State Management</strong>: TanStack Query is ready!</li>
             <li>✅ <strong>Dark Mode</strong>: Theme switching working!</li>
-            <li>📝 <strong>Next Task</strong>: Zustand Stores (Client State)</li>
-            <li>📝 <strong>Then</strong>: API Client Architecture</li>
+            <li>✅ <strong>Zustand Stores</strong>: Client state management ready!</li>
+            <li>📝 <strong>Next Task</strong>: API Client Architecture</li>
             <li>📝 <strong>Then</strong>: Layout Structure (Dashboard)</li>
             <li>📝 <strong>Then</strong>: More UI Components</li>
           </ul>
