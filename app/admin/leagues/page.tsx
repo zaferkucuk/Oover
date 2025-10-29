@@ -12,21 +12,16 @@
  * - View/Edit/Delete actions
  */
 
-import { Suspense } from 'react';
+'use client'
+
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LeaguesListComponent } from '@/components/admin/leagues/leagues-list';
 import { LeagueFilters } from '@/components/admin/leagues/league-filters';
 import { Skeleton } from '@/components/ui/skeleton';
-
-/**
- * Metadata for SEO
- */
-export const metadata = {
-  title: 'Leagues Management | Oover Admin',
-  description: 'Manage football leagues - view, create, edit, and delete league information',
-};
+import type { LeagueQueryParams } from '@/types/models';
 
 /**
  * Loading skeleton for the page
@@ -63,6 +58,23 @@ function LeaguesPageSkeleton() {
  * Main Leagues List Page Component
  */
 export default function LeaguesPage() {
+  // Filter state management
+  const [queryParams, setQueryParams] = useState<LeagueQueryParams>({
+    page: 1,
+    limit: 10,
+  });
+
+  /**
+   * Handle filter changes
+   */
+  const handleFilterChange = (newParams: Partial<LeagueQueryParams>) => {
+    setQueryParams((prev) => ({
+      ...prev,
+      ...newParams,
+      page: 1, // Reset to first page when filters change
+    }));
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       {/* Page Header */}
@@ -102,7 +114,10 @@ export default function LeaguesPage() {
           {/* Filters Section */}
           <div className="bg-card rounded-lg border p-4">
             <h2 className="text-lg font-semibold mb-4">Filters</h2>
-            <LeagueFilters />
+            <LeagueFilters 
+              params={queryParams}
+              onFilterChange={handleFilterChange}
+            />
           </div>
 
           {/* Leagues Table */}
