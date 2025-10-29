@@ -141,8 +141,8 @@ export default function EditLeaguePage({ params }: EditLeaguePageProps) {
             </ul>
           </div>
 
-          {/* League Form (Pre-filled) */}
-          <LeagueForm mode="edit" leagueId={id} />
+          {/* League Form (Pre-filled) - FIXED: Changed leagueId to id */}
+          <LeagueForm mode="edit" id={id} />
 
           {/* Action Buttons */}
           <div className="mt-6 pt-6 border-t flex gap-3">
