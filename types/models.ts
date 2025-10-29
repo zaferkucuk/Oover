@@ -3,6 +3,9 @@
  * 
  * Type definitions for API responses and requests.
  * These match the Django REST Framework serializers.
+ * 
+ * Last Updated: 2025-10-29
+ * Backend Compatibility: Django REST Framework + Supabase
  */
 
 /**
@@ -29,6 +32,29 @@ export interface PaginatedResponse<T> {
 }
 
 /**
+ * Sport Model
+ * 
+ * Represents a sport type (e.g., Football, Basketball)
+ */
+export interface Sport extends BaseModel {
+  name: string
+  slug: string
+  icon: string | null
+}
+
+/**
+ * Sport Details (Nested in serializers)
+ * 
+ * Lightweight sport info included in nested responses
+ */
+export interface SportDetails {
+  id: string
+  name: string
+  slug: string
+  icon: string | null
+}
+
+/**
  * Country Model
  * 
  * Represents a country entity
@@ -36,22 +62,55 @@ export interface PaginatedResponse<T> {
 export interface Country extends BaseModel {
   name: string
   code: string
+  flag: string | null
   flag_url: string | null
   is_active: boolean
 }
 
 /**
- * League Model
+ * Country Details (Nested in serializers)
  * 
- * Represents a football league entity
+ * Lightweight country info included in nested responses
+ */
+export interface CountryDetails {
+  id: string
+  name: string
+  code: string
+  flag: string | null
+  flag_url: string | null
+}
+
+/**
+ * League List Item
+ * 
+ * Lightweight league data for list views (GET /api/v1/leagues/)
+ * Matches LeagueListSerializer
+ */
+export interface LeagueListItem {
+  id: string
+  name: string
+  country_name: string
+  country_code: string | null
+  sport_name: string
+  logo: string | null
+  external_id: string | null
+  is_active: boolean
+}
+
+/**
+ * League Detail
+ * 
+ * Comprehensive league data for detail views (GET /api/v1/leagues/{id}/)
+ * Matches LeagueDetailSerializer
  */
 export interface League extends BaseModel {
   name: string
-  country_id: string
-  country_name?: string // Populated by serializer
-  season: string
-  logo_url: string | null
-  type: 'league' | 'cup'
+  country: string | null // UUID of the country
+  country_details: CountryDetails | null // Nested country object
+  sport: string // UUID of the sport (required)
+  sport_details: SportDetails // Nested sport object
+  logo: string | null
+  external_id: string | null // API reference ID (e.g., API-Football league ID)
   is_active: boolean
 }
 
@@ -144,12 +203,14 @@ export interface CountryQueryParams extends QueryParams {
 
 /**
  * League Query Parameters
+ * 
+ * Used for filtering leagues in GET /api/v1/leagues/
+ * Matches Django LeagueViewSet filterset_fields
  */
 export interface LeagueQueryParams extends QueryParams {
-  country?: string
-  season?: string
-  type?: 'league' | 'cup'
-  is_active?: boolean
+  country?: string // Filter by country UUID
+  sport?: string // Filter by sport UUID
+  is_active?: boolean // Filter by active status
 }
 
 /**
@@ -193,16 +254,36 @@ export interface CreateCountryDto {
 
 export interface UpdateCountryDto extends Partial<CreateCountryDto> {}
 
+/**
+ * Create League DTO
+ * 
+ * Used for POST /api/v1/leagues/
+ * Matches LeagueCreateSerializer
+ */
 export interface CreateLeagueDto {
-  name: string
-  country_id: string
-  season: string
-  logo_url?: string | null
-  type: 'league' | 'cup'
-  is_active?: boolean
+  name: string // Required: League name (min 2 chars)
+  sport: string // Required: Sport UUID
+  country?: string | null // Optional: Country UUID
+  logo?: string | null // Optional: Logo URL
+  external_id?: string | null // Optional: External API reference ID
+  is_active?: boolean // Optional: Active status (default: true)
 }
 
-export interface UpdateLeagueDto extends Partial<CreateLeagueDto> {}
+/**
+ * Update League DTO
+ * 
+ * Used for PUT/PATCH /api/v1/leagues/{id}/
+ * Matches LeagueUpdateSerializer
+ * 
+ * Note: sport field is immutable after creation
+ */
+export interface UpdateLeagueDto {
+  name?: string // Optional: League name (min 2 chars if provided)
+  country?: string | null // Optional: Country UUID (can be changed)
+  logo?: string | null // Optional: Logo URL
+  external_id?: string | null // Optional: External API reference ID
+  is_active?: boolean // Optional: Active status
+}
 
 export interface CreateTeamDto {
   name: string
