@@ -14,7 +14,7 @@ import type {
  * Type-safe service layer for Leagues API endpoints.
  * All methods are async and return Promises.
  * 
- * Base URL: /api/v1/leagues/
+ * Base URL: /api/leagues/
  * 
  * Backend Features:
  * - Full CRUD operations (List, Detail, Create, Update, Delete)
@@ -86,7 +86,7 @@ export const leaguesService = {
    * ```
    */
   getAll: async (params?: LeagueQueryParams): Promise<PaginatedResponse<LeagueListItem>> => {
-    return api.get<PaginatedResponse<LeagueListItem>>('/api/v1/leagues/', { params })
+    return api.get<PaginatedResponse<LeagueListItem>>('/api/leagues/', { params })
   },
 
   /**
@@ -112,7 +112,7 @@ export const leaguesService = {
    * ```
    */
   getById: async (id: string): Promise<League> => {
-    return api.get<League>(`/api/v1/leagues/${id}/`)
+    return api.get<League>(`/api/leagues/${id}/`)
   },
 
   /**
@@ -152,7 +152,7 @@ export const leaguesService = {
    * @throws {ValidationError} If name too short, duplicate name/external_id, invalid sport/country UUID
    */
   create: async (data: CreateLeagueDto): Promise<League> => {
-    return api.post<League>('/api/v1/leagues/', data)
+    return api.post<League>('/api/leagues/', data)
   },
 
   /**
@@ -181,7 +181,7 @@ export const leaguesService = {
    * ```
    */
   update: async (id: string, data: UpdateLeagueDto): Promise<League> => {
-    return api.put<League>(`/api/v1/leagues/${id}/`, data)
+    return api.put<League>(`/api/leagues/${id}/`, data)
   },
 
   /**
@@ -227,7 +227,7 @@ export const leaguesService = {
    * ```
    */
   patch: async (id: string, data: Partial<UpdateLeagueDto>): Promise<League> => {
-    return api.patch<League>(`/api/v1/leagues/${id}/`, data)
+    return api.patch<League>(`/api/leagues/${id}/`, data)
   },
 
   /**
@@ -250,7 +250,7 @@ export const leaguesService = {
    * ```
    */
   delete: async (id: string): Promise<void> => {
-    return api.delete<void>(`/api/v1/leagues/${id}/`)
+    return api.delete<void>(`/api/leagues/${id}/`)
   },
 
   /**
@@ -276,10 +276,10 @@ export const leaguesService = {
    * }))
    * ```
    * 
-   * @see Backend: GET /api/v1/leagues/active/
+   * @see Backend: GET /api/leagues/active/
    */
   getActive: async (): Promise<LeagueListItem[]> => {
-    const response = await api.get<LeagueListItem[]>('/api/v1/leagues/active/')
+    const response = await api.get<LeagueListItem[]>('/api/leagues/active/')
     return response
   },
 
@@ -307,10 +307,10 @@ export const leaguesService = {
    * })
    * ```
    * 
-   * @see Backend: GET /api/v1/leagues/by-country/{country_id}/
+   * @see Backend: GET /api/leagues/by-country/{country_id}/
    */
   getByCountry: async (countryId: string): Promise<LeagueListItem[]> => {
-    const response = await api.get<LeagueListItem[]>(`/api/v1/leagues/by-country/${countryId}/`)
+    const response = await api.get<LeagueListItem[]>(`/api/leagues/by-country/${countryId}/`)
     return response
   },
 
@@ -346,10 +346,10 @@ export const leaguesService = {
    * console.log(results.results) // League objects
    * ```
    * 
-   * @see Backend: GET /api/v1/leagues/?search={query}
+   * @see Backend: GET /api/leagues/?search={query}
    */
   search: async (query: string): Promise<PaginatedResponse<LeagueListItem>> => {
-    return api.get<PaginatedResponse<LeagueListItem>>('/api/v1/leagues/', {
+    return api.get<PaginatedResponse<LeagueListItem>>('/api/leagues/', {
       params: { search: query }
     })
   },
