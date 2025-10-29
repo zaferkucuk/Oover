@@ -79,9 +79,9 @@ function SidebarContent() {
  * Desktop sidebar
  */
 function DesktopSidebar() {
-  const { isOpen } = useSidebarStore();
+  const { isCollapsed } = useSidebarStore();
 
-  if (!isOpen) return null;
+  if (isCollapsed) return null;
 
   return (
     <aside className="hidden w-64 border-r bg-background md:block">
@@ -94,10 +94,10 @@ function DesktopSidebar() {
  * Mobile sidebar (Sheet)
  */
 function MobileSidebar() {
-  const { isOpen, setIsOpen } = useSidebarStore();
+  const { isCollapsed, setCollapsed } = useSidebarStore();
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={!isCollapsed} onOpenChange={(open) => setCollapsed(!open)}>
       <SheetContent side="left" className="w-64 p-0">
         <SidebarContent />
       </SheetContent>
