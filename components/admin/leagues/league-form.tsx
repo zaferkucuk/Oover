@@ -73,8 +73,8 @@ export function LeagueForm({ mode, id }: LeagueFormProps) {
     if (mode === 'edit' && league) {
       setFormData({
         name: league.name,
-        sport: league.sport_id,
-        country: league.country_id || '',
+        sport: league.sport,
+        country: league.country || '',
         external_id: league.external_id || '',
         logo: league.logo || '',
         is_active: league.is_active,
