@@ -1,74 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/react-query/client'
-
-/**
- * Country type definition
- * Matches the backend API response structure
- */
-export interface Country {
-  id: number
-  name: string
-  code: string
-  flag_url?: string
-  created_at: string
-  updated_at: string
-}
-
-/**
- * API response type for countries list
- */
-interface CountriesResponse {
-  count: number
-  next: string | null
-  previous: string | null
-  results: Country[]
-}
-
-/**
- * Fetch countries from Django backend
- * 
- * @param params - Query parameters (page, page_size, search, ordering)
- * @returns Promise with countries data
- */
-async function fetchCountries(params?: {
-  page?: number
-  page_size?: number
-  search?: string
-  ordering?: string
-}): Promise<CountriesResponse> {
-  // TODO: Replace with actual backend URL from environment variable
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  
-  // Build query string
-  const queryParams = new URLSearchParams()
-  if (params?.page) queryParams.append('page', params.page.toString())
-  if (params?.page_size) queryParams.append('page_size', params.page_size.toString())
-  if (params?.search) queryParams.append('search', params.search)
-  if (params?.ordering) queryParams.append('ordering', params.ordering)
-  
-  const url = `${baseUrl}/api/countries/?${queryParams.toString()}`
-  
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch countries: ${response.statusText}`)
-  }
-
-  return response.json()
-}
+import { countriesService } from '@/services/countries.service'
+import type { CountryQueryParams } from '@/types/models'
 
 /**
  * React Query hook for fetching countries list
+ * 
+ * Uses the Countries API service with Axios and automatic error handling.
  * 
  * Features:
  * - Automatic caching (5 minutes)
  * - Loading and error states
  * - Automatic refetching on network reconnect
- * - Type-safe data
+ * - Type-safe data (from TypeScript models)
+ * - Request/Response interceptors (auth, error handling)
  * 
  * @param params - Query parameters for filtering/pagination
  * @returns Query result with countries data and states
@@ -76,7 +21,7 @@ async function fetchCountries(params?: {
  * @example
  * ```tsx
  * function CountriesList() {
- *   const { data, isLoading, error } = useCountries()
+ *   const { data, isLoading, error } = useCountries({ page: 1, page_size: 20 })
  *   
  *   if (isLoading) return <div>Loading...</div>
  *   if (error) return <div>Error: {error.message}</div>
@@ -91,15 +36,10 @@ async function fetchCountries(params?: {
  * }
  * ```
  */
-export function useCountries(params?: {
-  page?: number
-  page_size?: number
-  search?: string
-  ordering?: string
-}) {
+export function useCountries(params?: CountryQueryParams) {
   return useQuery({
     queryKey: queryKeys.countries.list(params),
-    queryFn: () => fetchCountries(params),
+    queryFn: () => countriesService.getAll(params),
     
     // Keep previous data while fetching new page
     // Prevents loading state when paginating
@@ -108,37 +48,16 @@ export function useCountries(params?: {
 }
 
 /**
- * Fetch single country by ID
- * 
- * @param id - Country ID
- * @returns Promise with country data
- */
-async function fetchCountry(id: number): Promise<Country> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  const url = `${baseUrl}/api/countries/${id}/`
-  
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch country: ${response.statusText}`)
-  }
-
-  return response.json()
-}
-
-/**
  * React Query hook for fetching single country
  * 
- * @param id - Country ID
+ * Uses the Countries API service with Axios and automatic error handling.
+ * 
+ * @param id - Country UUID
  * @returns Query result with country data and states
  * 
  * @example
  * ```tsx
- * function CountryDetail({ id }: { id: number }) {
+ * function CountryDetail({ id }: { id: string }) {
  *   const { data, isLoading, error } = useCountry(id)
  *   
  *   if (isLoading) return <div>Loading...</div>
@@ -148,10 +67,46 @@ async function fetchCountry(id: number): Promise<Country> {
  * }
  * ```
  */
-export function useCountry(id: number) {
+export function useCountry(id: string) {
   return useQuery({
     queryKey: queryKeys.countries.detail(id),
-    queryFn: () => fetchCountry(id),
+    queryFn: () => countriesService.getById(id),
     enabled: !!id, // Only run if ID is provided
+  })
+}
+
+/**
+ * React Query hook for searching countries
+ * 
+ * Convenience hook for search functionality.
+ * 
+ * @param query - Search query string
+ * @returns Query result with search results
+ * 
+ * @example
+ * ```tsx
+ * function CountrySearch() {
+ *   const [search, setSearch] = useState('')
+ *   const { data, isLoading } = useCountrySearch(search)
+ *   
+ *   return (
+ *     <div>
+ *       <input 
+ *         value={search} 
+ *         onChange={(e) => setSearch(e.target.value)} 
+ *       />
+ *       {data?.results.map(country => (
+ *         <div key={country.id}>{country.name}</div>
+ *       ))}
+ *     </div>
+ *   )
+ * }
+ * ```
+ */
+export function useCountrySearch(query: string) {
+  return useQuery({
+    queryKey: queryKeys.countries.list({ search: query }),
+    queryFn: () => countriesService.search(query),
+    enabled: !!query && query.length > 0, // Only search if query is not empty
   })
 }
