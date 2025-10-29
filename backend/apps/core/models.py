@@ -189,7 +189,7 @@ class League(models.Model):
     Uses snake_case column names to match PostgreSQL/Supabase convention.
     
     Database Table: leagues
-    Primary Key: id (text)
+    Primary Key: id (UUID)
     Foreign Keys: sport_id (Sport), country_id (Country UUID)
     
     Note: Season information is NOT stored here. It will be in a separate
@@ -199,10 +199,12 @@ class League(models.Model):
     is created and managed in Supabase, not by Django migrations.
     """
     
-    # Primary Fields
-    id = models.TextField(
+    # Primary Fields (UUID)
+    id = models.UUIDField(
         primary_key=True,
-        help_text="Unique league identifier (text UUID)"
+        default=uuid.uuid4,
+        editable=False,
+        help_text="UUID primary key (auto-generated)"
     )
     
     name = models.TextField(
