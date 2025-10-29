@@ -115,19 +115,40 @@ export interface League extends BaseModel {
 }
 
 /**
- * Team Model
+ * Team List Item
  * 
- * Represents a football team entity
+ * Lightweight team data for list views (GET /api/teams/)
+ * Matches TeamListSerializer
+ */
+export interface TeamListItem {
+  id: string
+  code: string
+  name: string
+  country_name: string | null
+  country_code: string | null
+  logo: string | null
+  market_value: number | null
+  market_value_formatted: string | null
+  is_active: boolean
+}
+
+/**
+ * Team Detail
+ * 
+ * Comprehensive team data for detail views (GET /api/teams/{id}/)
+ * Matches TeamDetailSerializer
  */
 export interface Team extends BaseModel {
+  code: string // 3-letter team code (e.g., MUN, BAR, FNB)
   name: string
-  country_id: string
-  country_name?: string // Populated by serializer
-  league_id: string
-  league_name?: string // Populated by serializer
-  logo_url: string | null
-  founded: number | null
-  venue: string | null
+  country_id: string | null // UUID of the country
+  country_details: CountryDetails | null // Nested country object
+  logo: string | null
+  founded: number | null // Foundation year
+  website: string | null // Official website URL
+  market_value: number | null // Team market value in EUR
+  market_value_formatted: string | null // Formatted market value (e.g., "€120M")
+  external_id: string | null // External API reference
   is_active: boolean
 }
 
@@ -215,11 +236,15 @@ export interface LeagueQueryParams extends QueryParams {
 
 /**
  * Team Query Parameters
+ * 
+ * Used for filtering teams in GET /api/teams/
+ * Matches Django TeamViewSet filterset_fields
  */
 export interface TeamQueryParams extends QueryParams {
-  country?: string
-  league?: string
-  is_active?: boolean
+  country?: string // Filter by country UUID
+  is_active?: boolean // Filter by active status
+  market_value_min?: number // Minimum market value (EUR)
+  market_value_max?: number // Maximum market value (EUR)
 }
 
 /**
@@ -285,17 +310,43 @@ export interface UpdateLeagueDto {
   is_active?: boolean // Optional: Active status
 }
 
+/**
+ * Create Team DTO
+ * 
+ * Used for POST /api/teams/
+ * Matches TeamCreateSerializer
+ */
 export interface CreateTeamDto {
-  name: string
-  country_id: string
-  league_id: string
-  logo_url?: string | null
-  founded?: number | null
-  venue?: string | null
-  is_active?: boolean
+  name: string // Required: Team name (min 2 chars)
+  code: string // Required: 3-letter team code (e.g., MUN, BAR)
+  country_id: string // Required: Country UUID
+  logo?: string | null // Optional: Logo URL
+  founded?: number | null // Optional: Foundation year (1800-2100)
+  website?: string | null // Optional: Official website URL
+  market_value?: number | null // Optional: Market value in EUR (0-10B)
+  external_id?: string | null // Optional: External API reference
+  is_active?: boolean // Optional: Active status (default: true)
 }
 
-export interface UpdateTeamDto extends Partial<CreateTeamDto> {}
+/**
+ * Update Team DTO
+ * 
+ * Used for PUT/PATCH /api/teams/{id}/
+ * Matches TeamUpdateSerializer
+ * 
+ * All fields are optional for partial updates
+ */
+export interface UpdateTeamDto {
+  name?: string // Optional: Team name (min 2 chars if provided)
+  code?: string // Optional: 3-letter team code
+  country_id?: string // Optional: Country UUID
+  logo?: string | null // Optional: Logo URL
+  founded?: number | null // Optional: Foundation year
+  website?: string | null // Optional: Website URL
+  market_value?: number | null // Optional: Market value in EUR
+  external_id?: string | null // Optional: External API reference
+  is_active?: boolean // Optional: Active status
+}
 
 export interface CreateMatchDto {
   league_id: string
