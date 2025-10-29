@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-29 12:35 UTC
+**Last Updated**: 2025-10-29 13:05 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -10,34 +10,30 @@
 
 **🎯 ACTIVE FEATURE**: Leagues 🏆 **IN PROGRESS**
 **📍 CURRENT LAYER**: Frontend Layer (TypeScript Integration)
-**🚧 ACTIVE TASK**: Phase 4.1 - Create League Types
-**✅ LAST COMPLETED**: Phase 3.4 - URLs Configuration (verified) ✅
-**📝 NEXT TASK**: Create TypeScript types for League entities
+**🚧 ACTIVE TASK**: Phase 4.2 - Create API Client
+**✅ LAST COMPLETED**: Phase 4.1 - League Types (models.ts updated) ✅
+**📝 NEXT TASK**: Create API client for League CRUD operations
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: docs: Complete Phase 3 - Leagues ViewSet & URLs verified
+**🔗 Last Commit**: refactor: Update League types to match Django backend
 
 **💬 Quick Start Message for Next Session**:
 ```
-🏆🏆 LEAGUES FEATURE - PHASE 3 COMPLETE! 🏆🏆
+🏆🏆 LEAGUES FEATURE - PHASE 4.1 COMPLETE! 🏆🏆
 
 ✅ BACKEND 100% COMPLETE!
 - Phase 1: Database backup + schema verification ✅
 - Phase 2: Seed data verification + quality report ✅
 - Phase 3: Django Backend (Model + Serializers + ViewSet + URLs) ✅
 
-✅ DJANGO BACKEND READY:
-- League Model (UUIDField) ✅
-- 4 Specialized Serializers ✅
-- Full CRUD ViewSet ✅
-  - List, Detail, Create, Update, Delete ✅
-  - Filtering (country, sport, is_active) ✅
-  - Search (name, external_id) ✅
-  - Ordering (name, created_at) ✅
-  - Pagination (custom 20/page) ✅
-  - Custom Actions (by_country, active, search) ✅
-- URL Router Configuration ✅
-- OpenAPI Documentation ✅
+✅ FRONTEND TYPES 33% COMPLETE!
+- Phase 4.1: TypeScript Types (models.ts) ✅
+  - Sport interface added ✅
+  - League interface updated (sport_id, sport_details) ✅
+  - LeagueListItem added ✅
+  - Deprecated fields removed (season, type) ✅
+  - CreateLeagueDto/UpdateLeagueDto updated ✅
+  - LeagueQueryParams updated ✅
 
 ✅ API ENDPOINTS AVAILABLE:
 - GET    /api/v1/leagues/
@@ -50,13 +46,13 @@
 - GET    /api/v1/leagues/by-country/{country_id}/
 - GET    /api/v1/leagues/search/?q=premier
 
-🎯 NEXT: Phase 4 - Frontend TypeScript Types
-- Create League interfaces
-- Create API client
-- Add TanStack Query hooks
-- Implement type safety
+🎯 NEXT: Phase 4.2 - API Client
+- Create leagues.ts API client
+- Full CRUD operations
+- Type-safe requests/responses
+- Error handling
 
-⏱️ REMAINING TIME: ~15 minutes (2 phases left)
+⏱️ REMAINING TIME: ~10 minutes (2 phases left)
 ```
 
 ---
@@ -68,7 +64,7 @@
 | 🎨 **UI Foundations** | ✅ **COMPLETE!** | 100% | **CRITICAL** | 2025-11-08 |
 | 🔧 **Backend Setup** | ⏸️ PAUSED | 95% | CRITICAL | 2025-11-03 |
 | 🌍 Countries | 📝 TODO | 0% | HIGH | 2025-11-12 |
-| 🏆 **Leagues** | 🚧 **IN PROGRESS** | 80% | **HIGH** | 2025-11-19 |
+| 🏆 **Leagues** | 🚧 **IN PROGRESS** | 85% | **HIGH** | 2025-11-19 |
 | ⚽ Teams | 📝 TODO | 0% | MEDIUM | 2025-11-26 |
 | 🎯 Matches | 📝 TODO | 0% | HIGH | 2025-12-03 |
 | 📊 Predictions | 📝 TODO | 0% | HIGH | 2025-12-10 |
@@ -81,11 +77,12 @@
 
 ## 🏆 FEATURE: Leagues ✅ **BACKEND COMPLETE!**
 
-**Status**: 🚧 IN PROGRESS (Backend 100%, Frontend Next)
+**Status**: 🚧 IN PROGRESS (Backend 100%, Frontend 33%)
 **Priority**: HIGH (Critical for matches and predictions)
 **Start Date**: 2025-10-29
 **Backend Completed**: 2025-10-29 12:35
-**Estimated Total Completion**: 2025-10-29 (~15 minutes remaining)
+**Frontend Started**: 2025-10-29 13:05
+**Estimated Total Completion**: 2025-10-29 (~10 minutes remaining)
 **Assignee**: Self
 
 ### 🎯 OVERVIEW
@@ -97,7 +94,9 @@ Complete leagues management system with:
 - ✅ Django Serializers (4 types with validation)
 - ✅ Django REST API ViewSet with full CRUD (COMPLETE!)
 - ✅ URL Router Configuration (COMPLETE!)
-- 📝 Frontend TypeScript integration
+- ✅ TypeScript types (models.ts updated with Sport, League interfaces)
+- 📝 API Client (next)
+- 📝 TanStack Query hooks
 - 📝 Comprehensive documentation
 
 ### 📋 KEY DECISIONS MADE
@@ -106,7 +105,7 @@ Complete leagues management system with:
 **Status**: ✅ VERIFIED IN DATABASE & MODEL
 
 #### 2️⃣ Season Field: **REMOVED** (FINAL) ✅
-**Status**: ✅ VERIFIED - Not in database
+**Status**: ✅ VERIFIED - Not in database, removed from TypeScript types
 
 #### 3️⃣ Country Field: **REMOVED** (FINAL) ✅
 **Status**: ✅ VERIFIED - Using country_id
@@ -125,6 +124,11 @@ Complete leagues management system with:
 **Status**: ✅ IMPLEMENTED - Comprehensive API with filtering, search, pagination
 **Date**: 2025-10-29 12:35
 **Reason**: Production-ready API with all standard features
+
+#### 7️⃣ TypeScript Structure: **Centralized models.ts** (FINAL) ✅
+**Status**: ✅ IMPLEMENTED - Updated existing models.ts instead of creating separate league.ts
+**Date**: 2025-10-29 13:05
+**Reason**: Consistency with existing project structure, easier maintenance
 
 ---
 
@@ -417,101 +421,99 @@ urlpatterns = [
 
 ---
 
-### **Phase 4: Frontend TypeScript** [░░░░░░░░░░] 0%
+### **Phase 4: Frontend TypeScript** [███░░░░░░░] 33% ✅
 
-**Status**: 📝 TODO (NEXT!)
+**Status**: 🚧 IN PROGRESS
 **Estimated Time**: 10 minutes
+**Actual Time So Far**: 3 minutes
 
-#### 4.1. Create League Types 📝 **NEXT TASK**
-**Status**: 📝 TODO
+#### 4.1. Create League Types ✅ **COMPLETE!**
+**Status**: ✅ COMPLETE!
+**Completed**: 2025-10-29 13:05
 **Time**: 3 minutes
 
-**File**: `frontend/src/types/league.ts`
+**File**: `types/models.ts` (updated existing file)
 
-**What To Do:**
-```typescript
-import { Country } from './country';
-import { Sport } from './sport';
+**What Was Done:**
+- ✅ Added Sport interface
+- ✅ Added SportDetails interface (nested)
+- ✅ Added CountryDetails interface (nested)
+- ✅ Updated League interface:
+  - Added sport (UUID) and sport_details (nested object)
+  - Updated country field (UUID, nullable)
+  - Added country_details (nested object)
+  - Renamed logo_url → logo
+  - Added external_id field
+  - Removed deprecated fields (season, type)
+- ✅ Added LeagueListItem interface (lightweight for lists)
+- ✅ Updated CreateLeagueDto:
+  - Added sport field (required)
+  - Removed season and type fields
+  - Renamed logo_url → logo
+  - Added external_id
+- ✅ Updated UpdateLeagueDto:
+  - Removed sport (immutable after creation)
+  - Renamed logo_url → logo
+  - Added external_id
+- ✅ Updated LeagueQueryParams:
+  - Removed season and type filters
+  - Added sport filter
+- ✅ Added comprehensive JSDoc comments
+- ✅ Backend compatibility verified
 
-// League entity (from API)
-export interface League {
-  id: string;
-  name: string;
-  sport: Sport;
-  country?: Country;
-  logo?: string;
-  external_id?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at?: string;
-}
-
-// League list item (lightweight)
-export interface LeagueListItem {
-  id: string;
-  name: string;
-  sport_name: string;
-  country_name?: string;
-  is_active: boolean;
-}
-
-// Create league DTO
-export interface CreateLeagueDTO {
-  name: string;
-  sport: string;
-  country?: string;
-  logo?: string;
-  external_id?: string;
-  is_active?: boolean;
-}
-
-// Update league DTO
-export interface UpdateLeagueDTO {
-  name?: string;
-  country?: string;
-  logo?: string;
-  external_id?: string;
-  is_active?: boolean;
-}
-
-// League filters
-export interface LeagueFilters {
-  country?: string;
-  sport?: string;
-  is_active?: boolean;
-  search?: string;
-  ordering?: string;
-  page?: number;
-  page_size?: number;
-}
-```
+**GitHub Commit**:
+🔗 [refactor: Update League types to match Django backend](https://github.com/zaferkucuk/Oover/commit/df06b3adb18e825cb95ca71f5271648a34ac591f)
 
 **Success Criteria:**
 - ✅ All League interfaces defined
 - ✅ DTOs for create/update
 - ✅ Filter types
 - ✅ Type safety enforced
+- ✅ Backend compatibility
 
 ---
 
-#### 4.2. Create API Client 📝
+#### 4.2. Create API Client 📝 **NEXT TASK**
 **Status**: 📝 TODO
-**Time**: 4 minutes
+**Time**: 4 minutes (estimated)
 
-**File**: `frontend/src/api/leagues.ts`
+**File**: `services/api/leagues.ts` (or similar based on project structure)
+
+**What To Do:**
+```typescript
+// Full CRUD operations for leagues
+// - getLeagues(params?: LeagueQueryParams)
+// - getLeague(id: string)
+// - createLeague(data: CreateLeagueDto)
+// - updateLeague(id: string, data: UpdateLeagueDto)
+// - deleteLeague(id: string)
+// - getActiveLeagues()
+// - getLeaguesByCountry(countryId: string)
+```
 
 **Success Criteria:**
 - ✅ API client with full CRUD
 - ✅ Type-safe requests/responses
 - ✅ Error handling
+- ✅ Environment-based API URL
 
 ---
 
 #### 4.3. Create TanStack Query Hooks 📝
 **Status**: 📝 TODO
-**Time**: 3 minutes
+**Time**: 3 minutes (estimated)
 
-**File**: `frontend/src/hooks/useLeagues.ts`
+**File**: `hooks/useLeagues.ts` (or similar)
+
+**What To Do:**
+```typescript
+// TanStack Query hooks
+// - useLeagues(params?: LeagueQueryParams)
+// - useLeague(id: string)
+// - useCreateLeague()
+// - useUpdateLeague()
+// - useDeleteLeague()
+```
 
 **Success Criteria:**
 - ✅ Query hooks for list/detail
@@ -539,6 +541,23 @@ export interface LeagueFilters {
 ---
 
 ## 🎉 Recent Achievements
+
+### 2025-10-29 13:05 🎨
+- ✅ **PHASE 4.1 COMPLETE!** TypeScript Types Updated!
+- ✅ **models.ts Refactored!**
+  - Sport interface added ✅
+  - League interface updated (sport_id, sport_details) ✅
+  - Deprecated fields removed (season, type) ✅
+  - logo_url → logo (backend consistency) ✅
+  - external_id added ✅
+  - DTOs updated (CreateLeagueDto, UpdateLeagueDto) ✅
+  - LeagueQueryParams updated ✅
+- ✅ **Backend Compatibility: 100%**
+- ✅ **Phase 4 Progress: 0% → 33%**
+- ✅ **Total Progress: 80% → 85%**
+- ✅ TypeScript types pushed to GitHub
+- ✅ PROJECT_STATUS.md updated
+- ✅ Ready for Phase 4.2 (API Client)!
 
 ### 2025-10-29 12:35 🎊
 - ✅ **PHASE 3 COMPLETE!** Django Backend 100% DONE!
