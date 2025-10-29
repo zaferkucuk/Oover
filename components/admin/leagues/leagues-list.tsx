@@ -1,85 +1,123 @@
-'use client'
-
-import { useState } from 'react'
-import Link from 'next/link'
-import { useLeagues, useDeleteLeague } from '@/hooks/api/use-leagues'
-import { LeagueFilters } from './league-filters'
-import { Button } from '@/components/ui/button'
-import type { LeagueQueryParams } from '@/types/models'
-
 /**
- * LeaguesListComponent - Main table view for leagues management
+ * LeaguesListComponent - DataTable view for leagues management
+ * 
+ * Updated to use shadcn/ui DataTable with TanStack Table for:
+ * - Column sorting (click headers to sort)
+ * - Global search across all leagues
+ * - Column visibility controls
+ * - Pagination with customizable page sizes
+ * - Responsive design
  * 
  * Features:
- * - Paginated table with sortable columns
- * - Search and filter integration
- * - CRUD action buttons (View, Edit, Delete)
+ * - Sortable columns: Name, Country, Sport, Status
+ * - Search by league name
  * - Loading and error states
- * - Responsive design
- * - Status badges for active/inactive leagues
+ * - CRUD action buttons in dropdown menu
+ * - Active/Inactive status badges
  * 
  * @example
  * ```tsx
  * <LeaguesListComponent />
  * ```
  */
+
+"use client"
+
+import { useLeagues, useDeleteLeague } from "@/hooks/api/use-leagues"
+import { DataTable } from "@/components/ui/data-table"
+import { leaguesColumns } from "./leagues-columns"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+import Link from "next/link"
+
 export function LeaguesListComponent() {
-  // Pagination and filter state
-  const [params, setParams] = useState<LeagueQueryParams>({
+  // Fetch all leagues (we'll handle pagination in DataTable)
+  const { data, isLoading, error } = useLeagues({
     page: 1,
-    page_size: 20,
-    ordering: 'name',
+    page_size: 1000, // Fetch all for client-side table
   })
 
-  // Fetch leagues with current params
-  const { data, isLoading, error } = useLeagues(params)
-  
   // Delete mutation
   const deleteLeague = useDeleteLeague()
 
   /**
-   * Handle page change
+   * Loading State
    */
-  const handlePageChange = (newPage: number) => {
-    setParams((prev) => ({ ...prev, page: newPage }))
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading leagues...</p>
+        </div>
+      </div>
+    )
   }
 
   /**
-   * Handle page size change
+   * Error State
    */
-  const handlePageSizeChange = (newPageSize: number) => {
-    setParams((prev) => ({ ...prev, page: 1, page_size: newPageSize }))
+  if (error) {
+    return (
+      <div className="rounded-lg border border-destructive bg-destructive/10 p-6">
+        <h3 className="font-semibold text-destructive mb-2">
+          Error loading leagues
+        </h3>
+        <p className="text-sm text-muted-foreground mb-4">{error.message}</p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
+      </div>
+    )
   }
 
   /**
-   * Handle filter changes from LeagueFilters component
+   * Empty State
    */
-  const handleFilterChange = (newParams: Partial<LeagueQueryParams>) => {
-    setParams((prev) => ({ ...prev, ...newParams, page: 1 }))
+  if (!data || data.results.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed p-12">
+        <div className="flex flex-col items-center justify-center text-center space-y-4">
+          <div className="rounded-full bg-muted p-4">
+            <svg
+              className="h-8 w-8 text-muted-foreground"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">No leagues found</h3>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              Get started by creating your first league. You can import leagues
+              from external sources or create them manually.
+            </p>
+          </div>
+          <Link href="/admin/leagues/create">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create League
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   /**
-   * Handle delete with confirmation
+   * DataTable View
    */
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-      try {
-        await deleteLeague.mutateAsync(id)
-        // Success handled by React Query cache invalidation
-      } catch (error) {
-        console.error('Failed to delete league:', error)
-        alert('Failed to delete league. Please try again.')
-      }
-    }
-  }
-
-  /**
-   * Calculate pagination info
-   */
-  const totalPages = data ? Math.ceil(data.count / (params.page_size || 20)) : 0
-  const hasNext = !!data?.next
-  const hasPrevious = !!data?.previous
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -91,206 +129,20 @@ export function LeaguesListComponent() {
           </p>
         </div>
         <Link href="/admin/leagues/create">
-          <Button>Create League</Button>
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create League
+          </Button>
         </Link>
       </div>
 
-      {/* Filters */}
-      <LeagueFilters 
-        params={params} 
-        onFilterChange={handleFilterChange} 
+      {/* DataTable with all features */}
+      <DataTable
+        columns={leaguesColumns}
+        data={data.results}
+        searchKey="name"
+        searchPlaceholder="Search leagues by name..."
       />
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading leagues...</p>
-          </div>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
-          <h3 className="font-semibold text-destructive mb-2">Error loading leagues</h3>
-          <p className="text-sm text-muted-foreground">{error.message}</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="mt-4"
-            onClick={() => window.location.reload()}
-          >
-            Retry
-          </Button>
-        </div>
-      )}
-
-      {/* Table */}
-      {data && !isLoading && (
-        <>
-          {/* Results count */}
-          <div className="text-sm text-muted-foreground">
-            Showing {data.results.length} of {data.count} leagues
-          </div>
-
-          {/* Table */}
-          <div className="rounded-lg border">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-muted/50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Logo</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Country</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Sport</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {data.results.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                        No leagues found. Try adjusting your filters.
-                      </td>
-                    </tr>
-                  ) : (
-                    data.results.map((league) => (
-                      <tr key={league.id} className="hover:bg-muted/50 transition-colors">
-                        {/* Logo */}
-                        <td className="px-4 py-3">
-                          {league.logo ? (
-                            <img 
-                              src={league.logo} 
-                              alt={league.name}
-                              className="w-10 h-10 object-contain rounded"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
-                              No logo
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Name */}
-                        <td className="px-4 py-3">
-                          <Link 
-                            href={`/admin/leagues/${league.id}`}
-                            className="font-medium hover:underline"
-                          >
-                            {league.name}
-                          </Link>
-                          {league.external_id && (
-                            <div className="text-xs text-muted-foreground mt-1">
-                              ID: {league.external_id}
-                            </div>
-                          )}
-                        </td>
-
-                        {/* Country */}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            {league.country_name || (
-                              <span className="text-muted-foreground">International</span>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Sport */}
-                        <td className="px-4 py-3">
-                          <span className="capitalize">{league.sport_name}</span>
-                        </td>
-
-                        {/* Status */}
-                        <td className="px-4 py-3">
-                          <span 
-                            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                              league.is_active
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-                            }`}
-                          >
-                            {league.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link href={`/admin/leagues/${league.id}`}>
-                              <Button variant="ghost" size="sm">
-                                View
-                              </Button>
-                            </Link>
-                            <Link href={`/admin/leagues/${league.id}/edit`}>
-                              <Button variant="ghost" size="sm">
-                                Edit
-                              </Button>
-                            </Link>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => handleDelete(league.id, league.name)}
-                              disabled={deleteLeague.isPending}
-                            >
-                              Delete
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between">
-            {/* Page size selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Show</span>
-              <select
-                value={params.page_size || 20}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                className="rounded-md border border-input bg-background px-3 py-1 text-sm"
-              >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <span className="text-sm text-muted-foreground">per page</span>
-            </div>
-
-            {/* Page navigation */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(params.page! - 1)}
-                disabled={!hasPrevious || isLoading}
-              >
-                Previous
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Page {params.page} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(params.page! + 1)}
-                disabled={!hasNext || isLoading}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   )
 }
