@@ -177,7 +177,7 @@ export interface LeagueUpdate {
 /**
  * League with relationships
  */
-export interface LeagueWithRelations extends League {
+export interface LeagueWithRelations extends Omit<League, 'country' | 'sport_id'> {
   country?: Country | null;
   sport?: Sport | null;
   matches?: Match[];
@@ -234,7 +234,7 @@ export interface TeamUpdate {
 /**
  * Team with relationships
  */
-export interface TeamWithRelations extends Team {
+export interface TeamWithRelations extends Omit<Team, 'country'> {
   country?: Country | null;
   home_matches?: Match[];
   away_matches?: Match[];
