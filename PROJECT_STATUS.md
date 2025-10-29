@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-29 23:45 UTC
+**Last Updated**: 2025-10-29 22:47 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -8,43 +8,55 @@
 
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
-**🎯 ACTIVE FEATURE**: Teams ⚽ **Phase 1 COMPLETE!**
-**✅ LAST COMPLETED**: Teams Phase 1 - Database Layer
-**📍 CURRENT STATUS**: Database restructured, ready for Phase 2 (Backend)
+**🎯 ACTIVE FEATURE**: Teams ⚽ **Phase 2 COMPLETE!**
+**✅ LAST COMPLETED**: Teams Phase 2 - Backend Layer
+**📍 CURRENT STATUS**: Backend complete, ready for Phase 3 (Frontend Data Layer)
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: Teams Feature Phase 1 Complete
+**🔗 Last Commit**: Teams Phase 2 Complete - Backend Layer
 
 **💬 Quick Start Message for Next Session**:
 ```
-⚽ TEAMS FEATURE - PHASE 1 COMPLETE! ⚽
+⚽ TEAMS FEATURE - PHASE 2 COMPLETE! ⚽
 
-✅ DATABASE LAYER DONE (100%)
-- ✅ Teams table restructured with new schema
-- ✅ Removed: league_id, shortName, venue, country (text)
-- ✅ Added: code, website, market_value, is_active
-- ✅ All columns now snake_case
-- ✅ country_id (UUID) kept for FK relationship
-- ✅ Performance indexes added
-- ✅ 6 teams in database
+✅ BACKEND LAYER DONE (100%)
+- ✅ Django Model updated with new schema
+- ✅ 4 Serializers created (List, Detail, Create, Update)
+- ✅ ViewSet with CRUD + filters + custom actions
+- ✅ URL Configuration complete
 
-📊 NEW SCHEMA:
-- id (text PK)
-- code (3-letter team code)
-- name (team name)
-- external_id (API reference)
-- country_id (UUID FK → countries)
-- logo (team logo URL)
-- founded (year)
-- website (official site)
-- market_value (EUR value)
-- is_active (boolean)
-- created_at, updated_at (timestamps)
+📊 BACKEND FEATURES:
+Model:
+- Updated fields: code, website, market_value, is_active
+- Removed league_id
+- All fields now snake_case
+- formatted_market_value property
 
-🎯 NEXT: Phase 2 - Backend Layer (~25 min)
-- Django Model
-- 4 Serializers
-- ViewSet (CRUD + filters)
-- URL Configuration
+Serializers:
+- TeamListSerializer (lightweight for lists)
+- TeamDetailSerializer (comprehensive with nested country)
+- TeamCreateSerializer (full validation)
+- TeamUpdateSerializer (partial updates)
+
+ViewSet:
+- CRUD operations (list, retrieve, create, update, delete)
+- Filters: country, is_active, market_value range
+- Search: name, code, external_id
+- Custom actions:
+  * by_country: GET /api/teams/by-country/{country_id}/
+  * active: GET /api/teams/active/
+  * top_by_market_value: GET /api/teams/top-by-market-value/
+  * search: GET /api/teams/search/?q=...
+- Pagination: 30 per page (customizable)
+- OpenAPI documentation
+
+URLs:
+- Registered at /api/teams/
+- All endpoints documented
+
+🎯 NEXT: Phase 3 - Frontend Data Layer (~15 min)
+- TypeScript Types
+- API Client Service
+- TanStack Query Hooks
 ```
 
 ---
@@ -57,7 +69,7 @@
 | 🔧 **Backend Setup** | ⏸️ | 95% | N/A | N/A | N/A | 90% | CRITICAL | 2025-11-03 |
 | 🏆 **Leagues** | ✅ | 100% ✅ | 100% ✅ | 100% ✅ | 100% ✅ | SKIP ⏭️ | HIGH | ✅ Done |
 | 🌍 **Countries** | 📝 | 50% | 0% | 0% | 0% | 0% | HIGH | 2025-11-12 |
-| ⚽ **Teams** | 🔄 | 10% | 0% | 0% | 0% | 0% | MEDIUM | 2025-11-26 |
+| ⚽ **Teams** | 🔄 | 50% | 0% | 0% | 0% | 0% | MEDIUM | 2025-11-26 |
 | 🎯 **Matches** | 📝 | 0% | 0% | 0% | 0% | 0% | HIGH | 2025-12-03 |
 | 📊 **Predictions** | 📝 | 0% | 0% | 0% | 0% | 0% | HIGH | 2025-12-10 |
 
@@ -111,11 +123,12 @@ Feature Development Phases:
 
 ## ⚽ FEATURE: Teams 🔄 IN PROGRESS
 
-**Status**: 🔄 IN PROGRESS (Phase 1 Complete - 10%)
+**Status**: 🔄 IN PROGRESS (Phase 2 Complete - 50%)
 **Priority**: MEDIUM
 **Start Date**: 2025-10-29
 **Target**: 2025-11-26
 **Estimated Time**: ~100 minutes
+**Time Spent**: 33 minutes (Phase 1: 8 min, Phase 2: 25 min)
 
 ### 🎯 OVERVIEW
 Football teams management system (e.g., Fenerbahçe, Manchester United). Teams are populated via external APIs (one-time load).
@@ -196,31 +209,64 @@ idx_teams_external_id   ON external_id
 
 ---
 
-### **Phase 2: Backend Layer** [░░░░░░░░░░] 0% ⏳
-**Status**: ⏳ TODO | **Estimated Time**: 25 minutes
+### **Phase 2: Backend Layer** [██████████] 100% ✅
+**Status**: ✅ COMPLETE | **Time**: 25 minutes | **Completed**: 2025-10-29 22:47
 
-**Tasks:**
-1. ⏳ Django Model
-   - Update existing model with new schema
-   - Add new fields: code, website, market_value, is_active
-   - Remove: league_id field
-   - Update field names to snake_case
+✅ **All Tasks Completed**
 
-2. ⏳ Serializers (4 types)
-   - TeamListSerializer (minimal fields for lists)
-   - TeamDetailSerializer (all fields + nested country)
-   - TeamCreateSerializer (validation rules)
-   - TeamUpdateSerializer (partial updates)
+**1. Django Model** ✅
+- Updated Team model with new schema
+- Added fields: code, website, market_value, is_active
+- Removed: league_id field
+- All field names converted to snake_case
+- Added formatted_market_value property for display
+- Comprehensive docstrings and help_text
 
-3. ⏳ ViewSet
-   - Full CRUD operations
-   - Filters: country_id, is_active, market_value range
-   - Search: name, code
-   - Custom actions: by_country, top_by_market_value
+🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/5b4c42f79f08a0bb18ec8942c7933dd2ebe11ad4)
 
-4. ⏳ URL Configuration
-   - Register ViewSet in router
-   - Configure custom action URLs
+**2. Serializers (4 types)** ✅
+- **TeamListSerializer**: Lightweight for list views
+  - Fields: id, code, name, country_name, country_code, logo, market_value, market_value_formatted, is_active
+- **TeamDetailSerializer**: Comprehensive for detail views
+  - All fields + nested country_details + formatted_market_value
+- **TeamCreateSerializer**: Full validation for creation
+  - Validates: name uniqueness, code format, founded year, market_value range, website URL
+- **TeamUpdateSerializer**: Partial updates support
+  - Same validation as create, excluding current instance
+
+🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/3238c618cc2d4386fe0c207e8597fdc06281ded4)
+
+**3. ViewSet** ✅
+- Full CRUD operations (list, retrieve, create, update, partial_update, destroy)
+- Pagination: 30 teams per page (customizable up to 100)
+- Filters:
+  - country (UUID)
+  - is_active (boolean)
+  - market_value_min (integer)
+  - market_value_max (integer)
+- Search: name, code, external_id
+- Ordering: name, code, market_value, founded, created_at, updated_at
+- Custom Actions:
+  - `by_country/{country_id}/`: Get teams by country
+  - `active/`: Get all active teams
+  - `top-by-market-value/`: Get top teams by market value (limit, country filter)
+  - `search/?q=...`: Advanced search
+- OpenAPI schema documentation with drf_spectacular
+
+🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/5381d88f7dad39b49bb11f1d374e17fcd91678ac)
+
+**4. URL Configuration** ✅
+- Registered TeamViewSet in router at `/api/teams/`
+- All endpoints available:
+  - `/api/teams/` (list, create)
+  - `/api/teams/{id}/` (retrieve, update, delete)
+  - `/api/teams/active/` (custom action)
+  - `/api/teams/by-country/{country_id}/` (custom action)
+  - `/api/teams/top-by-market-value/` (custom action)
+  - `/api/teams/search/` (custom action)
+- Comprehensive API documentation in docstrings
+
+🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/28ed4d6e3c367e16789c41ff22fa429d330baed4)
 
 ---
 
@@ -462,6 +508,20 @@ leagues:
 
 ## 🎉 Recent Achievements
 
+### 2025-10-29 22:47 ⚽🎉 **TEAMS PHASE 2 COMPLETE!**
+- ⚽ **TEAMS BACKEND LAYER DONE!**
+- ✅ Django Model updated with new schema
+- ✅ 4 Serializers created with comprehensive validation
+- ✅ ViewSet with full CRUD + 4 custom actions
+- ✅ URL Configuration complete
+- ✅ Market value filtering and formatting
+- ✅ OpenAPI documentation
+- 🔗 [Model Commit](https://github.com/zaferkucuk/Oover/commit/5b4c42f79f08a0bb18ec8942c7933dd2ebe11ad4)
+- 🔗 [Serializers Commit](https://github.com/zaferkucuk/Oover/commit/3238c618cc2d4386fe0c207e8597fdc06281ded4)
+- 🔗 [ViewSet Commit](https://github.com/zaferkucuk/Oover/commit/5381d88f7dad39b49bb11f1d374e17fcd91678ac)
+- 🔗 [URLs Commit](https://github.com/zaferkucuk/Oover/commit/28ed4d6e3c367e16789c41ff22fa429d330baed4)
+- 🎯 **Next: Phase 3 - Frontend Data Layer!**
+
 ### 2025-10-29 23:45 ⚽ **TEAMS PHASE 1 COMPLETE!**
 - ⚽ **TEAMS DATABASE LAYER DONE!**
 - ✅ Teams table restructured successfully
@@ -488,26 +548,26 @@ leagues:
 ## 📈 NEXT STEPS
 
 ### Immediate (Next Task!)
-1. **Teams Phase 2: Backend Layer** ⚽ (~25 min)
-   - Update Django Model with new schema
-   - Create 4 Serializers
-   - Build ViewSet with CRUD + filters
-   - Configure URLs
+1. **Teams Phase 3: Frontend Data Layer** ⚽ (~15 min)
+   - TypeScript Types (Team interfaces, DTOs)
+   - API Client Service (10+ methods)
+   - TanStack Query Hooks (10+ hooks with optimistic updates)
 
 ### Short Term (This Week)
-2. Complete Teams Phase 3 (Frontend Data Layer)
-3. Complete Teams Phase 4 (Frontend UI)
-4. Teams Feature 100% COMPLETE!
+2. Complete Teams Phase 4 (Frontend UI) (~40 min)
+   - UI Components (DataTable, Card, Detail, Form, Filters)
+   - Pages & Routes (List, Detail, Create, Edit)
+3. Teams Feature 100% COMPLETE!
 
 ### Medium Term (Next 2 Weeks)
-5. Start Countries feature
-6. Complete Countries feature
-7. Start Matches feature
+4. Start Countries feature
+5. Complete Countries feature
+6. Start Matches feature
 
 ### Long Term (Next Month)
-8. Complete Matches feature
-9. Start Predictions feature
-10. Complete Predictions feature
+7. Complete Matches feature
+8. Start Predictions feature
+9. Complete Predictions feature
 
 ---
 
