@@ -1,11 +1,13 @@
 """
-Core app views package.
+Core Views Package
 
-This module exports all viewsets from the core app for easy importing.
+This package contains all views for the core app.
 """
 
-from apps.core.views.country import CountryViewSet
+from .country import CountryViewSet
+from .league import LeagueViewSet
 
 __all__ = [
     'CountryViewSet',
+    'LeagueViewSet',
 ]
