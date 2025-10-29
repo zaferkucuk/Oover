@@ -46,10 +46,12 @@ export function createQueryClient() {
  * Type-safe query keys factory
  * Centralizes all query key definitions for consistency
  * 
+ * Note: All IDs are UUIDs (strings) since database uses UUID primary keys
+ * 
  * @example
  * queryKeys.countries.all // ['countries']
- * queryKeys.countries.detail(1) // ['countries', 1]
- * queryKeys.leagues.byCountry(1) // ['leagues', { countryId: 1 }]
+ * queryKeys.countries.detail('uuid-here') // ['countries', 'detail', 'uuid-here']
+ * queryKeys.leagues.byCountry('country-uuid') // ['leagues', 'list', { countryId: 'country-uuid' }]
  */
 export const queryKeys = {
   // Countries
@@ -59,18 +61,18 @@ export const queryKeys = {
     list: (filters?: Record<string, unknown>) => 
       [...queryKeys.countries.lists(), filters] as const,
     details: () => [...queryKeys.countries.all, 'detail'] as const,
-    detail: (id: number) => [...queryKeys.countries.details(), id] as const,
+    detail: (id: string) => [...queryKeys.countries.details(), id] as const,
   },
 
-  // Leagues (future)
+  // Leagues
   leagues: {
     all: ['leagues'] as const,
     lists: () => [...queryKeys.leagues.all, 'list'] as const,
     list: (filters?: Record<string, unknown>) => 
       [...queryKeys.leagues.lists(), filters] as const,
     details: () => [...queryKeys.leagues.all, 'detail'] as const,
-    detail: (id: number) => [...queryKeys.leagues.details(), id] as const,
-    byCountry: (countryId: number) => 
+    detail: (id: string) => [...queryKeys.leagues.details(), id] as const,
+    byCountry: (countryId: string) => 
       [...queryKeys.leagues.lists(), { countryId }] as const,
   },
 
@@ -81,8 +83,8 @@ export const queryKeys = {
     list: (filters?: Record<string, unknown>) => 
       [...queryKeys.teams.lists(), filters] as const,
     details: () => [...queryKeys.teams.all, 'detail'] as const,
-    detail: (id: number) => [...queryKeys.teams.details(), id] as const,
-    byLeague: (leagueId: number) => 
+    detail: (id: string) => [...queryKeys.teams.details(), id] as const,
+    byLeague: (leagueId: string) => 
       [...queryKeys.teams.lists(), { leagueId }] as const,
   },
 
@@ -93,7 +95,7 @@ export const queryKeys = {
     list: (filters?: Record<string, unknown>) => 
       [...queryKeys.matches.lists(), filters] as const,
     details: () => [...queryKeys.matches.all, 'detail'] as const,
-    detail: (id: number) => [...queryKeys.matches.details(), id] as const,
+    detail: (id: string) => [...queryKeys.matches.details(), id] as const,
     upcoming: () => [...queryKeys.matches.lists(), { status: 'upcoming' }] as const,
     live: () => [...queryKeys.matches.lists(), { status: 'live' }] as const,
     completed: () => [...queryKeys.matches.lists(), { status: 'completed' }] as const,
