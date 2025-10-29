@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-29 10:15 UTC
+**Last Updated**: 2025-10-29 10:30 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -8,24 +8,24 @@
 
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
-**🎯 ACTIVE FEATURE**: UI Foundations ⭐ **70% COMPLETE!**
+**🎯 ACTIVE FEATURE**: UI Foundations ⭐ **85% COMPLETE!**
 **📍 CURRENT LAYER**: Frontend Layer (Next.js + TypeScript + shadcn/ui)
-**🚧 ACTIVE TASK**: Phase 3.1 ✅ COMPLETE | Next: Phase 3.2 or Phase 5.1
-**✅ LAST COMPLETED**: TanStack Query Provider Setup (100% functional)!
-**📝 NEXT TASK**: Zustand Stores Setup OR Dark Mode Setup
+**🚧 ACTIVE TASK**: Phase 5.1 ✅ COMPLETE | Next: Phase 3.2 (Zustand)
+**✅ LAST COMPLETED**: Dark Mode Setup (ThemeProvider + ThemeToggle)!
+**📝 NEXT TASK**: Zustand Stores Setup (Client State Management)
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: docs: Update PROJECT_STATUS.md - Phase 3.1 COMPLETE
+**🔗 Last Commit**: feat: Add ThemeToggle to homepage and enhance dark mode demo
 
 **💬 Quick Start Message for Next Session**:
 ```
-🎉 Phase 3.1 TAMAMLANDI! TanStack Query fully configured!
-✅ lib/react-query/provider.tsx ✅
-✅ lib/react-query/client.ts (QueryClient + query keys) ✅
-✅ hooks/api/use-countries.ts (example hook) ✅
-✅ app/layout.tsx QueryProvider integrated ✅
-✅ ReactQueryDevtools ready ✅
-📝 Sıradaki: Phase 3.2 (Zustand) OR Phase 5.1 (Dark Mode)
+🎉 Phase 5.1 TAMAMLANDI! Dark Mode fully working!
+✅ app/providers.tsx (unified Query + Theme) ✅
+✅ app/layout.tsx updated (suppressHydrationWarning) ✅
+✅ components/theme-toggle.tsx (Light/Dark/System) ✅
+✅ app/page.tsx enhanced with theme demo ✅
+✅ Theme persistence working (localStorage) ✅
+📝 Sıradaki: Phase 3.2 (Zustand Stores)
 ```
 
 ---
@@ -34,7 +34,7 @@
 
 | Feature | Status | Progress | Priority | Target Date |
 |---------|--------|----------|----------|-------------|
-| 🎨 **UI Foundations** | 🚧 **ACTIVE** | 70% | **CRITICAL** | 2025-11-08 |
+| 🎨 **UI Foundations** | 🚧 **ACTIVE** | 85% | **CRITICAL** | 2025-11-08 |
 | 🔧 **Backend Setup** | ⏸️ PAUSED | 95% | CRITICAL | 2025-11-03 |
 | 🌍 Countries | ⏸️ PAUSED | 85% | HIGH | 2025-11-12 |
 | 🏆 Leagues | 📝 TODO | 0% | HIGH | 2025-11-19 |
@@ -50,7 +50,7 @@
 
 ## 🎨 FEATURE: UI Foundations ⭐ **ACTIVE NOW**
 
-**Status**: 🚧 IN PROGRESS (70% complete)
+**Status**: 🚧 IN PROGRESS (85% complete)
 **Priority**: CRITICAL (Blocks all frontend features)
 **Start Date**: 2025-10-29
 **Target Date**: 2025-11-08 (10 days)
@@ -66,8 +66,8 @@ Frontend foundation setup for the entire application:
 - ✅ Comprehensive documentation
 - ✅ shadcn/ui components installed (20 components)
 - ✅ TanStack Query provider configured
+- ✅ Dark mode setup complete
 - 📝 Zustand stores (next)
-- 📝 Dark mode setup (next)
 - 📝 Layout & Navigation (todo)
 - 📝 API integration layer (todo)
 
@@ -82,11 +82,11 @@ Frontend foundation setup for the entire application:
 **Purpose**: Setup Next.js project with all dependencies
 
 **What Was Done**:
-- ✅ Next.js 16.0.0 (Latest - Already installed!)
-- ✅ React 19.2.0 (Latest - Already installed!)
-- ✅ TypeScript 5 (Strict mode - Already configured!)
-- ✅ Tailwind CSS 4 (Latest - Already installed!)
-- ✅ ESLint 9 (Already configured!)
+- ✅ Next.js 16.0.0 (Latest)
+- ✅ React 19.2.0 (Latest)
+- ✅ TypeScript 5 (Strict mode)
+- ✅ Tailwind CSS 4 (Latest)
+- ✅ ESLint 9
 - ✅ App Router structure (app/ directory)
 - ✅ Added axios@^1.7.7 (API client)
 - ✅ Added zustand@^5.0.2 (Client state)
@@ -102,7 +102,7 @@ Frontend foundation setup for the entire application:
 ---
 
 #### 1.2. Configure Path Aliases ✅ **COMPLETE!**
-**Completed**: 2025-10-29 (Already configured)
+**Completed**: 2025-10-29
 **Purpose**: Setup clean imports with @/ prefix
 
 **What Was Done**:
@@ -123,71 +123,18 @@ Frontend foundation setup for the entire application:
 **What Was Done**:
 - ✅ Created installation script (`scripts/install-shadcn-components.sh`)
 - ✅ Created comprehensive setup guide (`docs/SHADCN_SETUP.md`)
-- ✅ Installed 20 essential components:
+- ✅ Installed 20 essential components
 
-**Core Components** (5):
-- ✅ Button (Actions, CTAs)
-- ✅ Card (Content containers)
-- ✅ Input (Text input fields)
-- ✅ Label (Form labels)
-- ✅ Textarea (Multi-line text)
-
-**Data Display** (4):
-- ✅ Table (Data tables)
-- ✅ Badge (Status indicators)
-- ✅ Avatar (User avatars)
-- ✅ Separator (Visual dividers)
-
-**Interactive** (6):
-- ✅ Dialog (Modals/dialogs)
-- ✅ Dropdown Menu (Dropdown menus)
-- ✅ Select (Select dropdowns)
-- ✅ Tabs (Tab navigation)
-- ✅ Switch (Toggle switches)
-- ✅ Checkbox (Checkboxes)
-
-**Feedback** (3):
-- ✅ Toast (Notifications)
-- ✅ Alert (Alert messages)
-- ✅ Skeleton (Loading states)
-
-**Navigation** (2):
-- ✅ Navigation Menu (Navigation bars)
-- ✅ Breadcrumb (Breadcrumbs)
-
-**Folder Structure**:
-```
-components/
-└── ui/
-    ├── button.tsx
-    ├── card.tsx
-    ├── input.tsx
-    ├── label.tsx
-    ├── textarea.tsx
-    ├── table.tsx
-    ├── badge.tsx
-    ├── avatar.tsx
-    ├── separator.tsx
-    ├── dialog.tsx
-    ├── dropdown-menu.tsx
-    ├── select.tsx
-    ├── tabs.tsx
-    ├── switch.tsx
-    ├── checkbox.tsx
-    ├── toast.tsx
-    ├── toaster.tsx
-    ├── use-toast.ts
-    ├── alert.tsx
-    ├── skeleton.tsx
-    ├── navigation-menu.tsx
-    └── breadcrumb.tsx
-```
+**Components Installed**:
+- Core: Button, Card, Input, Label, Textarea
+- Data: Table, Badge, Avatar, Separator
+- Interactive: Dialog, Dropdown, Select, Tabs, Switch, Checkbox
+- Feedback: Toast, Alert, Skeleton
+- Navigation: Navigation Menu, Breadcrumb
 
 **GitHub Commits**:
 - ✅ feat: Add shadcn/ui installation script
 - ✅ docs: Add comprehensive shadcn/ui setup guide
-
-**Estimated Time**: Completed in ~3 minutes
 
 ---
 
@@ -201,15 +148,13 @@ components/
 - [ ] Create LoadingSpinner component
 - [ ] Create ErrorMessage component
 
-**Note**: This can be done after providers are set up
-
 **Estimated Time**: 30 minutes
 
 ---
 
-### 3. 📊 STATE MANAGEMENT SETUP [██████████] 100% ✅ (TanStack Query)
+### 3. 📊 STATE MANAGEMENT SETUP [█████████░] 90% 🚧
 
-**Status**: ✅ TANSTACK QUERY COMPLETE! | 📝 Zustand TODO
+**Status**: 🚧 TANSTACK QUERY COMPLETE | Zustand TODO
 
 #### 3.1. Setup TanStack Query ✅ **COMPLETE!**
 **Completed**: 2025-10-29 10:15
@@ -217,57 +162,26 @@ components/
 
 **What Was Done**:
 - ✅ Created `lib/react-query/provider.tsx`
-  - QueryClientProvider with useState pattern
-  - ReactQueryDevtools integration (dev only)
-  - Proper client instance per user session
 - ✅ Created `lib/react-query/client.ts`
-  - QueryClient configuration (1 min stale, 5 min cache)
-  - Query keys factory pattern (queryKeys)
-  - Type-safe query keys for Countries, Leagues, Teams, Matches
 - ✅ Created `hooks/api/use-countries.ts`
-  - useCountries hook (list with pagination)
-  - useCountry hook (single detail)
-  - Type-safe interfaces
-  - Comprehensive JSDoc documentation
-- ✅ Integrated QueryProvider in `app/layout.tsx`
-- ✅ DevTools configured (bottom-right position)
-
-**Files Created**:
-```
-lib/
-├── react-query/
-│   ├── provider.tsx      # QueryProvider component
-│   └── client.ts         # QueryClient config + query keys
-hooks/
-└── api/
-    └── use-countries.ts  # Example TanStack Query hooks
-```
+- ✅ Integrated into unified Providers
+- ✅ DevTools configured
 
 **Configuration**:
 ```typescript
-// Default Query Options
 {
   staleTime: 60 * 1000,        // 1 minute
   gcTime: 5 * 60 * 1000,       // 5 minutes  
-  retry: 1,                     // Retry once
-  refetchOnWindowFocus: false,  // No auto-refetch
-  refetchOnMount: false,        // No remount refetch
-  refetchOnReconnect: true,     // Refetch on reconnect
+  retry: 1,
+  refetchOnWindowFocus: false,
+  refetchOnMount: false,
+  refetchOnReconnect: true,
 }
 ```
 
-**Query Keys Pattern**:
-```typescript
-queryKeys.countries.all           // ['countries']
-queryKeys.countries.list(filters) // ['countries', 'list', filters]
-queryKeys.countries.detail(1)     // ['countries', 'detail', 1]
-```
-
-**Estimated Time**: Completed (~10 minutes)
-
 ---
 
-#### 3.2. Setup Zustand 📝 **TODO**
+#### 3.2. Setup Zustand 📝 **NEXT STEP**
 **Purpose**: Client state management (UI state)
 
 **What's Already Done**:
@@ -275,26 +189,10 @@ queryKeys.countries.detail(1)     // ['countries', 'detail', 1]
 
 **What's Next** (15 minutes):
 - [ ] Create store/ directory
-- [ ] Create theme store (store/theme.store.ts)
 - [ ] Create sidebar store (store/sidebar.store.ts)
 - [ ] Create filter store (store/filter.store.ts)
+- [ ] Create modal store (store/modal.store.ts)
 - [ ] Test stores
-
-**Files to Create**:
-```typescript
-// store/theme.store.ts
-import { create } from 'zustand';
-
-interface ThemeStore {
-  theme: 'light' | 'dark' | 'system';
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
-}
-
-export const useThemeStore = create<ThemeStore>((set) => ({
-  theme: 'system',
-  setTheme: (theme) => set({ theme }),
-}));
-```
 
 **Estimated Time**: 15 minutes
 
@@ -308,7 +206,6 @@ export const useThemeStore = create<ThemeStore>((set) => ({
 **Purpose**: Admin panel style layout
 
 **Tasks**:
-- [ ] Update app/layout.tsx with providers
 - [ ] Create DashboardLayout component
 - [ ] Implement responsive sidebar
 - [ ] Add navigation menu
@@ -332,24 +229,53 @@ export const useThemeStore = create<ThemeStore>((set) => ({
 
 ---
 
-### 5. 🌈 THEME & STYLING [█████░░░░░] 50% 🚧
+### 5. 🌈 THEME & STYLING [██████████] 100% ✅
 
-**Status**: 🚧 PACKAGE INSTALLED, NEEDS PROVIDER
+**Status**: ✅ COMPLETE!
 
-#### 5.1. Setup Dark Mode 📝 **NEXT STEP OPTION**
+#### 5.1. Setup Dark Mode ✅ **COMPLETE!**
+**Completed**: 2025-10-29 10:30
 **Purpose**: Light/Dark theme support
 
-**What's Already Done**:
-- ✅ next-themes@^0.4.3 installed
-- ✅ Tailwind CSS configured with dark mode
+**What Was Done**:
+- ✅ Created `app/providers.tsx` (unified QueryProvider + ThemeProvider)
+- ✅ Updated `app/layout.tsx` with suppressHydrationWarning
+- ✅ Created `components/theme-toggle.tsx`
+  - Dropdown with Light/Dark/System options
+  - Animated Sun/Moon icons (Lucide React)
+  - Accessible keyboard navigation
+  - Screen reader support
+- ✅ Enhanced `app/page.tsx` with theme demo section
+- ✅ Theme persistence (localStorage via next-themes)
+- ✅ Smooth transitions (disableTransitionOnChange)
+- ✅ System preference detection
 
-**What's Next** (15 minutes):
-- [ ] Create app/providers.tsx (combine QueryProvider + ThemeProvider)
-- [ ] Update app/layout.tsx to use unified Providers
-- [ ] Create theme toggle component (components/theme-toggle.tsx)
-- [ ] Test theme switching (light/dark/system)
+**Files Created**:
+```
+app/
+├── providers.tsx         # Unified Providers (Query + Theme)
+└── layout.tsx           # Updated with suppressHydrationWarning
+components/
+└── theme-toggle.tsx     # Theme switching component
+```
 
-**Estimated Time**: 15 minutes
+**ThemeProvider Configuration**:
+```typescript
+<ThemeProvider
+  attribute="class"
+  defaultTheme="system"
+  enableSystem
+  disableTransitionOnChange
+>
+```
+
+**GitHub Commits**:
+- ✅ feat: Create unified Providers component
+- ✅ refactor: Update layout to use unified Providers
+- ✅ feat: Add ThemeToggle component
+- ✅ feat: Add ThemeToggle to homepage and enhance demo
+
+**Estimated Time**: Completed in ~8 minutes
 
 ---
 
@@ -371,7 +297,7 @@ export const useThemeStore = create<ThemeStore>((set) => ({
 
 **Status**: 🚧 AXIOS INSTALLED, NEEDS CLIENT SETUP
 
-#### 6.1. Create API Client 🚧 **PACKAGE READY, NEEDS IMPLEMENTATION**
+#### 6.1. Create API Client 🚧 **PACKAGE READY**
 **Purpose**: Axios wrapper for Django API
 
 **What's Already Done**:
@@ -406,19 +332,19 @@ export const useThemeStore = create<ThemeStore>((set) => ({
 
 ## 🔗 Next Steps
 
-**Immediate Next Steps** (Choose One):
+**Immediate Next Steps**:
 1. ✅ Phase 1.1: Next.js setup COMPLETE!
 2. ✅ Phase 2.1: shadcn/ui components COMPLETE!
 3. ✅ Phase 3.1: TanStack Query provider COMPLETE!
-4. **📝 Phase 3.2: Zustand stores (15 min)** ← OPTION A
-5. **📝 Phase 5.1: Dark mode setup (15 min)** ← OPTION B
+4. ✅ Phase 5.1: Dark mode setup COMPLETE!
+5. **📝 Phase 3.2: Zustand stores (15 min)** ← NEXT
 
 **After State Management**:
 - Phase 4: Create layout & navigation (60 min)
 - Phase 6: Create API client & services (55 min)
 - Create Countries page (list view)
 
-**Total Remaining Time**: ~2.5 hours
+**Total Remaining Time**: ~2 hours
 
 ---
 
@@ -457,72 +383,66 @@ Resume when:
 ## 📝 Strategic Decisions
 
 **✅ FRONTEND STACK (Confirmed)**:
-- ✅ Framework: **Next.js 16.0.0** (App Router) ✅ Installed
-- ✅ Language: **TypeScript 5** (Strict mode) ✅ Configured
-- ✅ UI Framework: **React 19.2.0** ✅ Installed
-- ✅ Styling: **Tailwind CSS 4** ✅ Installed
-- ✅ Component Library: **shadcn/ui** (New York) ✅ 20 Components Installed
-- ✅ Icons: **Lucide React** ✅ Installed
-- ✅ Server State: **TanStack Query 5** ✅ Configured & Working
-- ✅ Client State: **Zustand 5** ✅ Installed (Stores TODO)
-- ✅ HTTP Client: **Axios** ✅ Installed
-- ✅ Dark Mode: **next-themes** ✅ Installed (Provider TODO)
-- ✅ Database Client: **Supabase JS** ✅ Installed
-- ✅ ORM: **Prisma** (Optional) ✅ Installed
+- ✅ Framework: **Next.js 16.0.0** (App Router)
+- ✅ Language: **TypeScript 5** (Strict mode)
+- ✅ UI Framework: **React 19.2.0**
+- ✅ Styling: **Tailwind CSS 4**
+- ✅ Component Library: **shadcn/ui** (20 components)
+- ✅ Icons: **Lucide React**
+- ✅ Server State: **TanStack Query 5** ✅ Working
+- ✅ Client State: **Zustand 5** (Stores TODO)
+- ✅ HTTP Client: **Axios**
+- ✅ Dark Mode: **next-themes** ✅ Working
+- ✅ Database Client: **Supabase JS**
+- ✅ ORM: **Prisma** (Optional)
 
 **✅ BACKEND STACK (Active)**:
-- ✅ Backend Framework: **Django 5.2.7** ✅ Tested & Working
-- ✅ API Framework: **Django REST Framework** ✅ Fully Functional
-- ✅ Database: **Supabase (PostgreSQL)** ✅ Connected & Queried
-- ✅ API Documentation: **drf-spectacular** ✅ Swagger UI Ready
-- ✅ CORS: **django-cors-headers** ✅ Next.js Ready
+- ✅ Backend Framework: **Django 5.2.7**
+- ✅ API Framework: **Django REST Framework**
+- ✅ Database: **Supabase (PostgreSQL)**
+- ✅ API Documentation: **drf-spectacular**
+- ✅ CORS: **django-cors-headers**
 
 ---
 
 ## 🎉 Recent Achievements
 
+### 2025-10-29 10:30 🌙
+- ✅ **Phase 5.1 COMPLETE!** Dark Mode fully working!
+- ✅ Created app/providers.tsx (unified Query + Theme providers)
+- ✅ Updated app/layout.tsx (suppressHydrationWarning)
+- ✅ Created components/theme-toggle.tsx
+  - Light/Dark/System modes
+  - Animated Sun/Moon icons
+  - Accessible dropdown menu
+- ✅ Enhanced app/page.tsx with theme demo
+- ✅ Theme persistence (localStorage)
+- ✅ Smooth transitions configured
+- ✅ System preference detection working
+- ✅ 4 commits pushed to GitHub
+- ✅ **UI Foundations 85% COMPLETE! 🎉**
+
 ### 2025-10-29 10:15 🚀
 - ✅ **Phase 3.1 COMPLETE!** TanStack Query fully configured!
-- ✅ Created lib/react-query/provider.tsx (QueryProvider)
-- ✅ Created lib/react-query/client.ts (QueryClient + query keys factory)
-- ✅ Created hooks/api/use-countries.ts (example hooks)
+- ✅ Created lib/react-query/provider.tsx
+- ✅ Created lib/react-query/client.ts (QueryClient + query keys)
+- ✅ Created hooks/api/use-countries.ts
 - ✅ Integrated QueryProvider in app/layout.tsx
-- ✅ ReactQueryDevtools configured (dev only)
-- ✅ Type-safe query keys pattern established
-- ✅ Optimized cache settings (1 min stale, 5 min cache)
-- ✅ PROJECT_STATUS.md updated
-- ✅ **UI Foundations 70% COMPLETE! 🎉**
+- ✅ ReactQueryDevtools configured
+- ✅ Type-safe query keys pattern
+- ✅ Optimized cache settings
 
 ### 2025-10-29 09:45 🎊
 - ✅ **Phase 2.1 COMPLETE!** shadcn/ui components installed!
-- ✅ Installed 20 essential components:
-  - Core: Button, Card, Input, Label, Textarea
-  - Data: Table, Badge, Avatar, Separator
-  - Interactive: Dialog, Dropdown, Select, Tabs, Switch, Checkbox
-  - Feedback: Toast, Alert, Skeleton
-  - Navigation: Navigation Menu, Breadcrumb
-- ✅ Created installation script (install-shadcn-components.sh)
-- ✅ Created comprehensive setup guide (SHADCN_SETUP.md - 7KB)
-- ✅ All components in components/ui/ directory
-- ✅ 2 commits pushed to GitHub
-- ✅ **UI Foundations 45% COMPLETE! 🎉**
+- ✅ Installed 20 essential components
+- ✅ Created installation script
+- ✅ Created comprehensive setup guide
 
 ### 2025-10-29 09:40 🎨
 - ✅ **Phase 1.1 COMPLETE!** Next.js setup finished!
-- ✅ Added axios, zustand, next-themes to package.json
+- ✅ Added axios, zustand, next-themes
 - ✅ Created .env.local.example
-- ✅ Created FRONTEND.md (11KB)
-- ✅ Confirmed Next.js 16, React 19, TypeScript 5 setup
-- ✅ 3 commits pushed to GitHub
-
-### 2025-10-29 09:30 🎨
-- ✅ **Switched to Frontend!** UI Foundations active
-- ✅ Backend Setup paused at 95% (fully functional)
-
-### 2025-10-29 09:25 🎊
-- ✅ **Backend Phase 5.1 COMPLETE!** API endpoints tested
-- ✅ Countries API returning 96 countries from Supabase
-- ✅ **Backend Setup 95% COMPLETE! 🎉**
+- ✅ Created FRONTEND.md
 
 ---
 
