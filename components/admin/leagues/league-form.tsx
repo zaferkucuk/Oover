@@ -148,10 +148,9 @@ export function LeagueForm({ mode, id }: LeagueFormProps) {
         const newLeague = await createLeague.mutateAsync(data)
         router.push(`/admin/leagues/${newLeague.id}`)
       } else if (id) {
-        // Update existing league
-        const data: Partial<UpdateLeagueDto> = {
+        // Update existing league (sport is immutable, cannot be changed)
+        const data: UpdateLeagueDto = {
           name: formData.name.trim(),
-          sport: formData.sport,
           country: formData.country || undefined,
           external_id: formData.external_id || undefined,
           logo: formData.logo || undefined,
@@ -252,6 +251,7 @@ export function LeagueForm({ mode, id }: LeagueFormProps) {
                 errors.sport ? 'border-destructive' : 'border-input'
               }`}
               required
+              disabled={mode === 'edit'}
             >
               <option value="">Select a sport</option>
               <option value="football-uuid">Football</option>
@@ -261,9 +261,15 @@ export function LeagueForm({ mode, id }: LeagueFormProps) {
             {errors.sport && (
               <p className="text-sm text-destructive mt-1">{errors.sport}</p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Note: Sport options will be loaded from API
-            </p>
+            {mode === 'edit' ? (
+              <p className="text-xs text-muted-foreground mt-1">
+                Note: Sport cannot be changed after creation
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">
+                Note: Sport options will be loaded from API
+              </p>
+            )}
           </div>
 
           {/* Country (Dropdown - will need Countries API) */}
