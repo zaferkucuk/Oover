@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'drf_spectacular',
+    'django_filters',  # Required for DRF filtering
     
     # Local apps
     'apps.core',
@@ -203,6 +204,7 @@ REST_FRAMEWORK = {
     
     # Filtering
     'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',  # Django-filters integration
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
