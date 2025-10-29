@@ -263,7 +263,6 @@ export function useLeagueSearch(
  *     try {
  *       const newLeague = await createLeague.mutateAsync(data)
  *       console.log('Created:', newLeague)
- *       // Success! Cache is automatically invalidated
  *     } catch (error) {
  *       console.error('Failed:', error)
  *     }
@@ -279,7 +278,6 @@ export function useLeagueSearch(
  *         is_active: true
  *       })
  *     }}>
- *       {/* Form fields */}
  *       <button disabled={createLeague.isPending}>
  *         {createLeague.isPending ? 'Creating...' : 'Create League'}
  *       </button>
@@ -325,9 +323,7 @@ export function useCreateLeague() {
  *         id: league.id,
  *         data: { is_active: !league.is_active }
  *       })
- *       // Success! UI already updated optimistically
  *     } catch (error) {
- *       // Error! UI rolled back automatically
  *       console.error('Failed:', error)
  *     }
  *   }
