@@ -125,7 +125,7 @@ export default function LeagueDetailPage({ params }: LeagueDetailPageProps) {
       {/* Main Content with Suspense */}
       <Suspense fallback={<LeagueDetailSkeleton />}>
         <div className="bg-card rounded-lg border">
-          <LeagueDetail leagueId={id} />
+          <LeagueDetail id={id} />
         </div>
       </Suspense>
     </div>
