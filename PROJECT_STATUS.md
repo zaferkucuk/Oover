@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-29 13:05 UTC
+**Last Updated**: 2025-10-29 16:35 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -9,50 +9,55 @@
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
 **🎯 ACTIVE FEATURE**: Leagues 🏆 **IN PROGRESS**
-**📍 CURRENT LAYER**: Frontend Layer (TypeScript Integration)
-**🚧 ACTIVE TASK**: Phase 4.2 - Create API Client
-**✅ LAST COMPLETED**: Phase 4.1 - League Types (models.ts updated) ✅
-**📝 NEXT TASK**: Create API client for League CRUD operations
+**📍 CURRENT LAYER**: Frontend Layer (TanStack Query Integration)
+**🚧 ACTIVE TASK**: Phase 4.3 - Create TanStack Query Hooks
+**✅ LAST COMPLETED**: Phase 4.2 - API Client (leagues.service.ts updated) ✅
+**📝 NEXT TASK**: Create TanStack Query hooks for cache management and mutations
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: refactor: Update League types to match Django backend
+**🔗 Last Commit**: refactor: Update League service docs for new schema
 
 **💬 Quick Start Message for Next Session**:
 ```
-🏆🏆 LEAGUES FEATURE - PHASE 4.1 COMPLETE! 🏆🏆
+🏆🏆 LEAGUES FEATURE - PHASE 4.2 COMPLETE! 🏆🏆
 
 ✅ BACKEND 100% COMPLETE!
 - Phase 1: Database backup + schema verification ✅
 - Phase 2: Seed data verification + quality report ✅
 - Phase 3: Django Backend (Model + Serializers + ViewSet + URLs) ✅
 
-✅ FRONTEND TYPES 33% COMPLETE!
+✅ FRONTEND 66% COMPLETE!
 - Phase 4.1: TypeScript Types (models.ts) ✅
-  - Sport interface added ✅
-  - League interface updated (sport_id, sport_details) ✅
-  - LeagueListItem added ✅
-  - Deprecated fields removed (season, type) ✅
-  - CreateLeagueDto/UpdateLeagueDto updated ✅
+  - Sport, League, LeagueListItem interfaces ✅
+  - CreateLeagueDto, UpdateLeagueDto updated ✅
   - LeagueQueryParams updated ✅
+- Phase 4.2: API Client (leagues.service.ts) ✅
+  - Full CRUD operations ✅
+  - Custom endpoints (active, by-country, search) ✅
+  - Type-safe requests/responses ✅
+  - Comprehensive JSDoc documentation ✅
 
-✅ API ENDPOINTS AVAILABLE:
-- GET    /api/v1/leagues/
-- GET    /api/v1/leagues/{id}/
-- POST   /api/v1/leagues/
-- PUT    /api/v1/leagues/{id}/
-- PATCH  /api/v1/leagues/{id}/
-- DELETE /api/v1/leagues/{id}/
-- GET    /api/v1/leagues/active/
-- GET    /api/v1/leagues/by-country/{country_id}/
-- GET    /api/v1/leagues/search/?q=premier
+✅ API SERVICE METHODS:
+- getAll(params) - Paginated list
+- getById(id) - Full details
+- create(data) - Create league
+- update(id, data) - Full update
+- patch(id, data) - Partial update
+- delete(id) - Delete league
+- getActive() - Active leagues only
+- getByCountry(countryId) - Filter by country
+- search(query) - Search by name/external_id
 
-🎯 NEXT: Phase 4.2 - API Client
-- Create leagues.ts API client
-- Full CRUD operations
-- Type-safe requests/responses
-- Error handling
+🎯 NEXT: Phase 4.3 - TanStack Query Hooks
+- useLeagues(params) - Query hook for list
+- useLeague(id) - Query hook for detail
+- useCreateLeague() - Mutation hook
+- useUpdateLeague() - Mutation hook
+- useDeleteLeague() - Mutation hook
+- Cache invalidation strategies
+- Optimistic updates
 
-⏱️ REMAINING TIME: ~10 minutes (2 phases left)
+⏱️ REMAINING TIME: ~5 minutes (1 phase left)
 ```
 
 ---
@@ -64,7 +69,7 @@
 | 🎨 **UI Foundations** | ✅ **COMPLETE!** | 100% | **CRITICAL** | 2025-11-08 |
 | 🔧 **Backend Setup** | ⏸️ PAUSED | 95% | CRITICAL | 2025-11-03 |
 | 🌍 Countries | 📝 TODO | 0% | HIGH | 2025-11-12 |
-| 🏆 **Leagues** | 🚧 **IN PROGRESS** | 85% | **HIGH** | 2025-11-19 |
+| 🏆 **Leagues** | 🚧 **IN PROGRESS** | 90% | **HIGH** | 2025-11-19 |
 | ⚽ Teams | 📝 TODO | 0% | MEDIUM | 2025-11-26 |
 | 🎯 Matches | 📝 TODO | 0% | HIGH | 2025-12-03 |
 | 📊 Predictions | 📝 TODO | 0% | HIGH | 2025-12-10 |
@@ -77,12 +82,12 @@
 
 ## 🏆 FEATURE: Leagues ✅ **BACKEND COMPLETE!**
 
-**Status**: 🚧 IN PROGRESS (Backend 100%, Frontend 33%)
+**Status**: 🚧 IN PROGRESS (Backend 100%, Frontend 66%)
 **Priority**: HIGH (Critical for matches and predictions)
 **Start Date**: 2025-10-29
 **Backend Completed**: 2025-10-29 12:35
 **Frontend Started**: 2025-10-29 13:05
-**Estimated Total Completion**: 2025-10-29 (~10 minutes remaining)
+**Estimated Total Completion**: 2025-10-29 (~5 minutes remaining)
 **Assignee**: Self
 
 ### 🎯 OVERVIEW
@@ -95,8 +100,8 @@ Complete leagues management system with:
 - ✅ Django REST API ViewSet with full CRUD (COMPLETE!)
 - ✅ URL Router Configuration (COMPLETE!)
 - ✅ TypeScript types (models.ts updated with Sport, League interfaces)
-- 📝 API Client (next)
-- 📝 TanStack Query hooks
+- ✅ API Client (leagues.service.ts with full CRUD + custom endpoints)
+- 📝 TanStack Query hooks (next)
 - 📝 Comprehensive documentation
 
 ### 📋 KEY DECISIONS MADE
@@ -105,7 +110,7 @@ Complete leagues management system with:
 **Status**: ✅ VERIFIED IN DATABASE & MODEL
 
 #### 2️⃣ Season Field: **REMOVED** (FINAL) ✅
-**Status**: ✅ VERIFIED - Not in database, removed from TypeScript types
+**Status**: ✅ VERIFIED - Not in database, removed from all code
 
 #### 3️⃣ Country Field: **REMOVED** (FINAL) ✅
 **Status**: ✅ VERIFIED - Using country_id
@@ -129,6 +134,11 @@ Complete leagues management system with:
 **Status**: ✅ IMPLEMENTED - Updated existing models.ts instead of creating separate league.ts
 **Date**: 2025-10-29 13:05
 **Reason**: Consistency with existing project structure, easier maintenance
+
+#### 8️⃣ Service Structure: **leagues.service.ts** (FINAL) ✅
+**Status**: ✅ VERIFIED & UPDATED - Existing service updated with new schema docs
+**Date**: 2025-10-29 16:35
+**Reason**: Service already existed and was comprehensive, just needed documentation updates
 
 ---
 
@@ -421,11 +431,11 @@ urlpatterns = [
 
 ---
 
-### **Phase 4: Frontend TypeScript** [███░░░░░░░] 33% ✅
+### **Phase 4: Frontend TypeScript** [██████░░░░] 66% ✅
 
 **Status**: 🚧 IN PROGRESS
 **Estimated Time**: 10 minutes
-**Actual Time So Far**: 3 minutes
+**Actual Time So Far**: 4 minutes
 
 #### 4.1. Create League Types ✅ **COMPLETE!**
 **Status**: ✅ COMPLETE!
@@ -473,53 +483,88 @@ urlpatterns = [
 
 ---
 
-#### 4.2. Create API Client 📝 **NEXT TASK**
-**Status**: 📝 TODO
-**Time**: 4 minutes (estimated)
+#### 4.2. Create API Client ✅ **COMPLETE!**
+**Status**: ✅ COMPLETE!
+**Completed**: 2025-10-29 16:35
+**Time**: 1 minute (existed, updated docs)
 
-**File**: `services/api/leagues.ts` (or similar based on project structure)
+**File**: `services/leagues.service.ts`
 
-**What To Do:**
+**What Was Done:**
+- ✅ Verified existing comprehensive service
+- ✅ Updated JSDoc comments for new schema
+- ✅ Added sport field documentation
+- ✅ Enhanced examples with sport_details
+- ✅ Added database schema documentation
+- ✅ Improved validation notes
+- ✅ Removed deprecated field references
+
+**Service Methods:**
 ```typescript
-// Full CRUD operations for leagues
-// - getLeagues(params?: LeagueQueryParams)
-// - getLeague(id: string)
-// - createLeague(data: CreateLeagueDto)
-// - updateLeague(id: string, data: UpdateLeagueDto)
-// - deleteLeague(id: string)
-// - getActiveLeagues()
-// - getLeaguesByCountry(countryId: string)
+// Standard CRUD
+getAll(params?: LeagueQueryParams): Promise<PaginatedResponse<LeagueListItem>>
+getById(id: string): Promise<League>
+create(data: CreateLeagueDto): Promise<League>
+update(id: string, data: UpdateLeagueDto): Promise<League>
+patch(id: string, data: Partial<UpdateLeagueDto>): Promise<League>
+delete(id: string): Promise<void>
+
+// Custom Endpoints
+getActive(): Promise<LeagueListItem[]>
+getByCountry(countryId: string): Promise<LeagueListItem[]>
+search(query: string): Promise<PaginatedResponse<LeagueListItem>>
 ```
+
+**GitHub Commit**:
+🔗 [refactor: Update League service docs for new schema](https://github.com/zaferkucuk/Oover/commit/90472d90e07ad4de52a5faf65f4377bc2f3f4149)
 
 **Success Criteria:**
 - ✅ API client with full CRUD
 - ✅ Type-safe requests/responses
-- ✅ Error handling
+- ✅ Error handling (via api-client)
 - ✅ Environment-based API URL
+- ✅ Custom endpoints implemented
+- ✅ Comprehensive documentation
 
 ---
 
-#### 4.3. Create TanStack Query Hooks 📝
+#### 4.3. Create TanStack Query Hooks 📝 **NEXT TASK**
 **Status**: 📝 TODO
 **Time**: 3 minutes (estimated)
 
-**File**: `hooks/useLeagues.ts` (or similar)
+**File**: `hooks/useLeagues.ts` (to be created or verified)
 
 **What To Do:**
 ```typescript
-// TanStack Query hooks
-// - useLeagues(params?: LeagueQueryParams)
-// - useLeague(id: string)
-// - useCreateLeague()
-// - useUpdateLeague()
-// - useDeleteLeague()
+// Query Hooks (GET operations)
+useLeagues(params?: LeagueQueryParams) // List with cache
+useLeague(id: string) // Detail with cache
+useActiveLeagues() // Active leagues
+useLeaguesByCountry(countryId: string) // Filter by country
+useLeagueSearch(query: string) // Search
+
+// Mutation Hooks (CUD operations)
+useCreateLeague() // Create with cache invalidation
+useUpdateLeague() // Update with optimistic updates
+useDeleteLeague() // Delete with cache invalidation
+
+// Cache Keys
+const leagueKeys = {
+  all: ['leagues'] as const,
+  lists: () => [...leagueKeys.all, 'list'] as const,
+  list: (params?: LeagueQueryParams) => [...leagueKeys.lists(), params] as const,
+  details: () => [...leagueKeys.all, 'detail'] as const,
+  detail: (id: string) => [...leagueKeys.details(), id] as const,
+}
 ```
 
 **Success Criteria:**
 - ✅ Query hooks for list/detail
 - ✅ Mutation hooks for create/update/delete
-- ✅ Cache management
-- ✅ Optimistic updates
+- ✅ Cache management with query keys
+- ✅ Optimistic updates for mutations
+- ✅ Proper error handling
+- ✅ Loading states
 
 ---
 
@@ -541,6 +586,25 @@ urlpatterns = [
 ---
 
 ## 🎉 Recent Achievements
+
+### 2025-10-29 16:35 🎊
+- ✅ **PHASE 4.2 COMPLETE!** API Client Verified & Updated!
+- ✅ **leagues.service.ts Refactored!**
+  - JSDoc comments updated for new schema ✅
+  - Sport field documentation added ✅
+  - external_id usage clarified ✅
+  - Deprecated fields removed (season, type) ✅
+  - Examples enhanced with sport_details ✅
+  - Database schema documented ✅
+- ✅ **Service Methods: 9 total**
+  - 6 standard CRUD operations ✅
+  - 3 custom endpoints ✅
+- ✅ **Backend Compatibility: 100%**
+- ✅ **Phase 4 Progress: 33% → 66%**
+- ✅ **Total Progress: 85% → 90%**
+- ✅ Service updates pushed to GitHub
+- ✅ PROJECT_STATUS.md updated
+- ✅ Ready for Phase 4.3 (TanStack Query Hooks)!
 
 ### 2025-10-29 13:05 🎨
 - ✅ **PHASE 4.1 COMPLETE!** TypeScript Types Updated!
