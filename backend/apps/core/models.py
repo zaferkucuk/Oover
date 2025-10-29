@@ -284,11 +284,23 @@ class Team(models.Model):
     Team model - maps to 'teams' table in Supabase
     
     Represents football teams/clubs.
-    Uses snake_case for new fields, camelCase for legacy fields.
+    Uses snake_case column names to match PostgreSQL/Supabase convention.
     
     Database Table: teams
     Primary Key: id (text)
-    Foreign Keys: league_id (League), country_id (Country UUID)
+    Foreign Keys: country_id (Country UUID)
+    
+    Schema Changes (Oct 2025):
+    - Removed: league_id (no direct league relationship)
+    - Removed: shortName, venue, country (text)
+    - Added: code (3-letter team code)
+    - Added: website (official website URL)
+    - Added: market_value (team market value in EUR)
+    - Added: is_active (status flag)
+    - Changed: All camelCase fields to snake_case
+    
+    Note: Teams no longer have a direct league_id relationship.
+          League membership is tracked through matches and seasons.
     
     Note: This is an unmanaged model (managed=False) because the table
     is created and managed in Supabase, not by Django migrations.
@@ -300,26 +312,18 @@ class Team(models.Model):
         help_text="Unique team identifier (text UUID)"
     )
     
-    name = models.TextField(
-        help_text="Team name (e.g., 'Manchester United', 'Real Madrid')"
-    )
-    
-    short_name = models.TextField(
+    code = models.CharField(
+        max_length=10,
         null=True,
         blank=True,
-        db_column='shortName',  # Maps to Supabase camelCase column
-        help_text="Short team name (e.g., 'Man Utd', 'Real')"
+        help_text="3-letter team code (e.g., 'MUN', 'BAR', 'FNB') for compact display"
     )
     
-    # Foreign Keys (snake_case)
-    league = models.ForeignKey(
-        League,
-        on_delete=models.CASCADE,
-        db_column='league_id',
-        related_name='teams',
-        help_text="Primary league where team competes"
+    name = models.TextField(
+        help_text="Full team name (e.g., 'Manchester United', 'FC Barcelona', 'Fenerbahçe')"
     )
     
+    # Foreign Key (snake_case)
     country = models.ForeignKey(
         Country,
         on_delete=models.CASCADE,
@@ -330,17 +334,11 @@ class Team(models.Model):
         help_text="Team's home country"
     )
     
-    # Additional Fields
+    # Branding & Info Fields
     logo = models.TextField(
         null=True,
         blank=True,
         help_text="Team logo URL"
-    )
-    
-    venue = models.TextField(
-        null=True,
-        blank=True,
-        help_text="Home stadium name"
     )
     
     founded = models.IntegerField(
@@ -349,24 +347,40 @@ class Team(models.Model):
         help_text="Year team was founded"
     )
     
+    website = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Official team website URL"
+    )
+    
+    market_value = models.BigIntegerField(
+        null=True,
+        blank=True,
+        help_text="Team market value in EUR (e.g., 1000000000 for €1 billion)"
+    )
+    
+    # External Reference
     external_id = models.TextField(
         null=True,
         blank=True,
-        db_column='externalId',  # Maps to Supabase camelCase column
-        help_text="External API identifier"
+        help_text="External API identifier (e.g., 'api-football-33' for Manchester United)"
     )
     
-    # Timestamp Fields (camelCase in Supabase)
+    # Status Field
+    is_active = models.BooleanField(
+        default=True,
+        help_text="False to hide team from active lists (e.g., dissolved teams)"
+    )
+    
+    # Timestamp Fields (snake_case)
     created_at = models.DateTimeField(
         default=timezone.now,
-        db_column='createdAt',
         help_text="Record creation timestamp"
     )
     
     updated_at = models.DateTimeField(
         null=True,
         blank=True,
-        db_column='updatedAt',
         help_text="Record last update timestamp"
     )
     
@@ -376,11 +390,40 @@ class Team(models.Model):
         verbose_name = 'Team'
         verbose_name_plural = 'Teams'
         ordering = ['name']
+        indexes = [
+            models.Index(fields=['country'], name='idx_teams_country'),
+            models.Index(fields=['code'], name='idx_teams_code'),
+            models.Index(fields=['is_active'], name='idx_teams_is_active'),
+            models.Index(fields=['external_id'], name='idx_teams_external_id'),
+        ]
         
     def __str__(self):
         """String representation of the team"""
+        if self.code:
+            return f"{self.name} ({self.code})"
         return self.name
     
     def __repr__(self):
         """Developer-friendly representation"""
         return f"<Team: {self.id} - {self.name}>"
+    
+    @property
+    def formatted_market_value(self):
+        """
+        Returns formatted market value for display
+        
+        Examples:
+            1000000 -> "€1.0M"
+            1500000000 -> "€1.5B"
+            None -> "N/A"
+        """
+        if not self.market_value:
+            return "N/A"
+        
+        value = self.market_value
+        if value >= 1_000_000_000:
+            return f"€{value / 1_000_000_000:.1f}B"
+        elif value >= 1_000_000:
+            return f"€{value / 1_000_000:.1f}M"
+        else:
+            return f"€{value:,}"
