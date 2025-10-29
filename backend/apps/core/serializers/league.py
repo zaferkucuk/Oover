@@ -110,7 +110,7 @@ class LeagueDetailSerializer(serializers.ModelSerializer):
             dict: Sport details
         """
         return {
-            'id': obj.sport.id,
+            'id': str(obj.sport.id),  # Consistent string conversion with country_details
             'name': obj.sport.name,
             'slug': obj.sport.slug,
             'icon': obj.sport.icon,
