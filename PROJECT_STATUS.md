@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-29 13:45 UTC
+**Last Updated**: 2025-10-29 15:00 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -8,28 +8,43 @@
 
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
-**🎯 ACTIVE FEATURE**: UI Foundations ⭐ **100% COMPLETE!** 🎉
-**📍 CURRENT LAYER**: Frontend Layer (Next.js + TypeScript + shadcn/ui)
-**🚧 ACTIVE TASK**: Phase 4.1 ✅ COMPLETE! | Next: Install Components or Countries Page
-**✅ LAST COMPLETED**: Dashboard Layout (Admin Panel Style)!
-**📝 NEXT TASK**: Install missing components OR create Countries list page
+**🎯 ACTIVE FEATURE**: Leagues 🏆 **READY TO START!**
+**📍 CURRENT LAYER**: Database Layer (Schema Migration)
+**🚧 ACTIVE TASK**: Phase 1.1 - Database Schema Backup
+**✅ LAST COMPLETED**: Leagues Feature Planning & Decisions!
+**📝 NEXT TASK**: Backup current leagues data and start snake_case migration
 
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: feat: Add dashboard layout with sidebar, header, and navigation (Phase 4.1)
+**🔗 Last Commit**: docs: Add Leagues feature planning with snake_case decision
 
 **💬 Quick Start Message for Next Session**:
 ```
-🎉🎉 DASHBOARD LAYOUT COMPLETE! 🎉🎉
-✅ DashboardLayout component (responsive) ✅
-✅ Sidebar (desktop + mobile Sheet) ✅
-✅ Header (breadcrumbs + theme toggle + user menu) ✅
-✅ Navigation config (7 menu items) ✅
-✅ Dashboard home page (stats + quick actions) ✅
+🏆🏆 LEAGUES FEATURE - READY TO START! 🏆🏆
 
-⚠️ ACTION REQUIRED:
-Run: npx shadcn@latest add scroll-area sheet dropdown-menu
+📋 KARARLAR ALINDI:
+✅ snake_case convention (Modern & PostgreSQL best practice)
+✅ season alanı KALDIRILACAK (league_seasons tablosu gelecekte)
+✅ country alanı KALDIRILACAK (sadece country_id kullanılacak)
 
-📝 Sıradaki: Countries List Page (DataTable)
+🎯 İLK TASK: Phase 1.1 - Database Schema Backup
+- Mevcut leagues verisini yedekle
+- Column rename yap (camelCase → snake_case)
+- Deprecated columns sil (season, country)
+- Foreign keys güncelle
+
+📊 19 LİG SEED DATA HAZIR:
+- İngiltere: Premier League, Championship
+- İtalya: Serie A, Serie B
+- İspanya: La Liga, La Liga 2
+- Almanya: Bundesliga, 2. Bundesliga
+- Fransa: Ligue 1, Ligue 2
+- Hollanda: Eredivisie, Eerste Divisie
+- Portekiz: Primeira Liga, Liga Portugal 2
+- Belçika: Pro League, Challenger Pro League
+- Çek: Czech First League
+- Türkiye: Süper Lig, 1. Lig
+
+⏱️ TAHMINI SURE: ~55 dakika (5 phase)
 ```
 
 ---
@@ -41,7 +56,7 @@ Run: npx shadcn@latest add scroll-area sheet dropdown-menu
 | 🎨 **UI Foundations** | ✅ **COMPLETE!** | 100% | **CRITICAL** | 2025-11-08 |
 | 🔧 **Backend Setup** | ⏸️ PAUSED | 95% | CRITICAL | 2025-11-03 |
 | 🌍 Countries | 📝 TODO | 0% | HIGH | 2025-11-12 |
-| 🏆 Leagues | 📝 TODO | 0% | HIGH | 2025-11-19 |
+| 🏆 **Leagues** | 🚧 **IN PROGRESS** | 0% | **HIGH** | 2025-11-19 |
 | ⚽ Teams | 📝 TODO | 0% | MEDIUM | 2025-11-26 |
 | 🎯 Matches | 📝 TODO | 0% | HIGH | 2025-12-03 |
 | 📊 Predictions | 📝 TODO | 0% | HIGH | 2025-12-10 |
@@ -49,6 +64,455 @@ Run: npx shadcn@latest add scroll-area sheet dropdown-menu
 ---
 
 # 📋 DETAILED FEATURE TRACKING
+
+---
+
+## 🏆 FEATURE: Leagues 🚧 **IN PROGRESS**
+
+**Status**: 🚧 IN PROGRESS (Planning Complete - Ready to Execute)
+**Priority**: HIGH (Critical for matches and predictions)
+**Start Date**: 2025-10-29
+**Estimated Completion**: 2025-10-29 (~55 minutes)
+**Assignee**: Self
+
+### 🎯 OVERVIEW
+Complete leagues management system with:
+- ✅ Database schema migration (camelCase → snake_case)
+- ✅ Remove deprecated fields (season, country)
+- ✅ 19 European leagues seed data
+- ✅ Django REST API with full CRUD
+- ✅ Frontend TypeScript integration
+- ✅ Comprehensive documentation
+
+### 📋 KEY DECISIONS MADE
+
+#### 1️⃣ Naming Convention: **snake_case** (FINAL)
+**Rationale:**
+- ✅ PostgreSQL/Supabase best practice
+- ✅ Python/Django PEP 8 standard
+- ✅ Consistency with countries table
+- ✅ SQL readability
+- ✅ Modern ecosystem standard (GraphQL, PostgreSQL, Python)
+
+**Implementation:**
+- Database: `sport_id`, `external_id`, `is_active`, etc.
+- Frontend: camelCase (`sportId`) with API transformation layer
+- Backend: snake_case (Django models follow Python convention)
+
+#### 2️⃣ Season Field: **REMOVED** (FINAL)
+**Rationale:**
+- ❌ Bad Design: Creates data redundancy
+  - "Premier League - 2024/25"
+  - "Premier League - 2025/26" (duplicate league definition)
+- ✅ Good Design: Separate `league_seasons` table (future feature)
+  - League defined once: "Premier League"
+  - Multiple seasons linked via junction table
+
+**Future Implementation:**
+```sql
+league_seasons:
+  - id
+  - league_id (FK)
+  - season (2024/25, 2025/26)
+  - start_date
+  - end_date
+  - is_current
+```
+
+#### 3️⃣ Country Field: **REMOVED** (FINAL)
+**Rationale:**
+- ❌ `country` (text): Deprecated, no referential integrity
+- ✅ `country_id` (uuid): Foreign key to countries table
+
+---
+
+### 📊 FINAL LEAGUES TABLE SCHEMA
+
+```sql
+leagues:
+  id              uuid PRIMARY KEY
+  sport_id        text NOT NULL (FK → sports.id)
+  external_id     text (API reference ID)
+  name            text NOT NULL
+  country_id      uuid (FK → countries.id)
+  logo            text (logo URL)
+  is_active       boolean DEFAULT true
+  created_at      timestamp DEFAULT CURRENT_TIMESTAMP
+  updated_at      timestamp
+```
+
+**Removed Fields:**
+- ❌ `season` (text) - Will be in league_seasons table
+- ❌ `country` (text) - Replaced by country_id (uuid)
+
+**Renamed Fields (camelCase → snake_case):**
+- `sportId` → `sport_id`
+- `externalId` → `external_id`
+- `isActive` → `is_active`
+- `createdAt` → `created_at`
+- `updatedAt` → `updated_at`
+
+---
+
+### 🗂️ PHASES & TASKS
+
+---
+
+### **Phase 1: Database Schema Update** [░░░░░░░░░░] 0%
+
+**Status**: 📝 TODO
+**Estimated Time**: 15 minutes
+**Purpose**: Migrate leagues table to snake_case and remove deprecated fields
+
+#### 1.1. Backup Current Leagues Data ⏳ **NEXT TASK**
+**Status**: 📝 TODO
+**Time**: 2 minutes
+
+**What To Do:**
+- Export current leagues table data
+- Save backup to `/database/backups/leagues_backup_YYYYMMDD.sql`
+- Verify backup integrity
+
+**Success Criteria:**
+- ✅ Backup file created
+- ✅ Data export verified
+- ✅ Safe to proceed with migration
+
+---
+
+#### 1.2. Rename Columns to snake_case 📝
+**Status**: 📝 TODO
+**Time**: 5 minutes
+
+**What To Do:**
+```sql
+ALTER TABLE leagues RENAME COLUMN "sportId" TO sport_id;
+ALTER TABLE leagues RENAME COLUMN "externalId" TO external_id;
+ALTER TABLE leagues RENAME COLUMN "isActive" TO is_active;
+ALTER TABLE leagues RENAME COLUMN "createdAt" TO created_at;
+ALTER TABLE leagues RENAME COLUMN "updatedAt" TO updated_at;
+```
+
+**Success Criteria:**
+- ✅ All columns renamed
+- ✅ No errors in migration
+- ✅ Data preserved
+
+---
+
+#### 1.3. Remove Deprecated Columns 📝
+**Status**: 📝 TODO
+**Time**: 2 minutes
+
+**What To Do:**
+```sql
+ALTER TABLE leagues DROP COLUMN season;
+ALTER TABLE leagues DROP COLUMN country;
+```
+
+**Success Criteria:**
+- ✅ season column removed
+- ✅ country column removed
+- ✅ country_id column preserved
+
+---
+
+#### 1.4. Update Foreign Keys in Related Tables 📝
+**Status**: 📝 TODO
+**Time**: 6 minutes
+
+**What To Do:**
+```sql
+-- teams table
+ALTER TABLE teams RENAME COLUMN "leagueId" TO league_id;
+
+-- matches table
+ALTER TABLE matches RENAME COLUMN "leagueId" TO league_id;
+```
+
+**Success Criteria:**
+- ✅ Foreign key columns renamed
+- ✅ Relationships maintained
+- ✅ No broken references
+
+---
+
+### **Phase 2: Seed Data** [░░░░░░░░░░] 0%
+
+**Status**: 📝 TODO
+**Estimated Time**: 10 minutes
+**Purpose**: Insert 19 European leagues with proper country_id references
+
+#### 2.1. Prepare 19 Leagues Seed Data 📝
+**Status**: 📝 TODO
+**Time**: 5 minutes
+
+**Leagues List:**
+1. **England**: Premier League, Championship
+2. **Italy**: Serie A, Serie B
+3. **Spain**: La Liga, La Liga 2
+4. **Germany**: Bundesliga, 2. Bundesliga
+5. **France**: Ligue 1, Ligue 2
+6. **Netherlands**: Eredivisie, Eerste Divisie
+7. **Portugal**: Primeira Liga, Liga Portugal 2
+8. **Belgium**: Pro League, Challenger Pro League
+9. **Czech Republic**: Czech First League
+10. **Turkey**: Süper Lig, 1. Lig
+
+**Success Criteria:**
+- ✅ SQL seed file created
+- ✅ country_id properly mapped
+- ✅ sport_id set to football
+
+---
+
+#### 2.2. Get country_id from Countries Table 📝
+**Status**: 📝 TODO
+**Time**: 2 minutes
+
+**What To Do:**
+```sql
+SELECT id, name FROM countries WHERE name IN (
+  'England', 'Italy', 'Spain', 'Germany', 'France',
+  'Netherlands', 'Portugal', 'Belgium', 'Czech Republic', 'Turkey'
+);
+```
+
+**Success Criteria:**
+- ✅ All 10 countries found
+- ✅ UUID IDs retrieved
+
+---
+
+#### 2.3. Insert Seed Data 📝
+**Status**: 📝 TODO
+**Time**: 3 minutes
+
+**What To Do:**
+- Execute seed SQL script
+- Verify all 19 leagues inserted
+- Check foreign key constraints
+
+**Success Criteria:**
+- ✅ 19 leagues inserted
+- ✅ No constraint violations
+- ✅ All country_id references valid
+
+---
+
+### **Phase 3: Django Backend** [░░░░░░░░░░] 0%
+
+**Status**: 📝 TODO
+**Estimated Time**: 15 minutes
+**Purpose**: Create Django model, serializer, ViewSet, and API endpoints
+
+#### 3.1. Update Django Model (snake_case) 📝
+**Status**: 📝 TODO
+**Time**: 4 minutes
+
+**File**: `backend/apps/core/models.py`
+
+**What To Do:**
+```python
+class League(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    sport_id = models.ForeignKey(Sport, on_delete=models.CASCADE)
+    external_id = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255)
+    country_id = models.ForeignKey(Country, on_delete=models.SET_NULL, null=True)
+    logo = models.URLField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'leagues'
+        ordering = ['name']
+```
+
+**Success Criteria:**
+- ✅ Model uses snake_case
+- ✅ Foreign keys properly defined
+- ✅ No season or country fields
+
+---
+
+#### 3.2. Create Serializer 📝
+**Status**: 📝 TODO
+**Time**: 3 minutes
+
+**File**: `backend/apps/core/serializers.py`
+
+**Success Criteria:**
+- ✅ LeagueSerializer created
+- ✅ All fields included
+- ✅ Nested country and sport info
+
+---
+
+#### 3.3. Create ViewSet (CRUD) 📝
+**Status**: 📝 TODO
+**Time**: 5 minutes
+
+**File**: `backend/apps/core/views.py`
+
+**Features:**
+- GET /api/leagues/ (list with filters)
+- GET /api/leagues/{id}/ (detail)
+- POST /api/leagues/ (create)
+- PUT /api/leagues/{id}/ (update)
+- PATCH /api/leagues/{id}/ (partial update)
+- DELETE /api/leagues/{id}/ (delete)
+
+**Filters:**
+- country_id
+- sport_id
+- is_active
+- search (name)
+
+**Success Criteria:**
+- ✅ Full CRUD operations
+- ✅ Filtering working
+- ✅ Search implemented
+
+---
+
+#### 3.4. Update URLs 📝
+**Status**: 📝 TODO
+**Time**: 3 minutes
+
+**File**: `backend/apps/core/urls.py`
+
+**Success Criteria:**
+- ✅ Leagues endpoints registered
+- ✅ Router configured
+- ✅ API accessible
+
+---
+
+### **Phase 4: Frontend TypeScript** [░░░░░░░░░░] 0%
+
+**Status**: 📝 TODO
+**Estimated Time**: 10 minutes
+**Purpose**: Create TypeScript types, service layer, and React Query hooks
+
+#### 4.1. Update TypeScript Types 📝
+**Status**: 📝 TODO
+**Time**: 3 minutes
+
+**File**: `frontend/types/models.ts`
+
+**What To Do:**
+```typescript
+export interface League {
+  id: string;
+  sportId: string;
+  externalId?: string;
+  name: string;
+  countryId?: string;
+  logo?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  // Nested
+  sport?: Sport;
+  country?: Country;
+}
+
+export interface LeagueQueryParams {
+  sportId?: string;
+  countryId?: string;
+  isActive?: boolean;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+```
+
+**Success Criteria:**
+- ✅ League interface defined
+- ✅ Query params typed
+- ✅ camelCase for frontend
+
+---
+
+#### 4.2. Create leagues.service.ts 📝
+**Status**: 📝 TODO
+**Time**: 4 minutes
+
+**File**: `frontend/services/leagues.service.ts`
+
+**Methods:**
+- getAll(params?)
+- getById(id)
+- create(data)
+- update(id, data)
+- patch(id, data)
+- delete(id)
+- search(query)
+
+**Success Criteria:**
+- ✅ Full CRUD service
+- ✅ API transformations (snake_case ↔ camelCase)
+- ✅ Type-safe methods
+
+---
+
+#### 4.3. Create useLeagues Hook 📝
+**Status**: 📝 TODO
+**Time**: 3 minutes
+
+**File**: `frontend/hooks/api/use-leagues.ts`
+
+**Hooks:**
+- useLeagues(params?)
+- useLeague(id)
+- useCreateLeague()
+- useUpdateLeague()
+- useDeleteLeague()
+- useLeagueSearch(query)
+
+**Success Criteria:**
+- ✅ React Query hooks
+- ✅ Automatic caching
+- ✅ Optimistic updates
+
+---
+
+### **Phase 5: Documentation** [░░░░░░░░░░] 0%
+
+**Status**: 📝 TODO
+**Estimated Time**: 5 minutes
+**Purpose**: Update project documentation
+
+#### 5.1. Update PROJECT_STATUS.md 📝
+**Status**: 📝 TODO
+**Time**: 2 minutes
+
+**Success Criteria:**
+- ✅ Leagues feature marked complete
+- ✅ All phases documented
+- ✅ GitHub commit pushed
+
+---
+
+#### 5.2. Create LEAGUES_IMPLEMENTATION.md 📝
+**Status**: 📝 TODO
+**Time**: 3 minutes
+
+**File**: `database/LEAGUES_IMPLEMENTATION.md`
+
+**Content:**
+- Schema details
+- Migration guide
+- Seed data reference
+- API endpoints
+- Usage examples
+
+**Success Criteria:**
+- ✅ Comprehensive documentation
+- ✅ Examples included
+- ✅ Future plans noted (league_seasons)
 
 ---
 
@@ -178,77 +642,13 @@ Frontend foundation setup for the entire application:
 
 **What Was Done**:
 - ✅ Created `config/nav-config.ts` (Navigation configuration)
-  - Type-safe navigation items
-  - Icon support (Lucide React)
-  - Badge support for new features
-  - 7 main menu items defined
-
 - ✅ Created `components/layout/sidebar.tsx` (Responsive sidebar)
-  - Desktop sidebar (256px fixed width, md+ screens)
-  - Mobile sidebar (Sheet component, toggleable)
-  - State management (sidebar.store.ts integration)
-  - Logo section
-  - Scrollable navigation
-  - Active link highlighting
-  - Badge support
-  - Footer section
-
 - ✅ Created `components/layout/header.tsx` (Header component)
-  - Mobile menu toggle (hamburger button)
-  - Breadcrumbs (auto-generated from pathname)
-  - Theme toggle (Light/Dark mode)
-  - User menu (dropdown: profile, settings, logout)
-  - Sticky positioning
-  - Responsive design
-  - Avatar support
-
 - ✅ Created `components/layout/dashboard-layout.tsx` (Main layout)
-  - Flexbox layout (full viewport height)
-  - Sidebar on left
-  - Header on top
-  - Main content area (scrollable)
-  - Overflow handling
-  - Muted background
-
 - ✅ Created `app/dashboard/layout.tsx` (Dashboard route wrapper)
-  - Wraps all /dashboard/* routes
-
 - ✅ Created `app/dashboard/page.tsx` (Dashboard home)
-  - Welcome message
-  - Stats cards (6 cards: Countries, Leagues, Teams, Matches, Predictions, Accuracy)
-  - Quick actions grid
-  - Recent activity list
-
 - ✅ Created `INSTALL_COMPONENTS.md` (Installation guide)
-  - Missing components (scroll-area, sheet, dropdown-menu)
-  - Installation commands
-  - Why each component is needed
-
 - ✅ Created `PHASE_4.1_SUMMARY.md` (Implementation summary)
-  - Complete documentation of Phase 4.1
-  - File structure
-  - Design features
-  - Usage examples
-
-**Files Created**:
-```
-config/
-└── nav-config.ts                 # Navigation configuration
-
-components/
-└── layout/
-    ├── sidebar.tsx               # Sidebar component
-    ├── header.tsx                # Header component
-    └── dashboard-layout.tsx      # Main layout wrapper
-
-app/
-└── dashboard/
-    ├── layout.tsx                # Dashboard layout wrapper
-    └── page.tsx                  # Dashboard home page
-
-INSTALL_COMPONENTS.md             # Component installation guide
-PHASE_4.1_SUMMARY.md             # Implementation summary
-```
 
 **GitHub Commit**:
 - ✅ feat: Add dashboard layout with sidebar, header, and navigation (Phase 4.1)
@@ -266,12 +666,6 @@ npx shadcn@latest add scroll-area sheet dropdown-menu
 #### 4.2. Create Navigation System 📝
 **Status**: ✅ COMPLETE! (Part of 4.1)
 
-**What Was Done**:
-- ✅ Navigation routes defined (7 items)
-- ✅ NavLink components created
-- ✅ Active state styling implemented
-- ✅ Type-safe navigation config
-
 ---
 
 ### 5. 🌈 THEME & STYLING [██████████] 100% ✅
@@ -280,13 +674,6 @@ npx shadcn@latest add scroll-area sheet dropdown-menu
 
 #### 5.1. Setup Dark Mode ✅ **COMPLETE!**
 **Completed**: 2025-10-29 10:30
-
-**What Was Done**:
-- ✅ Created `app/providers.tsx` (unified QueryProvider + ThemeProvider)
-- ✅ Updated `app/layout.tsx` with suppressHydrationWarning
-- ✅ Created `components/theme-toggle.tsx`
-- ✅ Enhanced `app/page.tsx` with theme demo section
-- ✅ Theme persistence (localStorage via next-themes)
 
 ---
 
@@ -302,99 +689,19 @@ npx shadcn@latest add scroll-area sheet dropdown-menu
 #### 6.1. Create API Client ✅ **COMPLETE!**
 **Completed**: 2025-10-29 11:30
 
-**What Was Done**:
-- ✅ Created `lib/api-client.ts`
-  - Axios instance with base configuration
-  - Request interceptors (auth token injection)
-  - Response interceptors (error handling)
-  - Base URL from environment variable
-  - 30 second timeout
-  - Global error handling for all status codes (400, 401, 403, 404, 500)
-  - Automatic token cleanup on 401
-  - Type-safe wrapper methods (get, post, put, patch, delete)
-  - Development logging
-  
-- ✅ Created `types/models.ts`
-  - All API entity types (Country, League, Team, Match, Prediction, User)
-  - Query parameter types (CountryQueryParams, LeagueQueryParams, etc.)
-  - Create/Update DTOs (CreateCountryDto, UpdateCountryDto, etc.)
-  - Paginated response type
-  - Base model interface
-  
-- ✅ Created `services/countries.service.ts`
-  - Full CRUD operations (getAll, getById, create, update, patch, delete)
-  - Search functionality
-  - Type-safe methods
-  - JSDoc documentation
-  
-- ✅ Updated `hooks/api/use-countries.ts`
-  - Refactored to use new service layer
-  - Added useCountrySearch hook
-  - Removed duplicate types (now using types/models.ts)
-  - Full TypeScript support
-  
-- ✅ Created `docs/API_CLIENT_GUIDE.md`
-  - Architecture overview diagram
-  - Usage examples for all scenarios
-  - Error handling guide
-  - Authentication guide
-  - Best practices
-
 **Files Created**:
 ```
-lib/
-└── api-client.ts           # Axios instance + interceptors
-types/
-└── models.ts              # TypeScript entity types
-services/
-└── countries.service.ts   # Countries API service
-hooks/api/
-└── use-countries.ts       # Updated React Query hooks
-docs/
-└── API_CLIENT_GUIDE.md    # Comprehensive usage guide
+lib/api-client.ts
+types/models.ts
+services/countries.service.ts
+hooks/api/use-countries.ts
+docs/API_CLIENT_GUIDE.md
 ```
-
-**GitHub Commits**:
-- ✅ feat: Add API client with Axios (interceptors, error handling, types)
-- ✅ feat: Add TypeScript models for API entities
-- ✅ feat: Add Countries API service with full CRUD operations
-- ✅ refactor: Update useCountries hook to use new API service
-- ✅ docs: Add comprehensive API client usage guide
-
-**Estimated Time**: Completed in ~25 minutes
 
 ---
 
 #### 6.2. Create API Services ✅ **COMPLETE!**
 **Completed**: 2025-10-29 11:30
-
-**What Was Done**:
-- ✅ Countries service (full CRUD)
-- 📝 Leagues service (TODO - when needed)
-- 📝 Teams service (TODO - when needed)
-- 📝 Matches service (TODO - when needed)
-- 📝 Predictions service (TODO - when needed)
-
----
-
-## 🔗 Next Steps
-
-**Immediate Next Steps**:
-1. ✅ Phase 1.1: Next.js setup COMPLETE!
-2. ✅ Phase 2.1: shadcn/ui components COMPLETE!
-3. ✅ Phase 3.1: TanStack Query provider COMPLETE!
-4. ✅ Phase 5.1: Dark mode setup COMPLETE!
-5. ✅ Phase 3.2: Zustand stores COMPLETE!
-6. ✅ Phase 6.1: API Client Architecture COMPLETE!
-7. ✅ Phase 4.1: Dashboard Layout COMPLETE!
-8. **⚠️ Install Missing Components** (5 min) ← REQUIRED
-9. **📝 Countries List Page** (60 min) ← NEXT FEATURE
-
-**After Countries Page**:
-- Create Leagues page (list view)
-- Add more API services as needed
-- Data table reusable component
-- CRUD modals
 
 ---
 
@@ -418,13 +725,19 @@ Backend is 95% complete and fully functional:
 
 ### 🔄 RESUME CONDITIONS
 Resume when:
-- Frontend needs additional endpoints (Leagues, Teams)
-- Matches or Predictions features needed
-- Authentication/Authorization required
+- Leagues feature needs Django backend
+- Additional endpoints required
+- Authentication/Authorization needed
 
 ---
 
 ## 📝 Strategic Decisions
+
+**✅ NAMING CONVENTION (FINAL)**:
+- ✅ Database: **snake_case** (PostgreSQL best practice)
+- ✅ Backend (Django): **snake_case** (PEP 8 standard)
+- ✅ Frontend (TypeScript): **camelCase** (JavaScript convention)
+- ✅ API Transformation: Automatic conversion layer
 
 **✅ FRONTEND STACK (Confirmed)**:
 - ✅ Framework: **Next.js 16.0.0** (App Router)
@@ -451,65 +764,18 @@ Resume when:
 
 ## 🎉 Recent Achievements
 
+### 2025-10-29 15:00 🏆
+- ✅ **Leagues Feature Planning COMPLETE!**
+- ✅ snake_case decision finalized
+- ✅ Database schema designed
+- ✅ 19 leagues seed data prepared
+- ✅ All phases planned (5 phases, ~55 minutes)
+- ✅ PROJECT_STATUS.md updated
+- ✅ Ready to execute!
+
 ### 2025-10-29 13:45 🎨
 - ✅ **Phase 4.1 COMPLETE!** Dashboard Layout fully working!
-- ✅ Created config/nav-config.ts (7 menu items)
-- ✅ Created components/layout/sidebar.tsx
-  - Desktop + Mobile responsive
-  - sidebar.store.ts integration
-  - Active link highlighting
-- ✅ Created components/layout/header.tsx
-  - Breadcrumbs auto-generation
-  - Theme toggle
-  - User menu dropdown
-- ✅ Created components/layout/dashboard-layout.tsx
-  - Admin panel style
-  - Full viewport height
-  - Scrollable content
-- ✅ Created app/dashboard/layout.tsx (route wrapper)
-- ✅ Created app/dashboard/page.tsx
-  - Stats cards (6 cards)
-  - Quick actions
-  - Recent activity
-- ✅ Created INSTALL_COMPONENTS.md
-- ✅ Created PHASE_4.1_SUMMARY.md
-- ✅ 1 commit pushed to GitHub
-- ✅ PROJECT_STATUS.md updated
 - ✅ **UI Foundations 100% COMPLETE! 🎉🎉🎉**
-
-### 2025-10-29 11:30 🚀
-- ✅ **Phase 6.1 COMPLETE!** API Client Architecture fully working!
-- ✅ Created lib/api-client.ts (Axios + interceptors)
-- ✅ Created types/models.ts (Full TypeScript support)
-- ✅ Created services/countries.service.ts
-- ✅ Updated hooks/api/use-countries.ts
-- ✅ Created docs/API_CLIENT_GUIDE.md
-- ✅ 5 commits pushed to GitHub
-
-### 2025-10-29 11:00 🎯
-- ✅ **Phase 3.2 COMPLETE!** Zustand Stores fully working!
-- ✅ Created 3 stores (Sidebar, Filter, Modal)
-- ✅ Created demo component
-- ✅ 6 commits pushed to GitHub
-
-### 2025-10-29 10:30 🌙
-- ✅ **Phase 5.1 COMPLETE!** Dark Mode fully working!
-- ✅ Created unified providers
-- ✅ Created theme toggle component
-- ✅ 4 commits pushed to GitHub
-
-### 2025-10-29 10:15 🚀
-- ✅ **Phase 3.1 COMPLETE!** TanStack Query fully configured!
-- ✅ Created Query provider and client
-- ✅ Created useCountries hook
-
-### 2025-10-29 09:45 🎊
-- ✅ **Phase 2.1 COMPLETE!** shadcn/ui components installed!
-- ✅ Installed 20 essential components
-
-### 2025-10-29 09:40 🎨
-- ✅ **Phase 1.1 COMPLETE!** Next.js setup finished!
-- ✅ Added all required packages
 
 ---
 
