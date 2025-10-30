@@ -33,6 +33,7 @@ Features:
 
 Author: Oover Development Team
 Created: 2025-10-30
+Updated: 2025-10-30 (Bug fix for service method call)
 """
 
 from typing import Dict, Any, Optional, List
@@ -143,6 +144,7 @@ class Command(BaseTeamsCommand):
         country = options.get('country')
         all_european = options.get('all_european', False)
         limit = options.get('limit')
+        provider = self.get_provider(options) or 'football-data'
         
         # Log operation details
         if all_european:
@@ -155,31 +157,89 @@ class Command(BaseTeamsCommand):
         if limit:
             self.stdout.write(f'Limit: {limit} teams')
         
+        self.stdout.write(f'Provider: {provider}')
+        self.stdout.write('')
+        
         # Call service method
         try:
-            # Build filter parameters
-            filter_params = {}
-            
+            # Determine which leagues to fetch
             if all_european:
                 # Define top European leagues
-                # Format depends on provider
-                european_leagues = [
-                    'PL',   # Premier League
-                    'PD',   # La Liga
-                    'SA',   # Serie A
-                    'BL1',  # Bundesliga
-                    'FL1',  # Ligue 1
+                leagues = [
+                    'PL',   # Premier League (England)
+                    'PD',   # La Liga (Spain)
+                    'SA',   # Serie A (Italy)
+                    'BL1',  # Bundesliga (Germany)
+                    'FL1',  # Ligue 1 (France)
                 ]
-                leagues = european_leagues
+                self.stdout.write(
+                    f'📋 Processing {len(leagues)} European leagues: {", ".join(leagues)}\n'
+                )
             
-            # Execute fetch operation
-            results = service.fetch_teams(
-                leagues=leagues,
-                country=country,
-                limit=limit
-            )
+            # Initialize aggregated statistics
+            total_stats = {
+                'fetched': 0,
+                'transformed': 0,
+                'validated': 0,
+                'saved': 0,
+                'created': 0,
+                'updated': 0,
+                'failed': 0,
+                'errors': []
+            }
             
-            return results
+            # Execute fetch operation for each league
+            if leagues:
+                for idx, league_code in enumerate(leagues, 1):
+                    self.stdout.write(
+                        self.style.MIGRATE_LABEL(
+                            f'[{idx}/{len(leagues)}] Fetching teams for {league_code}...'
+                        )
+                    )
+                    
+                    try:
+                        # Call the actual service method with correct signature
+                        league_stats = service.fetch_teams_from_provider(
+                            provider=provider,
+                            competition_id=league_code,
+                            limit=limit
+                        )
+                        
+                        # Aggregate statistics
+                        for key in ['fetched', 'transformed', 'validated', 'saved', 
+                                   'created', 'updated', 'failed']:
+                            total_stats[key] += league_stats.get(key, 0)
+                        
+                        if 'errors' in league_stats and league_stats['errors']:
+                            total_stats['errors'].extend(league_stats['errors'])
+                        
+                        # Display league-specific results
+                        self.stdout.write(
+                            f'   ✓ {league_stats.get("created", 0)} created, '
+                            f'{league_stats.get("updated", 0)} updated, '
+                            f'{league_stats.get("failed", 0)} failed\n'
+                        )
+                        
+                    except Exception as e:
+                        error_msg = f'Error fetching {league_code}: {str(e)}'
+                        total_stats['errors'].append(error_msg)
+                        self.stdout.write(
+                            self.style.ERROR(f'   ✗ {error_msg}\n')
+                        )
+                        continue
+            
+            elif country:
+                # Fetch by country
+                self.stdout.write(f'Fetching teams for country: {country}...')
+                
+                total_stats = service.fetch_teams_from_provider(
+                    provider=provider,
+                    country_code=country,
+                    limit=limit
+                )
+            
+            # Return aggregated results
+            return total_stats
             
         except Exception as e:
             # Log detailed error
@@ -211,12 +271,16 @@ class Command(BaseTeamsCommand):
         """
         fetched = stats.get('fetched', 0)
         created = stats.get('created', 0)
+        updated = stats.get('updated', 0)
         
         message_parts = [
-            f'Successfully fetched {fetched} teams from API',
+            f'Successfully processed {fetched} teams from API',
         ]
         
         if created > 0:
             message_parts.append(f'{created} new teams created')
+        
+        if updated > 0:
+            message_parts.append(f'{updated} teams updated')
         
         return ' | '.join(message_parts)
