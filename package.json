@@ -12,7 +12,9 @@
     "lint": "eslint",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "dev:backend": "cd backend && python manage.py runserver",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\" --names \"FRONTEND,BACKEND\" --prefix-colors \"cyan,yellow\""
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
@@ -39,6 +41,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "concurrently": "^9.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.0",
     "prisma": "^6.18.0",
