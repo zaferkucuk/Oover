@@ -38,7 +38,7 @@ class FootballDataClient(BaseAPIClient):
         >>> from django.conf import settings
         >>> client = FootballDataClient(settings.FOOTBALL_DATA_CONFIG['api_key'])
         >>> competitions = client.get_competitions()
-        >>> teams = client.get_teams_by_competition(2021)  # Premier League
+        >>> teams = client.get_teams_by_competition('PL')  # Premier League
         >>> team = client.get_team_details(57)  # Arsenal
     """
     
@@ -169,7 +169,7 @@ class FootballDataClient(BaseAPIClient):
     
     def get_teams_by_competition(
         self, 
-        competition_id: int,
+        competition_id: str,
         season: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
@@ -182,7 +182,7 @@ class FootballDataClient(BaseAPIClient):
         - Current squad (if available)
         
         Args:
-            competition_id: Competition ID (e.g., 2021 for Premier League)
+            competition_id: Competition code (e.g., 'PL' for Premier League) or ID
             season: Optional season year (e.g., 2023 for 2023/24 season)
                     If not provided, returns current season
         
@@ -203,24 +203,33 @@ class FootballDataClient(BaseAPIClient):
             }
         
         Example:
-            >>> teams = client.get_teams_by_competition(2021)  # Premier League
+            >>> teams = client.get_teams_by_competition('PL')  # Premier League
             >>> arsenal = [t for t in teams if t['tla'] == 'ARS'][0]
         
         Documentation:
             https://www.football-data.org/documentation/api#teams-for-competition
+        
+        Note:
+            The correct endpoint format is: /competitions/{code}
+            NOT /competitions/{code}/teams (which returns 404)
+            
+            The API returns competition data with a 'teams' array embedded.
         """
         logger.info(
             f"Fetching teams for competition {competition_id} "
             f"(season={season or 'current'})"
         )
         
-        endpoint = f"competitions/{competition_id}/teams"
+        # FIXED: Correct endpoint format without /teams suffix
+        endpoint = f"competitions/{competition_id}"
         params = {'season': season} if season else None
         
         response = self.get(endpoint, params=params)
+        
+        # Extract teams from response
         teams = response.get('teams', [])
         
-        logger.info(f"Fetched {len(teams)} teams")
+        logger.info(f"Fetched {len(teams)} teams from competition {competition_id}")
         return teams
     
     def get_team_details(self, team_id: int) -> Dict[str, Any]:
