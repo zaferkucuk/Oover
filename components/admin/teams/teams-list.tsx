@@ -1,5 +1,5 @@
 /**
- * TeamsListComponent - DataTable view for teams management
+ * TeamsList - DataTable view for teams management
  * 
  * Uses shadcn/ui DataTable with TanStack Table for:
  * - Column sorting (click headers to sort)
@@ -18,7 +18,7 @@
  * 
  * @example
  * ```tsx
- * <TeamsListComponent />
+ * <TeamsList />
  * ```
  */
 
@@ -31,7 +31,7 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 
-export function TeamsListComponent() {
+export function TeamsList() {
   // Fetch all teams (we'll handle pagination in DataTable)
   const { data, isLoading, error } = useTeams({
     page: 1,
