@@ -51,43 +51,39 @@ FOOTBALL_DATA_API_KEY = "83834c41da4c4f06a1f9505aa460beb2"
 FOOTBALL_DATA_API_URL = "https://api.football-data.org/v4"
 
 
-def get_country_id_by_code(country_code: str) -> Optional[str]:
+def get_country_id_by_name(country_name: str) -> Optional[str]:
     """
-    Get country UUID from database by country code.
+    Get country UUID from database by country name.
+    Uses fuzzy matching with ILIKE to handle variations.
     
     Args:
-        country_code: Country code from API (e.g., 'ENG', 'ESP', 'ITA')
+        country_name: Country name from API (e.g., 'England', 'Spain', 'Italy')
     
     Returns:
         Country UUID or None if not found
     """
     try:
-        # Try to find by code first
-        result = supabase.table("countries").select("id").eq("code", country_code).execute()
+        # Try exact match first
+        result = supabase.table("countries").select("id, name, code").ilike("name", country_name).execute()
         
         if result.data and len(result.data) > 0:
-            return result.data[0]["id"]
+            country = result.data[0]
+            print(f"   ✓ Mapped '{country_name}' → {country['name']} ({country['code']})")
+            return country["id"]
         
-        # Fallback: try ISO code (e.g., ENG -> GBR)
-        iso_mapping = {
-            "ENG": "GBR",
-            "SCO": "GBR",
-            "WAL": "GBR",
-            "NIR": "GBR",
-        }
+        # Try fuzzy match (contains)
+        result = supabase.table("countries").select("id, name, code").ilike("name", f"%{country_name}%").execute()
         
-        if country_code in iso_mapping:
-            iso_code = iso_mapping[country_code]
-            result = supabase.table("countries").select("id").eq("iso_code", iso_code).execute()
-            
-            if result.data and len(result.data) > 0:
-                return result.data[0]["id"]
+        if result.data and len(result.data) > 0:
+            country = result.data[0]
+            print(f"   ✓ Mapped '{country_name}' → {country['name']} ({country['code']})")
+            return country["id"]
         
-        print(f"⚠️ Country not found for code: {country_code}")
+        print(f"   ⚠️ Country not found in database: {country_name}")
         return None
         
     except Exception as e:
-        print(f"❌ Error fetching country: {e}")
+        print(f"   ❌ Error fetching country: {e}")
         return None
 
 
@@ -142,12 +138,14 @@ def upsert_team(team_data: dict) -> str:
         'inserted', 'updated', 'unchanged', or 'failed'
     """
     try:
-        # Get country_id from area code
-        country_code = team_data.get("area", {}).get("code")
+        # Get country_id from area name (not code!)
+        country_name = team_data.get("area", {}).get("name")
         country_id = None
         
-        if country_code:
-            country_id = get_country_id_by_code(country_code)
+        if country_name:
+            country_id = get_country_id_by_name(country_name)
+            if not country_id:
+                print(f"   ⚠️ Could not map country for team: {team_data.get('name')}")
         
         # Prepare external_id (API team ID as string)
         external_id = str(team_data.get("id"))
@@ -179,10 +177,12 @@ def upsert_team(team_data: dict) -> str:
             changes = []
             
             for field in ["name", "logo", "founded", "country_id", "code", "website"]:
-                if existing_team.get(field) != team_update.get(field):
+                old_val = existing_team.get(field)
+                new_val = team_update.get(field)
+                
+                # Handle None comparisons
+                if old_val != new_val:
                     needs_update = True
-                    old_val = existing_team.get(field)
-                    new_val = team_update.get(field)
                     changes.append(f"{field}: {old_val} → {new_val}")
             
             if needs_update:
@@ -213,7 +213,7 @@ def upsert_team(team_data: dict) -> str:
             result = supabase.table("teams").insert(team_insert).execute()
             
             if result.data:
-                print(f"✅ Inserted: {team_data['name']} (ID: {external_id})")
+                print(f"✅ Inserted: {team_data['name']} (External ID: {external_id})")
                 return "inserted"
             else:
                 print(f"❌ Failed to insert: {team_data['name']}")
