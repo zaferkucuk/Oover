@@ -27,6 +27,13 @@ Example Usage:
     
     # Bulk upsert teams
     results = teams_service.bulk_upsert_teams(teams_data)
+    
+    # Sync teams from API
+    sync_results = teams_service.sync_teams(
+        provider='football-data',
+        competition_id='PL',
+        deactivate_missing=False
+    )
 """
 
 import logging
@@ -435,3 +442,164 @@ class TeamsService(BaseAPIService[Team]):
             >>> if teams_service.validate_country_exists(country_id):
             >>>     # Create team
             >>>     pass
+        """
+        return Country.objects.filter(id=country_id).exists()
+    
+    @transaction.atomic
+    def sync_teams(
+        self,
+        provider: str,
+        competition_id: Optional[str] = None,
+        league_id: Optional[int] = None,
+        deactivate_missing: bool = False
+    ) -> Dict[str, any]:
+        """
+        Sync teams from external API (periodic update).
+        
+        This method fetches teams from the specified provider and:
+        1. Updates existing teams with latest data
+        2. Creates new teams that don't exist
+        3. Optionally deactivates teams not returned by API
+        
+        Args:
+            provider: API provider name ('football-data' or 'api-football')
+            competition_id: Competition ID for Football-Data.org
+            league_id: League ID for API-Football
+            deactivate_missing: If True, deactivate teams not in API response
+            
+        Returns:
+            Dictionary with sync statistics:
+                - fetched: Number of teams fetched from API
+                - created: Number of new teams created
+                - updated: Number of existing teams updated
+                - deactivated: Number of teams deactivated
+                - errors: List of errors encountered
+                
+        Raises:
+            ValueError: If provider parameters are invalid
+            Exception: If API fetch or sync fails
+            
+        Example:
+            >>> # Sync Premier League teams from Football-Data
+            >>> results = teams_service.sync_teams(
+            >>>     provider='football-data',
+            >>>     competition_id='PL',
+            >>>     deactivate_missing=False
+            >>> )
+            >>> print(f"Synced: {results['updated']} updated, "
+            >>>       f"{results['created']} created")
+            >>> 
+            >>> # Sync La Liga teams from API-Football
+            >>> results = teams_service.sync_teams(
+            >>>     provider='api-football',
+            >>>     league_id=140,
+            >>>     deactivate_missing=True
+            >>> )
+        """
+        logger.info(
+            f"Starting team sync for provider: {provider}, "
+            f"competition_id: {competition_id}, league_id: {league_id}"
+        )
+        
+        # Initialize statistics
+        stats = {
+            'fetched': 0,
+            'created': 0,
+            'updated': 0,
+            'deactivated': 0,
+            'errors': []
+        }
+        
+        try:
+            # Step 1: Fetch teams from API
+            fetch_results = self.fetch_teams_from_provider(
+                provider=provider,
+                competition_id=competition_id,
+                league_id=league_id
+            )
+            
+            if not fetch_results['success']:
+                stats['errors'].append({
+                    'stage': 'fetch',
+                    'message': 'Failed to fetch teams from API'
+                })
+                logger.error("Failed to fetch teams from API")
+                return stats
+            
+            stats['fetched'] = fetch_results['fetched']
+            
+            # Step 2: Extract external_ids from fetched teams
+            fetched_external_ids = [
+                team.external_id 
+                for team in fetch_results.get('created_teams', [])
+            ] + [
+                team.external_id 
+                for team in fetch_results.get('updated_teams', [])
+            ]
+            
+            stats['created'] = fetch_results['created']
+            stats['updated'] = fetch_results['updated']
+            
+            # Step 3: Deactivate missing teams (optional)
+            if deactivate_missing and fetched_external_ids:
+                logger.info(
+                    f"Checking for teams to deactivate "
+                    f"(not in {len(fetched_external_ids)} fetched teams)"
+                )
+                
+                # Find teams with this provider prefix that weren't in API response
+                provider_prefix = f"{provider}-"
+                existing_teams = Team.objects.filter(
+                    external_id__startswith=provider_prefix,
+                    is_active=True
+                ).exclude(
+                    external_id__in=fetched_external_ids
+                )
+                
+                deactivated_count = 0
+                for team in existing_teams:
+                    try:
+                        self.deactivate_team(team.id)
+                        deactivated_count += 1
+                        logger.info(
+                            f"Deactivated team not in API response: "
+                            f"{team.name} ({team.external_id})"
+                        )
+                    except Exception as e:
+                        stats['errors'].append({
+                            'stage': 'deactivate',
+                            'team_id': str(team.id),
+                            'team_name': team.name,
+                            'error': str(e)
+                        })
+                        logger.error(
+                            f"Error deactivating team {team.name}: {e}"
+                        )
+                
+                stats['deactivated'] = deactivated_count
+                logger.info(f"Deactivated {deactivated_count} missing teams")
+            
+            # Add any fetch errors to stats
+            if fetch_results.get('errors'):
+                stats['errors'].extend(fetch_results['errors'])
+            
+            # Log final statistics
+            logger.info(
+                f"Team sync completed: "
+                f"Fetched: {stats['fetched']}, "
+                f"Created: {stats['created']}, "
+                f"Updated: {stats['updated']}, "
+                f"Deactivated: {stats['deactivated']}, "
+                f"Errors: {len(stats['errors'])}"
+            )
+            
+            return stats
+            
+        except Exception as e:
+            error_msg = f"Error during team sync: {e}"
+            logger.error(error_msg)
+            stats['errors'].append({
+                'stage': 'sync',
+                'error': str(e)
+            })
+            raise
