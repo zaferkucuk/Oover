@@ -1,28 +1,27 @@
 """
-Import teams from Football-Data.org API to Supabase for ANY league.
+Import teams from Football-Data.org API to Supabase.
 
-This script fetches teams from the Football-Data API and imports/updates
-them into the teams table using UPSERT strategy.
+This script fetches teams from ANY competition using the Football-Data API
+and imports/updates them into the teams table using UPSERT strategy.
+
+The script works with competition IDs directly - no hardcoded leagues.
+Just pass any valid Football-Data competition ID.
 
 Usage:
-    # Import single league
-    python scripts/import_teams.py --league PL
-    
-    # Import multiple leagues
-    python scripts/import_teams.py --league PL PD SA BL1
-    
-    # Import all supported leagues
-    python scripts/import_teams.py --all
+    # Import teams from a specific competition
+    python scripts/import_teams.py --competition-id 2021  # Premier League
+    python scripts/import_teams.py --competition-id 2014  # La Liga
+    python scripts/import_teams.py --competition-id 2019  # Serie A
 
-Supported Leagues:
-    PL   - Premier League (England)
-    PD   - La Liga (Spain)
-    SA   - Serie A (Italy)
-    BL1  - Bundesliga (Germany)
-    FL1  - Ligue 1 (France)
-    PPL  - Primeira Liga (Portugal)
-    DED  - Eredivisie (Netherlands)
-    SL   - Super Lig (Turkey)
+Common Competition IDs:
+    2021 - Premier League (England)
+    2014 - La Liga (Spain)
+    2019 - Serie A (Italy)
+    2002 - Bundesliga (Germany)
+    2015 - Ligue 1 (France)
+    2017 - Primeira Liga (Portugal)
+    2003 - Eredivisie (Netherlands)
+    (Find more at: https://www.football-data.org/documentation/api)
 """
 
 import os
@@ -51,34 +50,38 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 FOOTBALL_DATA_API_KEY = "83834c41da4c4f06a1f9505aa460beb2"
 FOOTBALL_DATA_API_URL = "https://api.football-data.org/v4"
 
-# League mappings: league_code -> (competition_id, country_code)
-LEAGUE_MAPPINGS = {
-    "PL": (2021, "GBR"),      # Premier League (England)
-    "PD": (2014, "ESP"),      # La Liga (Spain)
-    "SA": (2019, "ITA"),      # Serie A (Italy)
-    "BL1": (2002, "DEU"),     # Bundesliga (Germany)
-    "FL1": (2015, "FRA"),     # Ligue 1 (France)
-    "PPL": (2017, "PRT"),     # Primeira Liga (Portugal)
-    "DED": (2003, "NLD"),     # Eredivisie (Netherlands)
-    "SL": (2036, "TUR"),      # Super Lig (Turkey)
-}
 
-
-def get_country_id(country_code: str) -> Optional[str]:
+def get_country_id_by_code(country_code: str) -> Optional[str]:
     """
-    Get country UUID from database by ISO code.
+    Get country UUID from database by country code.
     
     Args:
-        country_code: ISO country code (e.g., 'GBR', 'ESP')
+        country_code: Country code from API (e.g., 'ENG', 'ESP', 'ITA')
     
     Returns:
         Country UUID or None if not found
     """
     try:
-        result = supabase.table("countries").select("id").eq("iso_code", country_code).execute()
+        # Try to find by code first
+        result = supabase.table("countries").select("id").eq("code", country_code).execute()
         
         if result.data and len(result.data) > 0:
             return result.data[0]["id"]
+        
+        # Fallback: try ISO code (e.g., ENG -> GBR)
+        iso_mapping = {
+            "ENG": "GBR",
+            "SCO": "GBR",
+            "WAL": "GBR",
+            "NIR": "GBR",
+        }
+        
+        if country_code in iso_mapping:
+            iso_code = iso_mapping[country_code]
+            result = supabase.table("countries").select("id").eq("iso_code", iso_code).execute()
+            
+            if result.data and len(result.data) > 0:
+                return result.data[0]["id"]
         
         print(f"⚠️ Country not found for code: {country_code}")
         return None
@@ -88,40 +91,15 @@ def get_country_id(country_code: str) -> Optional[str]:
         return None
 
 
-def get_league_id(league_code: str) -> Optional[str]:
-    """
-    Get league UUID from database by code.
-    
-    Args:
-        league_code: League code (e.g., 'PL', 'PD', 'SA')
-    
-    Returns:
-        League UUID or None if not found
-    """
-    try:
-        result = supabase.table("leagues").select("id").eq("code", league_code).execute()
-        
-        if result.data and len(result.data) > 0:
-            return result.data[0]["id"]
-        
-        print(f"⚠️ League not found for code: {league_code}")
-        return None
-        
-    except Exception as e:
-        print(f"❌ Error fetching league: {e}")
-        return None
-
-
-def fetch_teams(competition_id: int, league_name: str) -> Optional[List[Dict]]:
+def fetch_teams(competition_id: int) -> Optional[Dict]:
     """
     Fetch teams from Football-Data API for a specific competition.
     
     Args:
         competition_id: Football-Data API competition ID
-        league_name: League name for logging
     
     Returns:
-        List of team dictionaries or None if error
+        API response dictionary or None if error
     """
     try:
         headers = {
@@ -131,44 +109,63 @@ def fetch_teams(competition_id: int, league_name: str) -> Optional[List[Dict]]:
         
         url = f"{FOOTBALL_DATA_API_URL}/competitions/{competition_id}/teams"
         
-        print(f"📡 Fetching {league_name} teams from: {url}")
+        print(f"📡 Fetching teams from: {url}")
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         
         data = response.json()
+        
+        competition = data.get("competition", {})
         teams = data.get("teams", [])
         
+        print(f"✅ Competition: {competition.get('name', 'Unknown')}")
         print(f"✅ Fetched {len(teams)} teams")
-        return teams
+        
+        return data
         
     except requests.exceptions.RequestException as e:
         print(f"❌ API request failed: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"❌ Response: {e.response.text}")
         return None
 
 
-def upsert_team(team_data: dict, country_id: str, league_id: str) -> str:
+def upsert_team(team_data: dict) -> str:
     """
     Insert or update a team in the database (UPSERT).
+    Uses external_id as the unique identifier.
     
     Args:
         team_data: Team data from API
-        country_id: Country UUID
-        league_id: League UUID
     
     Returns:
         'inserted', 'updated', 'unchanged', or 'failed'
     """
     try:
-        # Check if team already exists by name
-        existing = supabase.table("teams").select("*").eq("name", team_data["name"]).execute()
+        # Get country_id from area code
+        country_code = team_data.get("area", {}).get("code")
+        country_id = None
         
-        # Prepare team data
+        if country_code:
+            country_id = get_country_id_by_code(country_code)
+        
+        # Prepare external_id (API team ID as string)
+        external_id = str(team_data.get("id"))
+        
+        # Check if team already exists by external_id
+        existing = supabase.table("teams").select("*").eq("external_id", external_id).execute()
+        
+        # Prepare team data for upsert
         team_update = {
-            "name": team_data["name"],
-            "short_name": team_data.get("shortName", team_data["name"]),
-            "logo_url": team_data.get("crest"),
+            "name": team_data.get("name"),
+            "logo": team_data.get("crest"),
+            "external_id": external_id,
+            "founded": team_data.get("founded"),
             "country_id": country_id,
-            "league_id": league_id,
+            "code": team_data.get("tla"),  # Three Letter Acronym
+            "website": team_data.get("website"),
+            "market_value": None,  # Not available in Football-Data API
+            "is_active": True,
             "updated_at": datetime.utcnow().isoformat()
         }
         
@@ -181,21 +178,12 @@ def upsert_team(team_data: dict, country_id: str, league_id: str) -> str:
             needs_update = False
             changes = []
             
-            if existing_team.get("short_name") != team_update["short_name"]:
-                needs_update = True
-                changes.append(f"short_name: {existing_team.get('short_name')} → {team_update['short_name']}")
-            
-            if existing_team.get("logo_url") != team_update["logo_url"]:
-                needs_update = True
-                changes.append(f"logo_url changed")
-            
-            if existing_team.get("country_id") != team_update["country_id"]:
-                needs_update = True
-                changes.append("country_id updated")
-            
-            if existing_team.get("league_id") != team_update["league_id"]:
-                needs_update = True
-                changes.append("league_id updated")
+            for field in ["name", "logo", "founded", "country_id", "code", "website"]:
+                if existing_team.get(field) != team_update.get(field):
+                    needs_update = True
+                    old_val = existing_team.get(field)
+                    new_val = team_update.get(field)
+                    changes.append(f"{field}: {old_val} → {new_val}")
             
             if needs_update:
                 # Update existing team
@@ -215,6 +203,7 @@ def upsert_team(team_data: dict, country_id: str, league_id: str) -> str:
         
         else:
             # Team doesn't exist - insert new
+            # Generate UUID for id (text type)
             team_insert = {
                 "id": str(uuid.uuid4()),
                 "created_at": datetime.utcnow().isoformat(),
@@ -224,7 +213,7 @@ def upsert_team(team_data: dict, country_id: str, league_id: str) -> str:
             result = supabase.table("teams").insert(team_insert).execute()
             
             if result.data:
-                print(f"✅ Inserted: {team_data['name']}")
+                print(f"✅ Inserted: {team_data['name']} (ID: {external_id})")
                 return "inserted"
             else:
                 print(f"❌ Failed to insert: {team_data['name']}")
@@ -232,157 +221,94 @@ def upsert_team(team_data: dict, country_id: str, league_id: str) -> str:
             
     except Exception as e:
         print(f"❌ Error upserting team {team_data.get('name', 'Unknown')}: {e}")
+        import traceback
+        traceback.print_exc()
         return "failed"
-
-
-def import_league(league_code: str) -> Dict[str, int]:
-    """
-    Import teams for a single league.
-    
-    Args:
-        league_code: League code (e.g., 'PL', 'PD')
-    
-    Returns:
-        Dictionary with counts: inserted, updated, unchanged, failed
-    """
-    print(f"\n{'='*60}")
-    print(f"🏆 PROCESSING LEAGUE: {league_code}")
-    print(f"{'='*60}")
-    
-    # Get league mapping
-    if league_code not in LEAGUE_MAPPINGS:
-        print(f"❌ Unknown league code: {league_code}")
-        print(f"Supported leagues: {', '.join(LEAGUE_MAPPINGS.keys())}")
-        return {"inserted": 0, "updated": 0, "unchanged": 0, "failed": 0}
-    
-    competition_id, country_code = LEAGUE_MAPPINGS[league_code]
-    
-    # Step 1: Get country ID
-    print(f"\n📍 Step 1: Finding country ({country_code}) in database...")
-    country_id = get_country_id(country_code)
-    
-    if not country_id:
-        print(f"❌ Could not find country {country_code}. Please add it first.")
-        return {"inserted": 0, "updated": 0, "unchanged": 0, "failed": 0}
-    
-    print(f"✅ Found country: {country_id}")
-    
-    # Step 2: Get league ID
-    print(f"\n🏆 Step 2: Finding league ({league_code}) in database...")
-    league_id = get_league_id(league_code)
-    
-    if not league_id:
-        print(f"❌ Could not find league {league_code}. Please add it first.")
-        return {"inserted": 0, "updated": 0, "unchanged": 0, "failed": 0}
-    
-    print(f"✅ Found league: {league_id}")
-    
-    # Step 3: Fetch teams from API
-    print(f"\n📡 Step 3: Fetching teams from Football-Data API...")
-    teams = fetch_teams(competition_id, league_code)
-    
-    if not teams:
-        print(f"❌ Failed to fetch teams for {league_code}")
-        return {"inserted": 0, "updated": 0, "unchanged": 0, "failed": 0}
-    
-    # Step 4: Upsert each team
-    print(f"\n📥 Step 4: Processing {len(teams)} teams...")
-    print("-" * 60)
-    
-    counts = {"inserted": 0, "updated": 0, "unchanged": 0, "failed": 0}
-    
-    for team_data in teams:
-        result = upsert_team(team_data, country_id, league_id)
-        counts[result] = counts.get(result, 0) + 1
-    
-    # Summary for this league
-    print("\n" + "-" * 60)
-    print(f"📊 {league_code} SUMMARY:")
-    print(f"✨ Inserted: {counts['inserted']}")
-    print(f"🔄 Updated: {counts['updated']}")
-    print(f"⏭️  Unchanged: {counts['unchanged']}")
-    print(f"❌ Failed: {counts['failed']}")
-    print(f"📊 Total: {len(teams)}")
-    
-    return counts
 
 
 def main():
     """Main function to orchestrate the import process."""
     parser = argparse.ArgumentParser(
-        description="Import teams from Football-Data API",
+        description="Import teams from Football-Data API for any competition",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Import single league
-  python scripts/import_teams.py --league PL
+  # Import Premier League teams
+  python scripts/import_teams.py --competition-id 2021
   
-  # Import multiple leagues
-  python scripts/import_teams.py --league PL PD SA
+  # Import La Liga teams
+  python scripts/import_teams.py --competition-id 2014
   
-  # Import all supported leagues
-  python scripts/import_teams.py --all
+  # Import Serie A teams
+  python scripts/import_teams.py --competition-id 2019
 
-Supported Leagues:
-  PL   - Premier League (England)
-  PD   - La Liga (Spain)
-  SA   - Serie A (Italy)
-  BL1  - Bundesliga (Germany)
-  FL1  - Ligue 1 (France)
-  PPL  - Primeira Liga (Portugal)
-  DED  - Eredivisie (Netherlands)
-  SL   - Super Lig (Turkey)
+Common Competition IDs:
+  2021 - Premier League (England)
+  2014 - La Liga (Spain)
+  2019 - Serie A (Italy)
+  2002 - Bundesliga (Germany)
+  2015 - Ligue 1 (France)
+  2017 - Primeira Liga (Portugal)
+  2003 - Eredivisie (Netherlands)
+  
+Find more competition IDs at:
+https://www.football-data.org/documentation/api
         """
     )
     
     parser.add_argument(
-        "--league",
-        nargs="+",
-        help="League code(s) to import (e.g., PL PD SA)"
-    )
-    
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Import all supported leagues"
+        "--competition-id",
+        type=int,
+        required=True,
+        help="Football-Data API competition ID (e.g., 2021 for Premier League)"
     )
     
     args = parser.parse_args()
     
-    # Determine which leagues to process
-    if args.all:
-        leagues_to_process = list(LEAGUE_MAPPINGS.keys())
-    elif args.league:
-        leagues_to_process = args.league
-    else:
-        parser.print_help()
+    print("\n🚀 Starting Teams Import/Update")
+    print("=" * 60)
+    print(f"📋 Competition ID: {args.competition_id}")
+    print("=" * 60)
+    
+    # Step 1: Fetch teams from API
+    print(f"\n📡 Step 1: Fetching teams from Football-Data API...")
+    api_data = fetch_teams(args.competition_id)
+    
+    if not api_data:
+        print("❌ Failed to fetch teams from API")
         return
     
-    print("\n🚀 Starting Teams Import/Update")
-    print(f"📋 Leagues to process: {', '.join(leagues_to_process)}")
+    teams = api_data.get("teams", [])
+    competition = api_data.get("competition", {})
     
-    # Process each league
-    total_counts = {"inserted": 0, "updated": 0, "unchanged": 0, "failed": 0}
+    if not teams:
+        print("❌ No teams found in API response")
+        return
     
-    for league_code in leagues_to_process:
-        counts = import_league(league_code.upper())
-        for key in total_counts:
-            total_counts[key] += counts[key]
+    # Step 2: Upsert each team
+    print(f"\n📥 Step 2: Processing {len(teams)} teams from {competition.get('name', 'Unknown')}...")
+    print("-" * 60)
     
-    # Final summary
+    counts = {"inserted": 0, "updated": 0, "unchanged": 0, "failed": 0}
+    
+    for team_data in teams:
+        result = upsert_team(team_data)
+        counts[result] = counts.get(result, 0) + 1
+    
+    # Summary
     print("\n" + "=" * 60)
-    print("📊 FINAL SUMMARY (ALL LEAGUES)")
+    print("📊 IMPORT SUMMARY")
     print("=" * 60)
-    print(f"✨ Total inserted: {total_counts['inserted']}")
-    print(f"🔄 Total updated: {total_counts['updated']}")
-    print(f"⏭️  Total unchanged: {total_counts['unchanged']}")
-    print(f"❌ Total failed: {total_counts['failed']}")
-    print(f"📊 Grand total: {sum(total_counts.values())}")
+    print(f"✨ Newly inserted: {counts['inserted']}")
+    print(f"🔄 Updated: {counts['updated']}")
+    print(f"⏭️  Unchanged: {counts['unchanged']}")
+    print(f"❌ Failed: {counts['failed']}")
+    print(f"📊 Total processed: {len(teams)}")
     print("=" * 60)
     
-    if total_counts['inserted'] > 0 or total_counts['updated'] > 0:
+    if counts['inserted'] > 0 or counts['updated'] > 0:
         print("\n✨ Import/Update completed successfully!")
-    elif total_counts['unchanged'] == sum(total_counts.values()):
+    elif counts['unchanged'] == len(teams):
         print("\n✅ All teams are up-to-date!")
     else:
         print("\n⚠️ Import/Update completed with some errors")
