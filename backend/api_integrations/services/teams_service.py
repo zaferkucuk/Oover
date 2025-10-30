@@ -169,8 +169,8 @@ class TeamsService:
     
     @transaction.atomic
     def create(self, data: Dict[str, Any]) -> Team:
-        validation_errors = self.validator.validate(data)
-        if validation_errors:
+        is_valid, validation_errors = self.validator.validate(data)
+        if not is_valid:
             error_msg = "; ".join(validation_errors)
             logger.error(f"Team validation failed: {error_msg}")
             raise ValidationError(error_msg)
@@ -183,8 +183,8 @@ class TeamsService:
         team = self.get_by_id(team_id)
         if not team:
             return None
-        validation_errors = self.validator.validate(data, partial=True)
-        if validation_errors:
+        is_valid, validation_errors = self.validator.validate(data)
+        if not is_valid:
             error_msg = "; ".join(validation_errors)
             logger.error(f"Team update validation failed: {error_msg}")
             raise ValidationError(error_msg)
@@ -426,8 +426,8 @@ class TeamsService:
             # Validate teams data
             validated_teams = []
             for team_data in transformed_teams:
-                validation_errors = self.validator.validate(team_data)
-                if validation_errors:
+                is_valid, validation_errors = self.validator.validate(team_data)
+                if not is_valid:
                     error_msg = (
                         f"Validation failed for {team_data.get('name', 'Unknown')}: "
                         f"{'; '.join(validation_errors)}"
