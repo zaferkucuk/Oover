@@ -299,6 +299,10 @@ class Team(models.Model):
     - Added: is_active (status flag)
     - Changed: All camelCase fields to snake_case
     
+    Timestamp Fields:
+    - created_at: Auto-populated by Supabase (DEFAULT CURRENT_TIMESTAMP)
+    - updated_at: REQUIRED (NOT NULL in Supabase, must be set by application)
+    
     Note: Teams no longer have a direct league_id relationship.
           League membership is tracked through matches and seasons.
     
@@ -375,13 +379,12 @@ class Team(models.Model):
     # Timestamp Fields (snake_case)
     created_at = models.DateTimeField(
         default=timezone.now,
-        help_text="Record creation timestamp"
+        help_text="Record creation timestamp (auto-populated by Supabase)"
     )
     
     updated_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="Record last update timestamp"
+        default=timezone.now,
+        help_text="Record last update timestamp (REQUIRED: NOT NULL in Supabase, must always be set)"
     )
     
     class Meta:
