@@ -33,7 +33,7 @@ Features:
 
 Author: Oover Development Team
 Created: 2025-10-30
-Updated: 2025-10-30 (Bug fix for service method call)
+Updated: 2025-10-30 (Bug fix: service instantiation)
 """
 
 from typing import Dict, Any, Optional, List
@@ -126,19 +126,22 @@ class Command(BaseTeamsCommand):
     
     def execute_teams_operation(
         self,
-        service: TeamsService,
-        options: Dict[str, Any]
+        *args,
+        **options
     ) -> Dict[str, Any]:
         """
         Execute the fetch teams operation.
         
         Args:
-            service: TeamsService instance
-            options: Dictionary of command options
+            *args: Positional arguments
+            **options: Command options dictionary
             
         Returns:
             Dictionary with operation results and statistics
         """
+        # Initialize TeamsService
+        service = TeamsService()
+        
         # Get filter parameters
         leagues = options.get('leagues')
         country = options.get('country')
