@@ -138,20 +138,20 @@ class TeamViewSet(viewsets.ModelViewSet):
     ViewSet for Team CRUD operations
     
     Provides:
-    - list: GET /api/v1/teams/ (paginated, searchable, filterable)
-    - retrieve: GET /api/v1/teams/{id}/
-    - create: POST /api/v1/teams/
-    - update: PUT /api/v1/teams/{id}/
-    - partial_update: PATCH /api/v1/teams/{id}/
-    - destroy: DELETE /api/v1/teams/{id}/
+    - list: GET /api/teams/ (paginated, searchable, filterable)
+    - retrieve: GET /api/teams/{id}/
+    - create: POST /api/teams/
+    - update: PUT /api/teams/{id}/
+    - partial_update: PATCH /api/teams/{id}/
+    - destroy: DELETE /api/teams/{id}/
     
     Custom Actions:
-    - by_country: GET /api/v1/teams/by-country/{country_id}/
-    - active: GET /api/v1/teams/active/
-    - top_by_market_value: GET /api/v1/teams/top-by-market-value/?limit=10
-    - fetch: POST /api/v1/teams/fetch/ (fetch teams from external API)
-    - sync: POST /api/v1/teams/sync/ (sync existing teams with external API)
-    - operations: GET /api/v1/teams/operations/ (list team operation history)
+    - by_country: GET /api/teams/by-country/{country_id}/
+    - active: GET /api/teams/active/
+    - top_by_market_value: GET /api/teams/top-by-market-value/?limit=10
+    - fetch: POST /api/teams/fetch/ (fetch teams from external API)
+    - sync: POST /api/teams/sync/ (sync existing teams with external API)
+    - operations: GET /api/teams/operations/ (list team operation history)
     
     Filtering:
     - ?search=manchester (search by name or code)
@@ -260,7 +260,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Get all teams for a specific country
         
-        URL: GET /api/v1/teams/by-country/{country_id}/
+        URL: GET /api/teams/by-country/{country_id}/
         
         Args:
             country_id: Country UUID
@@ -282,7 +282,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Get all active teams
         
-        URL: GET /api/v1/teams/active/
+        URL: GET /api/teams/active/
         
         Returns:
             List of all active teams
@@ -322,7 +322,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Get top teams by market value
         
-        URL: GET /api/v1/teams/top-by-market-value/?limit=10&country=<uuid>
+        URL: GET /api/teams/top-by-market-value/?limit=10&country=<uuid>
         
         Query Parameters:
         - limit: Number of teams to return (default: 10, max: 50)
@@ -376,7 +376,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Advanced search endpoint
         
-        URL: GET /api/v1/teams/search/?q=united&country=<uuid>
+        URL: GET /api/teams/search/?q=united&country=<uuid>
         
         Query Parameters:
         - q: Search query (required)
@@ -535,7 +535,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Fetch teams from external APIs
         
-        URL: POST /api/v1/teams/fetch/
+        URL: POST /api/teams/fetch/
         
         Request Body:
             {
@@ -601,12 +601,41 @@ class TeamViewSet(viewsets.ModelViewSet):
             if limit:
                 filters['limit'] = int(limit)
             
-            # Initialize teams service
-            teams_service = TeamsService(provider=provider)
+            # Initialize teams service (no provider parameter in __init__)
+            teams_service = TeamsService()
             
-            # Execute fetch operation
+            # Execute fetch operation for each league
             logger.info(f"Starting fetch_teams operation via API - Provider: {provider}, Filters: {filters}")
-            stats = teams_service.fetch_teams(filters=filters)
+            
+            total_stats = {
+                'fetched': 0,
+                'created': 0,
+                'updated': 0,
+                'failed': 0
+            }
+            
+            # If leagues specified, fetch for each league
+            if 'leagues' in filters:
+                for league_code in filters['leagues']:
+                    logger.info(f"Fetching teams for league: {league_code}")
+                    league_stats = teams_service.fetch_teams_from_provider(
+                        provider=provider,
+                        competition_id=league_code
+                    )
+                    # Aggregate statistics
+                    total_stats['fetched'] += league_stats.get('fetched', 0)
+                    total_stats['created'] += league_stats.get('created', 0)
+                    total_stats['updated'] += league_stats.get('updated', 0)
+                    total_stats['failed'] += league_stats.get('failed', 0)
+            else:
+                # Single fetch for country or other filters
+                total_stats = teams_service.fetch_teams_from_provider(
+                    provider=provider,
+                    competition_id=filters.get('country'),
+                    **filters
+                )
+            
+            stats = total_stats
             
             # Return success response
             return Response(
@@ -764,7 +793,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Sync existing teams with external API data
         
-        URL: POST /api/v1/teams/sync/
+        URL: POST /api/teams/sync/
         
         Request Body:
             {
@@ -804,8 +833,8 @@ class TeamViewSet(viewsets.ModelViewSet):
             if isinstance(deactivate_missing, str):
                 deactivate_missing = deactivate_missing.lower() == 'true'
             
-            # Initialize teams service with default provider (football-data)
-            teams_service = TeamsService(provider='football-data')
+            # Initialize teams service (no provider parameter in __init__)
+            teams_service = TeamsService()
             
             # Execute sync operation
             logger.info(
@@ -814,6 +843,7 @@ class TeamViewSet(viewsets.ModelViewSet):
             )
             
             stats = teams_service.sync_teams(
+                provider='football-data',
                 fields=fields,
                 force=force,
                 deactivate_missing=deactivate_missing
@@ -953,7 +983,7 @@ class TeamViewSet(viewsets.ModelViewSet):
                 },
                 'example': {
                     'count': 45,
-                    'next': 'http://api.example.com/api/v1/teams/operations/?page=2',
+                    'next': 'http://api.example.com/api/teams/operations/?page=2',
                     'previous': None,
                     'results': [
                         {
@@ -989,7 +1019,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         List team API sync operations history
         
-        URL: GET /api/v1/teams/operations/?status=completed&days=30
+        URL: GET /api/teams/operations/?status=completed&days=30
         
         Query Parameters:
         - status: Filter by operation status (pending, in_progress, completed, failed)
@@ -1077,7 +1107,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Create a new team
         
-        URL: POST /api/v1/teams/
+        URL: POST /api/teams/
         
         Request Body:
             {
@@ -1120,7 +1150,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Update an existing team (full update)
         
-        URL: PUT /api/v1/teams/{id}/
+        URL: PUT /api/teams/{id}/
         
         All fields required in request body.
         """
@@ -1143,7 +1173,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         Delete a team
         
-        URL: DELETE /api/v1/teams/{id}/
+        URL: DELETE /api/teams/{id}/
         
         Returns:
             204 No Content: Successfully deleted
