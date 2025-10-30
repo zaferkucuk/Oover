@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-10-30 23:45 UTC
+**Last Updated**: 2025-10-30 CURRENT_TIME UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -8,36 +8,29 @@
 
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
-**🎯 ACTIVE FEATURE**: Teams ⚽ **100% COMPLETE! 🎉**
+**🎯 ACTIVE FEATURE**: teams_api 🌐 **0% - INFRASTRUCTURE SETUP**
 **✅ LAST COMPLETED**: Teams Feature - All Phases Complete (100%)
-**📍 CURRENT STATUS**: Teams Feature ready for production! 🚀
+**📍 CURRENT STATUS**: Starting API integrations infrastructure! 🚀
 **🔗 Active Branch**: `main`
-**🔗 Last Commit**: Teams Phase 4.2.B Complete - Form Pages
+**🔗 Next Task**: Phase 1.1 - Base Classes (8 min)
 
 **💬 Quick Start Message for Next Session**:
 ```
-🎉🎉🎉 TEAMS FEATURE 100% COMPLETE! 🎉🎉🎉
+🌐 TEAMS_API FEATURE STARTED!
 
-✅ ALL PHASES DONE:
-- ✅ Phase 1: Database Layer (100%)
-- ✅ Phase 2: Backend Layer (100%)
-- ✅ Phase 3: Frontend Data Layer (100%)
-- ✅ Phase 4.1: UI Components (100%)
-- ✅ Phase 4.2.A: Main Pages (100%)
-- ✅ Phase 4.2.B: Form Pages (100%)
+📦 GOAL: Fetch teams from external APIs
+- Football-Data.org (primary, 10 req/min)
+- API-Football (fallback, 100 req/day)
+- Hybrid approach with rate limiting
 
-📦 DELIVERED:
-- ✅ Database schema with 6 teams
-- ✅ Django backend (Model, Serializers, ViewSet)
-- ✅ TypeScript types and API client
-- ✅ TanStack Query hooks (9 hooks)
-- ✅ 6 UI Components (List, Card, Detail, Form, Filters, Columns)
-- ✅ 4 Admin Pages (List, Detail, Create, Edit)
-- ✅ Production ready! 🚀
+📋 PROGRESS:
+- ✅ Architecture designed
+- ✅ PROJECT_STATUS.md updated
+- ⏳ Phase 1.1: Base Classes (NEXT - 8 min)
 
-🎯 NEXT FEATURE: Countries 🌍
-- Backend already 50% done
-- Estimated time: ~55 minutes (Phase 2-4)
+🎯 Total Estimate: ~210 minutes (8 phases, 28 sub-phases)
+
+Next: Create BaseAPIClient and exceptions
 ```
 
 ---
@@ -51,55 +44,416 @@
 | 🏆 **Leagues** | ✅ | 100% ✅ | 100% ✅ | 100% ✅ | 100% ✅ | SKIP ⏭️ | HIGH | ✅ Done |
 | 🌍 **Countries** | 📝 | 50% | 0% | 0% | 0% | 0% | HIGH | 2025-11-12 |
 | ⚽ **Teams** | ✅ | 100% ✅ | 100% ✅ | 100% ✅ | 100% ✅ | SKIP ⏭️ | MEDIUM | ✅ Done |
+| 🌐 **teams_api** | 📝 | 0% | N/A | N/A | N/A | 0% | CRITICAL | 2025-11-05 |
 | 🎯 **Matches** | 📝 | 0% | 0% | 0% | 0% | 0% | HIGH | 2025-12-03 |
 | 📊 **Predictions** | 📝 | 0% | 0% | 0% | 0% | 0% | HIGH | 2025-12-10 |
 
 ---
 
-## 📋 STANDARD FEATURE DEVELOPMENT TEMPLATE
+## 🌐 API INTEGRATIONS INFRASTRUCTURE
 
-All features follow this consistent structure:
+### 📂 Backend Architecture
 
 ```
-Feature Development Phases:
-├── Phase 1: Database Layer (5-15 min)
-│   ├── Schema design/verification
-│   ├── Migrations
-│   └── Seed data
-│
-├── Phase 2: Backend Layer (15-25 min)
-│   ├── Django Models
-│   ├── Serializers (List, Detail, Create, Update)
-│   ├── ViewSets (CRUD + filters + search)
-│   └── URL Configuration
-│
-├── Phase 3: Frontend Data Layer (10-15 min)
-│   ├── TypeScript Types (interfaces, DTOs)
-│   ├── API Client Service
-│   └── TanStack Query Hooks (query + mutation)
-│
-├── Phase 4: Frontend UI Layer (30-45 min)
-│   ├── 4.1: UI Components (20-25 min)
-│   │   ├── List Component (table/grid view with DataTable)
-│   │   ├── Card Component (compact view)
-│   │   ├── Detail Component (full view)
-│   │   ├── Form Component (create/edit)
-│   │   └── Filter Component (search/filter)
-│   ├── 4.2.A: Main Pages (6-8 min)
-│   │   ├── /admin/{feature} (list page)
-│   │   └── /admin/{feature}/[id] (detail page)
-│   └── 4.2.B: Form Pages (6-8 min)
-│       ├── /admin/{feature}/create (create page)
-│       └── /admin/{feature}/[id]/edit (edit page)
-│
-└── Phase 5: Documentation (5-10 min) [OPTIONAL]
-    ├── API Documentation
-    └── User Documentation
+backend/
+├── api_integrations/              # 🆕 Main API module (NEW!)
+│   ├── __init__.py
+│   │
+│   ├── base/                      # ⭐ Reusable base classes
+│   │   ├── __init__.py
+│   │   ├── client.py             # BaseAPIClient (abstract)
+│   │   ├── rate_limiter.py       # RateLimiter (token bucket)
+│   │   ├── cache_manager.py      # CacheManager (Django cache)
+│   │   ├── response_parser.py    # BaseResponseParser
+│   │   └── exceptions.py         # Custom exceptions
+│   │
+│   ├── providers/                 # 🔌 API providers
+│   │   ├── __init__.py
+│   │   ├── football_data_org/
+│   │   │   ├── __init__.py
+│   │   │   ├── client.py         # FootballDataClient
+│   │   │   ├── endpoints.py      # API endpoints
+│   │   │   ├── parsers.py        # Response parsers
+│   │   │   └── config.py         # API config
+│   │   │
+│   │   ├── api_football/
+│   │   │   ├── __init__.py
+│   │   │   ├── client.py         # APIFootballClient
+│   │   │   ├── endpoints.py
+│   │   │   ├── parsers.py
+│   │   │   └── config.py
+│   │   │
+│   │   └── transfermarkt/        # 🆕 Future: Web scraping
+│   │       ├── __init__.py
+│   │       └── scraper.py
+│   │
+│   ├── services/                  # 🎯 Feature-specific services
+│   │   ├── __init__.py
+│   │   ├── teams_service.py      # Teams fetching logic
+│   │   ├── team_stats_service.py # Future
+│   │   ├── matches_service.py    # Future
+│   │   └── orchestrator.py       # Service orchestration
+│   │
+│   ├── transformers/              # 🔄 Data transformation
+│   │   ├── __init__.py
+│   │   ├── base.py               # BaseTransformer
+│   │   ├── team_transformer.py   # API → Team model
+│   │   ├── match_transformer.py  # Future
+│   │   └── validators.py         # Data validation
+│   │
+│   ├── management/                # 🔧 Django commands
+│   │   └── commands/
+│   │       ├── fetch_teams.py
+│   │       ├── sync_teams.py
+│   │       ├── fetch_team_stats.py  # Future
+│   │       └── fetch_matches.py     # Future
+│   │
+│   ├── tasks/                     # ⏱️ Celery/scheduled tasks
+│   │   ├── __init__.py
+│   │   ├── teams_tasks.py
+│   │   ├── stats_tasks.py        # Future
+│   │   └── matches_tasks.py      # Future
+│   │
+│   ├── models.py                  # APISync tracking model
+│   ├── serializers.py             # API endpoints serializers
+│   ├── views.py                   # API endpoints views
+│   └── urls.py                    # API routes
 ```
+
+### 🔌 API Providers
+
+| Provider | Status | Rate Limit | Usage | Coverage |
+|----------|--------|------------|-------|----------|
+| **Football-Data.org** | ⏳ Phase 2 | 10 req/min | Primary | 15-20 major leagues |
+| **API-Football** | ⏳ Phase 3 | 100 req/day | Fallback | 280+ leagues |
+| **Transfermarkt** | 📝 Future | N/A | Emergency | Web scraping |
+
+### 🎯 Future API Features
+
+| Feature | Status | Depends On | Estimate |
+|---------|--------|------------|----------|
+| **teams_api** | 📝 IN PROGRESS | Base infra | ~210 min |
+| **team_stats_api** | 📝 Planned | teams_api | ~90 min |
+| **matches_api** | 📝 Planned | teams_api | ~120 min |
 
 ---
 
 # 📋 DETAILED FEATURE TRACKING
+
+---
+
+## 🌐 FEATURE: teams_api (API Integration for Teams)
+
+**Status**: 📝 IN PROGRESS (0%)
+**Priority**: CRITICAL (Foundation for all API features)
+**Type**: One-time fetch + Periodic sync
+**Start Date**: 2025-10-30
+**Target**: 2025-11-05
+**Total Time**: ~210 minutes (8 phases, 28 sub-phases)
+
+### 🎯 OVERVIEW
+
+**Purpose**: Fetch football teams from external APIs and sync to database
+
+**Strategy**:
+- **Primary**: Football-Data.org (10 req/min, major European leagues)
+- **Fallback**: API-Football (100 req/day, minor leagues)
+- **Architecture**: Reusable infrastructure for future API integrations
+
+**Scope**:
+- ✅ All European countries
+- ✅ Top 2 leagues per country
+- ✅ ~1600-2000 teams total
+- ✅ One-time initial fetch
+- ✅ Periodic updates (market value, logos, etc.)
+
+**Key Features**:
+- Rate limiting per provider
+- Cache management (30 days one-time, 1 day periodic)
+- Error handling and retry logic
+- Progress tracking and reporting
+- Duplicate detection
+- Data validation
+
+---
+
+### 🗂️ PHASES & TASKS
+
+### **Phase 1: Base Infrastructure** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 45 minutes | **Sub-Phases**: 6
+
+Foundation classes for all API integrations. Reusable across features.
+
+**1.1: Base Classes** [░░░] 0% (8 min)
+- ⏳ BaseAPIClient abstract class
+- ⏳ HTTP methods (GET, POST, PUT, DELETE)
+- ⏳ Authentication handling
+- ⏳ Custom exceptions (APIError, RateLimitError, etc.)
+- ⏳ Type definitions (TypedDict, Protocol)
+- 📁 Files: `base/client.py`, `base/exceptions.py`
+
+**1.2: Rate Limiter** [░░░] 0% (7 min)
+- ⏳ RateLimiter class (token bucket algorithm)
+- ⏳ Per-provider rate limits (10/min, 100/day)
+- ⏳ Redis-based distributed limiting (optional)
+- ⏳ Rate limit headers parsing
+- 📁 Files: `base/rate_limiter.py`
+
+**1.3: Cache Manager** [░░░] 0% (7 min)
+- ⏳ CacheManager class (Django cache backend)
+- ⏳ TTL strategies (one-time: 30 days, periodic: 1 day)
+- ⏳ Cache key generation
+- ⏳ Cache invalidation methods
+- 📁 Files: `base/cache_manager.py`
+
+**1.4: Response Parser** [░░░] 0% (8 min)
+- ⏳ BaseResponseParser abstract class
+- ⏳ JSON response parsing
+- ⏳ Error response handling
+- ⏳ Pagination support
+- 📁 Files: `base/response_parser.py`
+
+**1.5: API Sync Tracking Model** [░░░] 0% (8 min)
+- ⏳ APISync Django model
+- ⏳ Fields: provider, resource_type, status, started_at, completed_at, records_processed, errors
+- ⏳ Migration creation
+- ⏳ Admin interface
+- 📁 Files: `models.py`, `migrations/xxxx_create_api_sync.py`
+
+**1.6: Configuration** [░░░] 0% (7 min)
+- ⏳ Environment variables (.env)
+- ⏳ Settings configuration (FOOTBALL_DATA_API_KEY, etc.)
+- ⏳ Provider registry
+- ⏳ Default configurations
+- 📁 Files: `.env.example`, `settings.py` updates
+
+---
+
+### **Phase 2: Football-Data.org Integration** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 30 minutes | **Sub-Phases**: 4
+
+Primary API provider for major European leagues.
+
+**2.1: Client Setup** [░░░] 0% (8 min)
+- ⏳ FootballDataClient class (extends BaseAPIClient)
+- ⏳ API authentication (X-Auth-Token header)
+- ⏳ Base URL configuration
+- ⏳ Endpoints definition
+- 📁 Files: `providers/football_data_org/client.py`, `config.py`
+
+**2.2: Teams Endpoints** [░░░] 0% (8 min)
+- ⏳ get_competitions() - List all competitions
+- ⏳ get_teams_by_competition(competition_id) - Teams in competition
+- ⏳ get_team_details(team_id) - Single team details
+- ⏳ Request/response type hints
+- 📁 Files: `providers/football_data_org/endpoints.py`
+
+**2.3: Response Parsers** [░░░] 0% (7 min)
+- ⏳ Parse competition data
+- ⏳ Parse team data (normalize to common format)
+- ⏳ Parse pagination metadata
+- ⏳ Error response parsing
+- 📁 Files: `providers/football_data_org/parsers.py`
+
+**2.4: Unit Tests** [░░░] 0% (7 min)
+- ⏳ Test client initialization
+- ⏳ Test API methods (mocked responses)
+- ⏳ Test rate limiting
+- ⏳ Test error handling
+- 📁 Files: `tests/test_football_data_org.py`
+
+---
+
+### **Phase 3: API-Football Integration** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 25 minutes | **Sub-Phases**: 3
+
+Fallback API provider for comprehensive coverage.
+
+**3.1: Client Setup** [░░░] 0% (8 min)
+- ⏳ APIFootballClient class (extends BaseAPIClient)
+- ⏳ RapidAPI authentication (X-RapidAPI-Key header)
+- ⏳ Base URL configuration
+- ⏳ Endpoints definition
+- 📁 Files: `providers/api_football/client.py`, `config.py`
+
+**3.2: Teams Endpoints** [░░░] 0% (9 min)
+- ⏳ get_leagues(country) - List leagues
+- ⏳ get_teams_by_league(league_id) - Teams in league
+- ⏳ get_team_details(team_id) - Single team details
+- ⏳ Request/response type hints
+- 📁 Files: `providers/api_football/endpoints.py`
+
+**3.3: Response Parsers** [░░░] 0% (8 min)
+- ⏳ Parse league data
+- ⏳ Parse team data (normalize to Football-Data format)
+- ⏳ Map field names to common schema
+- ⏳ Error response parsing
+- 📁 Files: `providers/api_football/parsers.py`
+
+---
+
+### **Phase 4: Data Transformation** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 25 minutes | **Sub-Phases**: 3
+
+Transform API responses to database models.
+
+**4.1: Base Transformer** [░░░] 0% (8 min)
+- ⏳ BaseTransformer abstract class
+- ⏳ Validation methods (required fields, data types)
+- ⏳ Error collection and reporting
+- ⏳ Logging
+- 📁 Files: `transformers/base.py`
+
+**4.2: Team Transformer** [░░░] 0% (9 min)
+- ⏳ TeamTransformer class (extends BaseTransformer)
+- ⏳ API response → Team model mapping
+- ⏳ Handle missing/optional fields
+- ⏳ Duplicate detection (external_id check)
+- ⏳ Country matching logic
+- 📁 Files: `transformers/team_transformer.py`
+
+**4.3: Validators** [░░░] 0% (8 min)
+- ⏳ Team data validation rules
+- ⏳ Required fields check (name, code)
+- ⏳ Data type validation
+- ⏳ Business rules (market_value > 0, etc.)
+- 📁 Files: `transformers/validators.py`
+
+---
+
+### **Phase 5: Teams Service** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 30 minutes | **Sub-Phases**: 4
+
+Business logic for fetching and syncing teams.
+
+**5.1: Service Base** [░░░] 0% (8 min)
+- ⏳ TeamsService class
+- ⏳ Provider selection logic (primary → fallback)
+- ⏳ Error handling and retries
+- ⏳ Logging and progress tracking
+- 📁 Files: `services/teams_service.py`
+
+**5.2: Fetch Logic** [░░░] 0% (10 min)
+- ⏳ fetch_teams_by_country(country_code)
+- ⏳ fetch_teams_by_league(league_id)
+- ⏳ fetch_all_european_teams()
+- ⏳ Progress tracking (count, errors)
+- ⏳ Batch processing
+- 📁 Files: `services/teams_service.py`
+
+**5.3: Update Logic** [░░░] 0% (7 min)
+- ⏳ update_team_data(team_id) - Periodic updates
+- ⏳ Smart update (only changed fields)
+- ⏳ Batch update operations
+- ⏳ Conflict resolution
+- 📁 Files: `services/teams_service.py`
+
+**5.4: Orchestrator** [░░░] 0% (5 min)
+- ⏳ APIOrchestrator class
+- ⏳ Coordinate multiple providers
+- ⏳ Fallback mechanism
+- ⏳ Retry with exponential backoff
+- 📁 Files: `services/orchestrator.py`
+
+---
+
+### **Phase 6: Management Commands** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 25 minutes | **Sub-Phases**: 3
+
+Django management commands for CLI operations.
+
+**6.1: Fetch Teams Command** [░░░] 0% (10 min)
+- ⏳ `python manage.py fetch_teams` command
+- ⏳ Options: --country, --league, --all-european, --dry-run
+- ⏳ Progress bar with tqdm
+- ⏳ Summary report (success, errors, skipped)
+- 📁 Files: `management/commands/fetch_teams.py`
+
+**6.2: Sync Teams Command** [░░░] 0% (8 min)
+- ⏳ `python manage.py sync_teams` command
+- ⏳ Update existing teams only
+- ⏳ Options: --force, --fields (market_value, logo, etc.)
+- ⏳ Batch processing
+- 📁 Files: `management/commands/sync_teams.py`
+
+**6.3: Testing Commands** [░░░] 0% (7 min)
+- ⏳ Test with real API calls
+- ⏳ Verify data in database
+- ⏳ Check logs and error handling
+- ⏳ Validate transformations
+- 📁 Files: Test runs and validation
+
+---
+
+### **Phase 7: API Endpoints** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 30 minutes | **Sub-Phases**: 4
+
+REST API endpoints for admin panel.
+
+**7.1: Serializers** [░░░] 0% (8 min)
+- ⏳ FetchTeamsSerializer (request validation)
+- ⏳ SyncTeamsSerializer (sync options)
+- ⏳ APISyncSerializer (sync history)
+- ⏳ Input validation
+- 📁 Files: `serializers.py`
+
+**7.2: Views** [░░░] 0% (10 min)
+- ⏳ POST `/api/teams-api/fetch/` - Trigger fetch
+- ⏳ POST `/api/teams-api/sync/` - Trigger sync
+- ⏳ GET `/api/teams-api/status/` - Sync history
+- ⏳ Async task triggering (Celery/Django-Q)
+- 📁 Files: `views.py`
+
+**7.3: URLs** [░░░] 0% (5 min)
+- ⏳ URL routing configuration
+- ⏳ OpenAPI documentation
+- ⏳ Router registration
+- 📁 Files: `urls.py`
+
+**7.4: Permissions** [░░░] 0% (7 min)
+- ⏳ Admin-only access (IsAdminUser)
+- ⏳ Rate limiting per user
+- ⏳ API throttling
+- 📁 Files: `views.py` (permissions)
+
+---
+
+### **Phase 8: Scheduled Tasks (OPTIONAL)** [░░░░░░░░░░] 0%
+**Status**: 📝 TODO | **Estimated Time**: 20 minutes | **Sub-Phases**: 2
+
+Automated periodic syncing with Celery/Django-Q.
+
+**8.1: Celery Setup** [░░░] 0% (10 min)
+- ⏳ Celery configuration (celery.py)
+- ⏳ Redis/RabbitMQ setup
+- ⏳ Task definition
+- ⏳ Beat scheduler configuration
+- 📁 Files: `celery.py`, `settings.py`
+
+**8.2: Periodic Tasks** [░░░] 0% (10 min)
+- ⏳ Daily team sync (market value update)
+- ⏳ Weekly full sync (all fields)
+- ⏳ Monitoring and alerting
+- ⏳ Error notifications
+- 📁 Files: `tasks/teams_tasks.py`
+
+---
+
+### 📊 PROGRESS SUMMARY
+
+| Phase | Status | Progress | Sub-Phases | Time | Completed |
+|-------|--------|----------|------------|------|-----------|
+| 1: Base Infrastructure | 📝 TODO | 0% | 0/6 | 45 min | - |
+| 2: Football-Data.org | 📝 TODO | 0% | 0/4 | 30 min | - |
+| 3: API-Football | 📝 TODO | 0% | 0/3 | 25 min | - |
+| 4: Data Transformation | 📝 TODO | 0% | 0/3 | 25 min | - |
+| 5: Teams Service | 📝 TODO | 0% | 0/4 | 30 min | - |
+| 6: Management Commands | 📝 TODO | 0% | 0/3 | 25 min | - |
+| 7: API Endpoints | 📝 TODO | 0% | 0/4 | 30 min | - |
+| 8: Scheduled Tasks (OPT) | 📝 TODO | 0% | 0/2 | 20 min | - |
+| **TOTAL** | **📝 TODO** | **0%** | **0/29** | **230 min** | **-** |
+
+**Without Phase 8**: ~210 minutes (3.5 hours)
 
 ---
 
@@ -133,227 +487,6 @@ Complete football teams management system with full CRUD operations.
 - ✅ 6 UI Components (List with DataTable, Card, Detail, Form, Filters, Columns)
 - ✅ 4 Admin Pages (List, Detail, Create, Edit)
 - ✅ Production build ready
-
----
-
-### 📊 DATABASE SCHEMA
-
-```sql
-teams:
-  -- PRIMARY KEY
-  id              text PRIMARY KEY
-  
-  -- CORE INFO (snake_case)
-  code            text                    -- 3-letter team code (MUN, BAR, FNB)
-  name            text NOT NULL
-  external_id     text                    -- External API reference
-  
-  -- RELATIONSHIPS
-  country_id      uuid (FK → countries.id) -- Country reference
-  
-  -- BRANDING & INFO
-  logo            text                    -- Team logo URL
-  founded         integer                 -- Foundation year
-  website         text                    -- Official website
-  market_value    bigint                  -- Team market value in EUR
-  
-  -- STATUS
-  is_active       boolean DEFAULT true
-  
-  -- TIMESTAMPS
-  created_at      timestamp DEFAULT CURRENT_TIMESTAMP
-  updated_at      timestamp
-
--- INDEXES
-idx_teams_country_id    ON country_id
-idx_teams_code          ON code
-idx_teams_is_active     ON is_active
-idx_teams_external_id   ON external_id
-```
-
-**Data Status**: ✅ 6 teams (Arsenal, Man City, Liverpool, Chelsea, Man Utd, Tottenham)
-
----
-
-### 🗂️ PHASES & TASKS
-
-### **Phase 1: Database Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 8 minutes | **Completed**: 2025-10-29 23:45
-
-✅ **Migration Applied**: `restructure_teams_table_v2`
-
-**Changes Made:**
-- ❌ Removed: `league_id`, `shortName`, `venue`, `country` (text)
-- ✅ Added: `code`, `website`, `market_value`, `is_active`
-- ✅ Renamed: `externalId` → `external_id`, `createdAt` → `created_at`, `updatedAt` → `updated_at`
-- ✅ Kept: `country_id` (UUID) for foreign key relationship
-- ✅ Indexes created for performance
-- ✅ Table comments added for documentation
-- ✅ Backup created: `teams_backup_20251029`
-
-**Technical Details:**
-- Dropped 2 foreign key constraints (league_id relations)
-- Dropped 4 columns
-- Renamed 3 columns to snake_case
-- Added 4 new columns
-- Created 4 performance indexes
-- 6 teams preserved during migration
-
-🔗 [GitHub Commit](https://github.com/zaferkucuk/Oover/commit/TBD)
-
----
-
-### **Phase 2: Backend Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 25 minutes | **Completed**: 2025-10-29 22:47
-
-✅ **All Tasks Completed**
-
-**1. Django Model** ✅
-- Updated Team model with new schema
-- Added fields: code, website, market_value, is_active
-- Removed: league_id field
-- All field names converted to snake_case
-- Added formatted_market_value property for display
-- Comprehensive docstrings and help_text
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/5b4c42f79f08a0bb18ec8942c7933dd2ebe11ad4)
-
-**2. Serializers (4 types)** ✅
-- **TeamListSerializer**: Lightweight for list views
-- **TeamDetailSerializer**: Comprehensive for detail views
-- **TeamCreateSerializer**: Full validation for creation
-- **TeamUpdateSerializer**: Partial updates support
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/3238c618cc2d4386fe0c207e8597fdc06281ded4)
-
-**3. ViewSet** ✅
-- Full CRUD operations
-- Pagination: 30 teams per page
-- Filters: country, is_active, market_value_min/max
-- Search: name, code, external_id
-- Custom Actions: by_country, active, top-by-market-value, search
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/5381d88f7dad39b49bb11f1d374e17fcd91678ac)
-
-**4. URL Configuration** ✅
-- Registered TeamViewSet in router at `/api/teams/`
-- All endpoints available with documentation
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/28ed4d6e3c367e16789c41ff22fa429d330baed4)
-
----
-
-### **Phase 3: Frontend Data Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 15 minutes | **Completed**: 2025-10-29 22:57
-
-✅ **All Tasks Completed**
-
-**1. TypeScript Types** ✅
-- TeamListItem, Team, CreateTeamDto, UpdateTeamDto, TeamQueryParams
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/1d8e6204ebdf47026fc30a6d439bb6d72bee61b3)
-
-**2. API Client Service** ✅
-- 10+ methods with full JSDoc documentation
-- CRUD + Custom actions
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/b643ec0cab309d0e92cbb034efd54a1112555685)
-
-**3. TanStack Query Hooks** ✅
-- 9 hooks with optimistic updates
-- Query hooks (6): useTeams, useTeam, useActiveTeams, useTeamsByCountry, useTopTeamsByMarketValue, useTeamSearch
-- Mutation hooks (3): useCreateTeam, useUpdateTeam, useDeleteTeam
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/a5eccc6d6bd5d626c0e4089de6f7304ab0f7fe83)
-
-**4. QueryKeys Update** ✅
-- Updated teams queryKeys (byCountry instead of byLeague)
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/ea2a7753e835a5121da064f01215017ada44d90a)
-
----
-
-### **Phase 4: Frontend UI Layer** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Estimated Time**: 40 minutes | **Time Spent**: 40 minutes
-
-**4.1: UI Components** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 25 minutes | **Completed**: 2025-10-30 23:09
-
-✅ **All 6 Components Completed**
-
-**1. teams-columns.tsx** ✅ - DataTable columns with sorting
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/6c070a1a4b593a91122fa348e762edebe9cd40e9)
-
-**2. teams-list.tsx** ✅ - DataTable view with search/pagination
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/5dd8c6c61172551b72191f0487731eb75365144f)
-
-**3. team-card.tsx** ✅ - Grid card with market value
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/c81b191c2a09f5ed0c9ab4603a1130dca687e544)
-
-**4. team-detail.tsx** ✅ - Full detail with all info
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/1c03314c70eb4bbc34bf02aeac56c43014f6e976)
-
-**5. team-form.tsx** ✅ - Create/Edit with validation
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/9a3be5bee96db3a6487fb4c2b69c15f8105f7a76)
-
-**6. team-filters.tsx** ✅ - Search & filters with market value range
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/f9d077e539a290e67b1bf25bdd2b525356889a5a)
-
----
-
-**4.2.A: Main Pages** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 8 minutes | **Completed**: 2025-10-30 23:30
-
-✅ **All 2 Pages Completed**
-
-**1. /admin/teams (List Page)** ✅
-- TeamsList component integration with DataTable
-- TeamFilters for comprehensive filtering
-- Create Team button, breadcrumb navigation
-- Loading skeleton, SEO metadata
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/ea4f463524b8f5a23db9096dc0829897ea608310)
-
-**2. /admin/teams/[id] (Detail Page)** ✅
-- TeamDetail component integration
-- Back navigation, Edit and Delete actions
-- Breadcrumb navigation with team ID
-- Loading skeleton, dynamic SEO metadata
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/6a211d144f0733b3b0acfbbfb69964422a216525)
-
----
-
-**4.2.B: Form Pages** [██████████] 100% ✅
-**Status**: ✅ COMPLETE | **Time**: 7 minutes | **Completed**: 2025-10-30 23:45
-
-✅ **All 2 Pages Completed**
-
-**1. /admin/teams/create (Create Page)** ✅
-- TeamForm component for creating new teams
-- Breadcrumb navigation (Admin > Teams > Create)
-- Back button to teams list
-- Loading skeleton with Suspense
-- SEO optimized metadata
-- Type-safe routing
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/49bb41632b44c70ec6a0d125ca112797e1f5d212)
-
-**2. /admin/teams/[id]/edit (Edit Page)** ✅
-- TeamForm component in edit mode with auto-fill
-- Dynamic team ID from URL params
-- Breadcrumb navigation (Admin > Teams > [ID] > Edit)
-- Back button to team detail page
-- Loading skeleton with Suspense
-- SEO optimized metadata with dynamic content
-- Type-safe routing with params interface
-
-🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/49bb41632b44c70ec6a0d125ca112797e1f5d212)
-
----
-
-### **Phase 5: Documentation** [░░░░░░░░░░] 0% ⏸️
-**Status**: ⏸️ SKIPPED (Optional per user preference)
 
 ---
 
@@ -395,25 +528,6 @@ Complete leagues management system with advanced DataTable features.
 - ✅ Sortable columns (Name, Country, Sport, Status)
 - ✅ Column visibility toggle
 - ✅ Global search
-
----
-
-### 📊 DATABASE SCHEMA
-
-```sql
-leagues:
-  id              text PRIMARY KEY
-  sport_id        text NOT NULL (FK → sports.id)
-  external_id     text (API reference)
-  name            text NOT NULL
-  country_id      uuid (FK → countries.id)
-  logo            text
-  is_active       boolean DEFAULT true
-  created_at      timestamp DEFAULT CURRENT_TIMESTAMP
-  updated_at      timestamp
-```
-
-**Data Status**: ✅ 19 leagues, 100% quality
 
 ---
 
@@ -470,40 +584,6 @@ leagues:
 **Target**: 2025-12-03
 **Estimated Time**: ~120 minutes
 
-### 📋 Phases
-
-**Phase 1: Database Layer** (15 min)
-- Schema design (complex relations)
-- Migrations
-- Seed data
-
-**Phase 2: Backend Layer** (30 min)
-- Django Model (many relations)
-- Serializers (5+ types)
-- ViewSet (complex filters)
-- Custom endpoints (by date, by league, live, upcoming)
-- URLs
-
-**Phase 3: Frontend Data Layer** (20 min)
-- TypeScript Types (complex)
-- API Client (15+ methods)
-- TanStack Query Hooks (15+ hooks)
-
-**Phase 4: Frontend UI Layer** (45 min)
-- 4.1: Components (30 min)
-  - MatchesList (with DataTable, calendar/list view)
-  - MatchCard (live updates)
-  - MatchDetail (stats, lineups)
-  - MatchForm
-  - MatchFilters (date, league, status)
-- 4.2: Pages (15 min)
-  - /admin/matches
-  - /admin/matches/[id]
-  - /admin/matches/create
-  - /admin/matches/[id]/edit
-
-**Phase 5: Documentation** (OPTIONAL)
-
 ---
 
 ## 📊 FEATURE: Predictions
@@ -513,44 +593,20 @@ leagues:
 **Target**: 2025-12-10
 **Estimated Time**: ~150 minutes
 
-### 📋 Phases
-
-**Phase 1: Database Layer** (20 min)
-- Schema design (predictions, algorithms, results)
-- Migrations
-- Seed data
-
-**Phase 2: Backend Layer** (40 min)
-- Django Models (multiple tables)
-- Serializers (complex nested data)
-- ViewSet (advanced filters)
-- Prediction algorithms
-- URLs
-
-**Phase 3: Frontend Data Layer** (25 min)
-- TypeScript Types (complex)
-- API Client (20+ methods)
-- TanStack Query Hooks (20+ hooks)
-
-**Phase 4: Frontend UI Layer** (55 min)
-- 4.1: Components (40 min)
-  - PredictionsList (with DataTable)
-  - PredictionCard (confidence scores)
-  - PredictionDetail (analysis)
-  - PredictionForm (algorithm selection)
-  - PredictionFilters
-  - PredictionCharts (visualizations)
-- 4.2: Pages (15 min)
-  - /admin/predictions
-  - /admin/predictions/[id]
-  - /admin/predictions/create
-  - /admin/predictions/[id]/edit
-
-**Phase 5: Documentation** (OPTIONAL)
-
 ---
 
 ## 🎉 Recent Achievements
+
+### 2025-10-30 CURRENT_TIME 🌐📋 **TEAMS_API FEATURE ADDED!**
+- 🌐 **API INTEGRATIONS INFRASTRUCTURE PLANNED!**
+- ✅ Complete architecture designed
+- ✅ 8 phases, 28 sub-phases planned
+- ✅ Folder structure defined
+- ✅ Hybrid approach: Football-Data.org + API-Football
+- ✅ Reusable base classes for future features
+- ✅ PROJECT_STATUS.md updated
+- 🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/...)
+- 🎯 **Next: Phase 1.1 - Base Classes (8 min)**
 
 ### 2025-10-30 23:45 ⚽🎉🎉🎉 **TEAMS FEATURE 100% COMPLETE!**
 - ⚽🎉 **TEAMS FEATURE FINISHED!**
@@ -565,131 +621,39 @@ leagues:
 - ✅ Dynamic route handling
 - ✅ Type-safe params interface
 - 🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/49bb41632b44c70ec6a0d125ca112797e1f5d212)
-- 🎯 **Next: Countries Feature!**
-
-### 2025-10-30 23:30 ⚽🎉🎉 **TEAMS PHASE 4.2.A COMPLETE!**
-- ⚽ **TEAMS MAIN PAGES DONE!**
-- ✅ /admin/teams (list page)
-- ✅ /admin/teams/[id] (detail page)
-- ✅ TeamsList component integration
-- ✅ TeamDetail component integration
-- ✅ TeamFilters for search and filtering
-- ✅ Breadcrumb navigation
-- ✅ SEO metadata optimization
-- ✅ Loading skeletons with suspense
-- ✅ Create Team button
-- ✅ Back navigation and actions
-- ✅ Type-safe throughout
-- 🔗 [List Page Commit](https://github.com/zaferkucuk/Oover/commit/ea4f463524b8f5a23db9096dc0829897ea608310)
-- 🔗 [Detail Page Commit](https://github.com/zaferkucuk/Oover/commit/6a211d144f0733b3b0acfbbfb69964422a216525)
-- 🎯 **Next: Phase 4.2.B - Form Pages!**
-
-### 2025-10-30 23:15 📋 **PROJECT STATUS UPDATED!**
-- 📋 **Phase 4.2 split into 4.2.A and 4.2.B**
-- ✅ 4.2.A: Main Pages (list, detail) - 8 minutes
-- ✅ 4.2.B: Form Pages (create, edit) - 7 minutes
-- ✅ Prevents conversation limit issues
-- 🔗 [Commit](https://github.com/zaferkucuk/Oover/commit/...)
-- 🎯 **Next: Start Phase 4.2.A!**
-
-### 2025-10-30 23:09 ⚽🎉🎉 **TEAMS PHASE 4.1 COMPLETE!**
-- ⚽ **TEAMS UI COMPONENTS DONE!**
-- ✅ teams-columns.tsx (DataTable columns with sorting)
-- ✅ teams-list.tsx (DataTable view with search/pagination)
-- ✅ team-card.tsx (Grid card with market value)
-- ✅ team-detail.tsx (Full detail with all info)
-- ✅ team-form.tsx (Create/Edit with validation)
-- ✅ team-filters.tsx (Search & filters with market value range)
-- ✅ All components fully functional
-- ✅ Type-safe throughout
-- ✅ Comprehensive validation
-- ✅ Beautiful UI with shadcn/ui
-- 🔗 [Columns Commit](https://github.com/zaferkucuk/Oover/commit/6c070a1a4b593a91122fa348e762edebe9cd40e9)
-- 🔗 [List Commit](https://github.com/zaferkucuk/Oover/commit/5dd8c6c61172551b72191f0487731eb75365144f)
-- 🔗 [Card Commit](https://github.com/zaferkucuk/Oover/commit/c81b191c2a09f5ed0c9ab4603a1130dca687e544)
-- 🔗 [Detail Commit](https://github.com/zaferkucuk/Oover/commit/1c03314c70eb4bbc34bf02aeac56c43014f6e976)
-- 🔗 [Form Commit](https://github.com/zaferkucuk/Oover/commit/9a3be5bee96db3a6487fb4c2b69c15f8105f7a76)
-- 🔗 [Filters Commit](https://github.com/zaferkucuk/Oover/commit/f9d077e539a290e67b1bf25bdd2b525356889a5a)
-- 🎯 **Next: Phase 4.2.A - Main Pages!**
-
-### 2025-10-29 22:57 ⚽🎉 **TEAMS PHASE 3 COMPLETE!**
-- ⚽ **TEAMS FRONTEND DATA LAYER DONE!**
-- ✅ TypeScript Types updated with new schema
-- ✅ API Client Service with 10+ methods
-- ✅ TanStack Query Hooks with 9 hooks
-- ✅ Optimistic updates and cache management
-- ✅ QueryKeys updated (byCountry instead of byLeague)
-- ✅ Type-safe throughout with comprehensive JSDoc
-- 🔗 [Types Commit](https://github.com/zaferkucuk/Oover/commit/1d8e6204ebdf47026fc30a6d439bb6d72bee61b3)
-- 🔗 [Service Commit](https://github.com/zaferkucuk/Oover/commit/b643ec0cab309d0e92cbb034efd54a1112555685)
-- 🔗 [Hooks Commit](https://github.com/zaferkucuk/Oover/commit/a5eccc6d6bd5d626c0e4089de6f7304ab0f7fe83)
-- 🔗 [QueryKeys Commit](https://github.com/zaferkucuk/Oover/commit/ea2a7753e835a5121da064f01215017ada44d90a)
-- 🎯 **Next: Phase 4 - Frontend UI Layer!**
-
-### 2025-10-29 22:47 ⚽🎉 **TEAMS PHASE 2 COMPLETE!**
-- ⚽ **TEAMS BACKEND LAYER DONE!**
-- ✅ Django Model updated with new schema
-- ✅ 4 Serializers created with comprehensive validation
-- ✅ ViewSet with full CRUD + 4 custom actions
-- ✅ URL Configuration complete
-- ✅ Market value filtering and formatting
-- ✅ OpenAPI documentation
-- 🔗 [Model Commit](https://github.com/zaferkucuk/Oover/commit/5b4c42f79f08a0bb18ec8942c7933dd2ebe11ad4)
-- 🔗 [Serializers Commit](https://github.com/zaferkucuk/Oover/commit/3238c618cc2d4386fe0c207e8597fdc06281ded4)
-- 🔗 [ViewSet Commit](https://github.com/zaferkucuk/Oover/commit/5381d88f7dad39b49bb11f1d374e17fcd91678ac)
-- 🔗 [URLs Commit](https://github.com/zaferkucuk/Oover/commit/28ed4d6e3c367e16789c41ff22fa429d330baed4)
-- 🎯 **Next: Phase 3 - Frontend Data Layer!**
-
-### 2025-10-29 23:45 ⚽ **TEAMS PHASE 1 COMPLETE!**
-- ⚽ **TEAMS DATABASE LAYER DONE!**
-- ✅ Teams table restructured successfully
-- ✅ Removed league_id (no direct league relationship)
-- ✅ Added new fields: code, website, market_value, is_active
-- ✅ All columns now snake_case
-- ✅ Performance indexes created
-- ✅ 6 teams preserved during migration
-- ✅ Backup created for safety
-- 🔗 [Migration Commit](https://github.com/zaferkucuk/Oover/commit/TBD)
-- 🎯 **Next: Phase 2 - Backend Layer!**
-
-### 2025-10-29 22:15 🎉🎉🎉 **LEAGUES FEATURE 100% COMPLETE!**
-- 🏆 **LEAGUES FEATURE COMPLETED!**
-- ✅ All 5 phases complete (documentation skipped)
-- ✅ 10 UI Components delivered
-- ✅ 4 Admin pages with routing
-- ✅ Production-ready code
-- ✅ DataTable with advanced features
-- 🎯 **Ready for next feature: Countries!**
+- 🎯 **Next: API Integrations!**
 
 ---
 
 ## 📈 NEXT STEPS
 
-### Immediate (Next Session!)
-1. **🌍 Countries Feature - Phase 2: Backend Layer** (~15 min)
-   - Serializers (List, Detail, Create, Update)
-   - ViewSet (CRUD + filters + search)
-   - URL Configuration
+### Immediate (NOW!)
+1. **🌐 teams_api - Phase 1.1: Base Classes** (~8 min)
+   - BaseAPIClient abstract class
+   - Custom exceptions
+   - Type definitions
 
-### After Countries Phase 2
-2. **Countries Phase 3: Frontend Data Layer** (~10 min)
-3. **Countries Phase 4: Frontend UI Layer** (~30 min)
-4. **Countries Feature 100% COMPLETE!** 🎉
+### After Phase 1.1
+2. **teams_api - Phase 1.2: Rate Limiter** (~7 min)
+3. **teams_api - Phase 1.3: Cache Manager** (~7 min)
+4. Continue through all 8 phases...
 
 ### Short Term (This Week)
-5. Backend polish and optimization
-6. Start Matches feature
+5. Complete teams_api feature (all 8 phases)
+6. Test with real APIs
+7. Fetch teams data
 
 ### Medium Term (Next 2 Weeks)
-7. Complete Matches feature
-8. Integration testing
+8. Countries feature completion
+9. team_stats_api feature
+10. matches_api feature
 
 ### Long Term (Next Month)
-9. Start Predictions feature
-10. Complete Predictions feature
+11. Complete all API integrations
+12. Start Predictions feature
 
 ---
 
-**🔄 Auto-Update**: This file is updated after each major milestone
+**🔄 Auto-Update**: This file is updated after each sub-phase completion
 **📍 Location**: `/PROJECT_STATUS.md` (root)
 **🔗 Always Available**: https://github.com/zaferkucuk/Oover/blob/main/PROJECT_STATUS.md
