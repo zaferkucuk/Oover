@@ -24,14 +24,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { TeamQueryParams } from '@/types/models';
 
 /**
- * Generate dynamic metadata for SEO
- */
-export const metadata = {
-  title: 'Teams | Oover Admin',
-  description: 'Manage football teams from around the world',
-};
-
-/**
  * Loading skeleton for the page
  */
 function TeamsPageSkeleton() {
