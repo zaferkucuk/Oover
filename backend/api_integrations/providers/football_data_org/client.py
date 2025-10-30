@@ -207,21 +207,16 @@ class FootballDataClient(BaseAPIClient):
             >>> arsenal = [t for t in teams if t['tla'] == 'ARS'][0]
         
         Documentation:
-            https://www.football-data.org/documentation/api#teams-for-competition
-        
-        Note:
-            The correct endpoint format is: /competitions/{code}
-            NOT /competitions/{code}/teams (which returns 404)
-            
-            The API returns competition data with a 'teams' array embedded.
+            https://docs.football-data.org/general/v4/competition.html
+            Endpoint: GET /competitions/{code}/teams
         """
         logger.info(
             f"Fetching teams for competition {competition_id} "
             f"(season={season or 'current'})"
         )
         
-        # FIXED: Correct endpoint format without /teams suffix
-        endpoint = f"competitions/{competition_id}"
+        # Correct endpoint format: /competitions/{code}/teams
+        endpoint = f"competitions/{competition_id}/teams"
         params = {'season': season} if season else None
         
         response = self.get(endpoint, params=params)
