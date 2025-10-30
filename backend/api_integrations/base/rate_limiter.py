@@ -21,10 +21,94 @@ Example:
 import time
 import threading
 import logging
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+
+# Common rate limit header names used by different API providers
+RATE_LIMIT_HEADERS = {
+    "standard": {
+        "limit": ["X-RateLimit-Limit", "X-Rate-Limit-Limit"],
+        "remaining": ["X-RateLimit-Remaining", "X-Rate-Limit-Remaining"],
+        "reset": ["X-RateLimit-Reset", "X-Rate-Limit-Reset"],
+        "retry_after": ["Retry-After"],
+    },
+    "football-data": {
+        "limit": ["X-RequestCounter-Limit"],
+        "remaining": ["X-Requests-Available"],
+        "reset": ["X-RequestCounter-Reset"],
+    },
+    "api-football": {
+        "limit": ["X-RateLimit-Requests-Limit"],
+        "remaining": ["X-RateLimit-Requests-Remaining"],
+        "reset": ["X-RateLimit-Reset"],
+    },
+}
+
+
+def parse_rate_limit_headers(
+    headers: Dict[str, Any],
+    provider: str = "standard"
+) -> Dict[str, Optional[int]]:
+    """
+    Parse rate limit information from HTTP response headers.
+    
+    Supports multiple header naming conventions used by different API providers.
+    
+    Args:
+        headers: HTTP response headers (case-insensitive dict)
+        provider: Provider name for header mapping (default: 'standard')
+                  Options: 'standard', 'football-data', 'api-football'
+    
+    Returns:
+        Dictionary with parsed rate limit info:
+        {
+            'limit': Total rate limit (requests per period),
+            'remaining': Remaining requests in current period,
+            'reset': Unix timestamp when limit resets,
+            'retry_after': Seconds to wait before retrying (if rate limited)
+        }
+    
+    Example:
+        >>> headers = {
+        ...     'X-RateLimit-Limit': '60',
+        ...     'X-RateLimit-Remaining': '59',
+        ...     'X-RateLimit-Reset': '1704067200'
+        ... }
+        >>> info = parse_rate_limit_headers(headers)
+        >>> print(info)
+        {'limit': 60, 'remaining': 59, 'reset': 1704067200, 'retry_after': None}
+    """
+    # Case-insensitive header lookup
+    headers_lower = {k.lower(): v for k, v in headers.items()}
+    
+    # Get header mappings for provider
+    header_mapping = RATE_LIMIT_HEADERS.get(provider, RATE_LIMIT_HEADERS["standard"])
+    
+    result = {
+        "limit": None,
+        "remaining": None,
+        "reset": None,
+        "retry_after": None,
+    }
+    
+    # Parse each rate limit component
+    for key, possible_headers in header_mapping.items():
+        for header_name in possible_headers:
+            value = headers_lower.get(header_name.lower())
+            if value is not None:
+                try:
+                    result[key] = int(value)
+                    break
+                except (ValueError, TypeError):
+                    logger.warning(
+                        f"Failed to parse {header_name}={value} as integer"
+                    )
+    
+    logger.debug(f"Parsed rate limit headers ({provider}): {result}")
+    return result
 
 
 class RateLimiter:
@@ -39,6 +123,7 @@ class RateLimiter:
         burst_size: Maximum tokens that can accumulate (burst capacity)
         tokens: Current number of available tokens
         last_refill: Timestamp of last token refill
+        provider: Provider name for header parsing (optional)
     """
     
     def __init__(
@@ -48,6 +133,7 @@ class RateLimiter:
         distributed: bool = False,
         redis_client = None,
         key_prefix: str = "rate_limit",
+        provider: str = "standard",
     ):
         """
         Initialize rate limiter.
@@ -58,6 +144,7 @@ class RateLimiter:
             distributed: Use Redis for distributed rate limiting (default: False)
             redis_client: Redis client instance (required if distributed=True)
             key_prefix: Redis key prefix for distributed limiting
+            provider: Provider name for header parsing (default: 'standard')
             
         Example:
             >>> # Local rate limiter (10 requests/minute, burst of 10)
@@ -72,12 +159,19 @@ class RateLimiter:
             ...     distributed=True,
             ...     redis_client=redis.Redis()
             ... )
+            
+            >>> # Football-Data.org rate limiter
+            >>> limiter = RateLimiter(
+            ...     requests_per_minute=10,
+            ...     provider='football-data'
+            ... )
         """
         self.requests_per_minute = requests_per_minute
         self.burst_size = burst_size or requests_per_minute
         self.distributed = distributed
         self.redis_client = redis_client
         self.key_prefix = key_prefix
+        self.provider = provider
         
         # Local state (used for non-distributed mode)
         self.tokens = float(self.burst_size)
@@ -92,7 +186,7 @@ class RateLimiter:
         
         logger.info(
             f"Initialized RateLimiter: {requests_per_minute} req/min, "
-            f"burst={self.burst_size}, distributed={distributed}"
+            f"burst={self.burst_size}, distributed={distributed}, provider={provider}"
         )
     
     def _refill_tokens(self) -> None:
@@ -191,6 +285,69 @@ class RateLimiter:
             "Use distributed=False for local rate limiting."
         )
     
+    def update_from_headers(self, headers: Dict[str, Any]) -> bool:
+        """
+        Update rate limiter state from API response headers.
+        
+        This allows the rate limiter to sync with the server's view of rate limits.
+        Useful when the API provides accurate remaining request counts.
+        
+        Args:
+            headers: HTTP response headers
+            
+        Returns:
+            True if headers were parsed and state updated, False otherwise
+            
+        Example:
+            >>> limiter = RateLimiter(requests_per_minute=10, provider='football-data')
+            >>> response = requests.get('https://api.football-data.org/v4/teams')
+            >>> limiter.update_from_headers(response.headers)
+            >>> print(f"Tokens remaining: {limiter.get_available_tokens()}")
+        """
+        if self.distributed:
+            logger.warning("update_from_headers not supported in distributed mode")
+            return False
+        
+        # Parse headers
+        rate_info = parse_rate_limit_headers(headers, provider=self.provider)
+        
+        # Update state if we got useful information
+        updated = False
+        
+        with self._lock:
+            # Update remaining tokens if available
+            if rate_info["remaining"] is not None:
+                old_tokens = self.tokens
+                self.tokens = float(rate_info["remaining"])
+                
+                # Don't exceed burst size
+                self.tokens = min(self.tokens, self.burst_size)
+                
+                logger.info(
+                    f"Updated tokens from headers: {old_tokens:.2f} → {self.tokens:.2f} "
+                    f"(remaining: {rate_info['remaining']})"
+                )
+                updated = True
+            
+            # Update last_refill time to avoid double counting
+            if updated:
+                self.last_refill = time.time()
+            
+            # Log other useful info
+            if rate_info["limit"] is not None:
+                logger.debug(f"API reports rate limit: {rate_info['limit']}")
+            
+            if rate_info["reset"] is not None:
+                reset_time = datetime.fromtimestamp(rate_info["reset"])
+                logger.debug(f"Rate limit resets at: {reset_time}")
+            
+            if rate_info["retry_after"] is not None:
+                logger.warning(
+                    f"API requests to wait {rate_info['retry_after']}s before retry"
+                )
+        
+        return updated
+    
     def wait_if_needed(self, tokens: int = 1) -> float:
         """
         Wait if necessary to acquire tokens (blocking call).
@@ -285,7 +442,8 @@ class RateLimiter:
             f"RateLimiter(requests_per_minute={self.requests_per_minute}, "
             f"burst_size={self.burst_size}, "
             f"tokens={self.tokens:.2f}, "
-            f"distributed={self.distributed})"
+            f"distributed={self.distributed}, "
+            f"provider={self.provider})"
         )
 
 
@@ -297,13 +455,14 @@ class RateLimiterRegistry:
     
     Example:
         >>> registry = RateLimiterRegistry()
-        >>> registry.register('football-data', requests_per_minute=10)
-        >>> registry.register('api-football', requests_per_minute=100, burst_size=10)
+        >>> registry.register('football-data', requests_per_minute=10, provider='football-data')
+        >>> registry.register('api-football', requests_per_minute=100, burst_size=10, provider='api-football')
         >>> 
         >>> limiter = registry.get('football-data')
         >>> if limiter.acquire():
         ...     # Make API request
-        ...     pass
+        ...     response = requests.get(...)
+        ...     limiter.update_from_headers(response.headers)
     """
     
     def __init__(self):
@@ -325,7 +484,7 @@ class RateLimiterRegistry:
             provider: Provider name (e.g., 'football-data', 'api-football')
             requests_per_minute: Maximum requests per minute
             burst_size: Maximum burst size
-            **kwargs: Additional arguments for RateLimiter
+            **kwargs: Additional arguments for RateLimiter (including provider for header parsing)
             
         Returns:
             The registered RateLimiter instance
@@ -333,6 +492,10 @@ class RateLimiterRegistry:
         with self._lock:
             if provider in self._limiters:
                 logger.warning(f"Rate limiter for '{provider}' already exists, replacing")
+            
+            # If provider arg not in kwargs, use the registry key as provider
+            if 'provider' not in kwargs:
+                kwargs['provider'] = provider
             
             limiter = RateLimiter(
                 requests_per_minute=requests_per_minute,
