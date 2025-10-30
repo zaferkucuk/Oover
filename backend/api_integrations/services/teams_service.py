@@ -131,7 +131,7 @@ class TeamsService:
         
         logger.info("Initialized TeamsService with providers and transformers")
     
-    # [Rest of the methods remain exactly the same...]
+    # [Methods remain exactly the same until fetch_teams_from_provider...]
     
     def get_by_id(self, team_id: str) -> Optional[Team]:
         try:
@@ -339,11 +339,23 @@ class TeamsService:
         provider: str = 'football-data',
         competition_id: Optional[str] = None,
         country_code: Optional[str] = None,
-        **kwargs
+        limit: Optional[int] = None,
     ) -> Dict[str, Any]:
+        """
+        Fetch teams from external API provider.
+        
+        Args:
+            provider: Provider name ('football-data' or 'api-football')
+            competition_id: Competition code (e.g., 'PL' for Premier League)
+            country_code: Country code for filtering (optional)
+            limit: Maximum number of teams to process (applied after fetch)
+        
+        Returns:
+            Dictionary with statistics about the fetch operation
+        """
         logger.info(
             f"fetch_teams_from_provider called: provider={provider}, "
-            f"competition_id={competition_id}, country_code={country_code}"
+            f"competition_id={competition_id}, country_code={country_code}, limit={limit}"
         )
         stats = {
             'provider': provider,
@@ -357,31 +369,46 @@ class TeamsService:
             'errors': []
         }
         try:
+            # Fetch teams from provider
             if provider == 'football-data':
                 if not competition_id:
                     raise ValueError("competition_id required for football-data provider")
                 logger.info(f"Fetching teams from Football-Data.org: {competition_id}")
+                
+                # Football-Data.org client doesn't accept extra parameters
+                # Fetch all teams and limit after
                 api_teams = self.primary_provider.get_teams_by_competition(
-                    competition_id=competition_id,
-                    **kwargs
+                    competition_id=competition_id
                 )
+                
             elif provider == 'api-football':
                 if not competition_id:
                     raise ValueError("competition_id required for api-football provider")
                 if not self.fallback_provider:
                     raise ValueError("API-Football provider not configured")
                 logger.info(f"Fetching teams from API-Football: {competition_id}")
+                
+                # API-Football client  - pass competition_id as league_id
                 api_teams = self.fallback_provider.get_teams_by_league(
-                    league_id=competition_id,
-                    **kwargs
+                    league_id=competition_id
                 )
+                
             else:
                 raise ValueError(f"Invalid provider: {provider}")
+            
+            # Apply limit if specified (after fetch, since clients don't support limit)
+            if limit and limit > 0:
+                api_teams = api_teams[:limit]
+                logger.info(f"Limited results to {limit} teams")
+            
             stats['fetched'] = len(api_teams)
             logger.info(f"Fetched {stats['fetched']} teams from {provider}")
+            
             if not api_teams:
                 logger.warning(f"No teams returned from {provider}")
                 return stats
+            
+            # Transform teams data
             transformed_teams = []
             for api_team in api_teams:
                 try:
@@ -393,7 +420,10 @@ class TeamsService:
                     error_msg = f"Transform error for {api_team.get('name', 'Unknown')}: {str(e)}"
                     stats['errors'].append(error_msg)
                     logger.error(error_msg)
+            
             logger.info(f"Transformed {stats['transformed']} teams")
+            
+            # Validate teams data
             validated_teams = []
             for team_data in transformed_teams:
                 validation_errors = self.validator.validate(team_data)
@@ -407,24 +437,32 @@ class TeamsService:
                 else:
                     validated_teams.append(team_data)
                     stats['validated'] += 1
+            
             logger.info(f"Validated {stats['validated']} teams")
+            
+            # Save teams to database (upsert)
             created, updated, save_errors = self.bulk_upsert_teams(
                 validated_teams,
                 match_field='external_id'
             )
+            
             stats['created'] = len(created)
             stats['updated'] = len(updated)
             stats['saved'] = stats['created'] + stats['updated']
             stats['failed'] = len(save_errors)
             stats['errors'].extend(save_errors)
+            
             logger.info(
                 f"Fetch complete: {stats['fetched']} fetched, "
                 f"{stats['saved']} saved ({stats['created']} new, {stats['updated']} updated), "
                 f"{stats['failed']} failed"
             )
+            
             if stats['errors']:
                 logger.warning(f"Encountered {len(stats['errors'])} errors during fetch")
+            
             return stats
+            
         except Exception as e:
             error_msg = f"Fatal error in fetch_teams_from_provider: {str(e)}"
             logger.exception(error_msg)
@@ -437,6 +475,12 @@ class TeamsService:
         competition_id: Optional[str] = None,
         **kwargs
     ) -> Dict[str, Any]:
+        """
+        Sync teams data from external provider.
+        
+        Currently uses fetch_teams_from_provider internally.
+        Future implementation will add intelligent sync logic.
+        """
         logger.info("sync_teams called (currently uses fetch_teams_from_provider)")
         return self.fetch_teams_from_provider(
             provider=provider,
