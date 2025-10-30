@@ -72,6 +72,11 @@ Team custom actions:
 - GET    /api/teams/top-by-market-value/?limit=10 - Top teams by market value
 - GET    /api/teams/search/?q=united      - Advanced search
 
+Team External API Operations:
+- POST   /api/teams/fetch/                - Fetch teams from external API (Football-Data.org or API-Football)
+- POST   /api/teams/sync/                 - Sync existing teams with external API data
+- GET    /api/teams/operations/           - List team API sync operations history
+
 Query parameters for listing:
 - ?is_active=true/false                   - Filter by active status
 - ?country=<uuid>                         - Filter by country ID
@@ -81,6 +86,12 @@ Query parameters for listing:
 - ?search=keyword                         - Search in name, code, or external_id
 - ?ordering=name,-created_at              - Order by field (- for descending)
 - ?page=1&page_size=20                    - Pagination (default varies by endpoint)
+
+Query parameters for operations:
+- ?status=completed                       - Filter by operation status (pending, in_progress, completed, failed)
+- ?provider=football_data_org             - Filter by API provider (football_data_org, api_football)
+- ?days=30                                - Show operations from last N days (default: 7, max: 90)
+- ?page=1&page_size=20                    - Pagination (default: 20 per page, max: 50)
 
 Examples:
 Leagues:
@@ -100,4 +111,36 @@ Teams:
 - GET /api/teams/top-by-market-value/?limit=10&country=<uuid>
 - GET /api/teams/search/?q=united
 - GET /api/teams/?market_value_min=100000000&market_value_max=1000000000
+
+Teams External API Operations:
+Fetch teams:
+- POST /api/teams/fetch/
+  Body: {
+    "provider": "football-data",
+    "all_european": true
+  }
+- POST /api/teams/fetch/
+  Body: {
+    "provider": "api-football",
+    "leagues": ["PL", "SA"],
+    "limit": 20
+  }
+
+Sync teams:
+- POST /api/teams/sync/
+  Body: {
+    "fields": ["market_value", "logo"],
+    "force": false
+  }
+- POST /api/teams/sync/
+  Body: {
+    "force": true,
+    "deactivate_missing": true
+  }
+
+Operations history:
+- GET /api/teams/operations/
+- GET /api/teams/operations/?status=completed
+- GET /api/teams/operations/?provider=football_data_org&days=30
+- GET /api/teams/operations/?status=failed&page=2&page_size=10
 """
