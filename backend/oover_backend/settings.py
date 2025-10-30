@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'apps.core',
+    'api_integrations',  # API integrations module
 ]
 
 MIDDLEWARE = [
@@ -219,6 +220,16 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': '%Y-%m-%dT%H:%M:%S.%fZ',
     'DATE_FORMAT': '%Y-%m-%d',
     'TIME_FORMAT': '%H:%M:%S',
+    
+    # API rate limiting
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+    },
 }
 
 
@@ -285,7 +296,121 @@ SPECTACULAR_SETTINGS = {
         {'name': 'Teams', 'description': 'Team management endpoints'},
         {'name': 'Matches', 'description': 'Match management endpoints'},
         {'name': 'Predictions', 'description': 'Prediction endpoints'},
+        {'name': 'API Integrations', 'description': 'External API integration endpoints'},
     ],
+}
+
+
+# ==============================================================================
+# CACHE CONFIGURATION
+# ==============================================================================
+
+# Cache backend selection based on environment variable
+_cache_backend = os.getenv('CACHE_BACKEND', 'locmem')
+
+if _cache_backend == 'redis':
+    # Redis cache (production)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': os.getenv('CACHE_REDIS_URL', 'redis://localhost:6379/1'),
+            'OPTIONS': {
+                'CLIENT_CLASS': os.getenv(
+                    'CACHE_REDIS_CLIENT_CLASS',
+                    'django_redis.client.DefaultClient'
+                ),
+                'PARSER_CLASS': 'redis.connection.HiredisParser',
+                'CONNECTION_POOL_CLASS_KWARGS': {
+                    'max_connections': 50,
+                    'retry_on_timeout': True,
+                },
+                'SOCKET_CONNECT_TIMEOUT': 5,
+                'SOCKET_TIMEOUT': 5,
+            },
+            'KEY_PREFIX': os.getenv('CACHE_KEY_PREFIX', 'oover_api'),
+        }
+    }
+elif _cache_backend == 'memcached':
+    # Memcached cache (production)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+            'LOCATION': '127.0.0.1:11211',
+            'KEY_PREFIX': os.getenv('CACHE_KEY_PREFIX', 'oover_api'),
+        }
+    }
+else:
+    # Local memory cache (development only)
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'oover-cache',
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000,
+            },
+        }
+    }
+
+# Cache TTL (Time To Live) settings
+CACHE_TTL = {
+    'ONE_TIME': int(os.getenv('CACHE_TTL_ONE_TIME', 2592000)),  # 30 days
+    'PERIODIC': int(os.getenv('CACHE_TTL_PERIODIC', 86400)),     # 1 day
+    'SHORT': int(os.getenv('CACHE_TTL_SHORT', 3600)),           # 1 hour
+}
+
+
+# ==============================================================================
+# API INTEGRATIONS CONFIGURATION
+# ==============================================================================
+
+# Football-Data.org API (Primary Provider)
+FOOTBALL_DATA_CONFIG = {
+    'API_KEY': os.getenv('FOOTBALL_DATA_API_KEY', ''),
+    'BASE_URL': os.getenv('FOOTBALL_DATA_BASE_URL', 'https://api.football-data.org/v4'),
+    'RATE_LIMIT': {
+        'PER_MINUTE': int(os.getenv('FOOTBALL_DATA_RATE_LIMIT_PER_MINUTE', 10)),
+        'PER_DAY': int(os.getenv('FOOTBALL_DATA_RATE_LIMIT_PER_DAY', 14400)),
+    },
+    'TIMEOUT': int(os.getenv('API_REQUEST_TIMEOUT', 30)),
+    'MAX_RETRIES': int(os.getenv('API_MAX_RETRIES', 3)),
+    'RETRY_BACKOFF_FACTOR': int(os.getenv('API_RETRY_BACKOFF_FACTOR', 2)),
+}
+
+# API-Football API (Fallback Provider)
+API_FOOTBALL_CONFIG = {
+    'API_KEY': os.getenv('API_FOOTBALL_KEY', ''),
+    'BASE_URL': os.getenv('API_FOOTBALL_BASE_URL', 'https://api-football-v1.p.rapidapi.com/v3'),
+    'HOST': os.getenv('API_FOOTBALL_HOST', 'api-football-v1.p.rapidapi.com'),
+    'RATE_LIMIT': {
+        'PER_MINUTE': int(os.getenv('API_FOOTBALL_RATE_LIMIT_PER_MINUTE', 100)),
+        'PER_DAY': int(os.getenv('API_FOOTBALL_RATE_LIMIT_PER_DAY', 100)),
+    },
+    'TIMEOUT': int(os.getenv('API_REQUEST_TIMEOUT', 30)),
+    'MAX_RETRIES': int(os.getenv('API_MAX_RETRIES', 3)),
+    'RETRY_BACKOFF_FACTOR': int(os.getenv('API_RETRY_BACKOFF_FACTOR', 2)),
+}
+
+# API Provider Registry
+API_PROVIDERS = {
+    'FOOTBALL_DATA': {
+        'NAME': 'Football-Data.org',
+        'CONFIG': FOOTBALL_DATA_CONFIG,
+        'PRIORITY': 1,  # Higher priority = used first
+        'ENABLED': bool(FOOTBALL_DATA_CONFIG['API_KEY']),
+    },
+    'API_FOOTBALL': {
+        'NAME': 'API-Football',
+        'CONFIG': API_FOOTBALL_CONFIG,
+        'PRIORITY': 2,  # Fallback provider
+        'ENABLED': bool(API_FOOTBALL_CONFIG['API_KEY']),
+    },
+}
+
+# Default cache settings for API data
+API_CACHE_SETTINGS = {
+    'ENABLED': True,
+    'KEY_PREFIX': os.getenv('CACHE_KEY_PREFIX', 'oover_api'),
+    'DEFAULT_TTL': CACHE_TTL['ONE_TIME'],
 }
 
 
@@ -316,6 +441,11 @@ LOGGING = {
             'filename': BASE_DIR / 'logs' / 'django.log',
             'formatter': 'verbose',
         },
+        'api_file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'logs' / 'api_integrations.log',
+            'formatter': 'verbose',
+        },
     },
     'root': {
         'handlers': ['console'],
@@ -330,6 +460,11 @@ LOGGING = {
         'django.db.backends': {
             'handlers': ['console'],
             'level': 'WARNING',  # Change to DEBUG to see SQL queries
+            'propagate': False,
+        },
+        'api_integrations': {
+            'handlers': ['console', 'api_file'],
+            'level': 'INFO',
             'propagate': False,
         },
     },
@@ -355,26 +490,3 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = 'DENY'
-
-
-# ==============================================================================
-# CUSTOM SETTINGS
-# ==============================================================================
-
-# API rate limiting (if needed)
-REST_FRAMEWORK['DEFAULT_THROTTLE_CLASSES'] = [
-    'rest_framework.throttling.AnonRateThrottle',
-    'rest_framework.throttling.UserRateThrottle',
-]
-REST_FRAMEWORK['DEFAULT_THROTTLE_RATES'] = {
-    'anon': '100/hour',
-    'user': '1000/hour',
-}
-
-# Cache configuration (optional)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'oover-cache',
-    }
-}
