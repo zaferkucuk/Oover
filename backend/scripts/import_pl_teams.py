@@ -2,7 +2,7 @@
 Import Premier League teams from Football-Data.org API to Supabase.
 
 This script fetches Premier League teams from the Football-Data API
-and imports them into the teams table.
+and imports/updates them into the teams table using UPSERT strategy.
 
 Usage:
     python scripts/import_pl_teams.py
@@ -115,9 +115,9 @@ def fetch_pl_teams():
         return None
 
 
-def import_team(team_data: dict, country_id: str, league_id: str) -> bool:
+def upsert_team(team_data: dict, country_id: str, league_id: str) -> str:
     """
-    Import a single team into the database.
+    Insert or update a team in the database (UPSERT).
     
     Args:
         team_data: Team data from API
@@ -125,47 +125,88 @@ def import_team(team_data: dict, country_id: str, league_id: str) -> bool:
         league_id: League UUID
     
     Returns:
-        True if successful, False otherwise
+        'inserted', 'updated', or 'failed'
     """
     try:
         # Check if team already exists by name
-        existing = supabase.table("teams").select("id").eq("name", team_data["name"]).execute()
-        
-        if existing.data and len(existing.data) > 0:
-            print(f"⏭️  Team already exists: {team_data['name']}")
-            return True
+        existing = supabase.table("teams").select("*").eq("name", team_data["name"]).execute()
         
         # Prepare team data
-        team = {
-            "id": str(uuid.uuid4()),
+        team_update = {
             "name": team_data["name"],
             "short_name": team_data.get("shortName", team_data["name"]),
             "logo_url": team_data.get("crest"),
             "country_id": country_id,
             "league_id": league_id,
-            "api_football_id": None,  # Football-Data doesn't match API-Football IDs
-            "created_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        # Insert into database
-        result = supabase.table("teams").insert(team).execute()
+        if existing.data and len(existing.data) > 0:
+            # Team exists - check if update needed
+            existing_team = existing.data[0]
+            team_id = existing_team["id"]
+            
+            # Check if any field changed
+            needs_update = False
+            changes = []
+            
+            if existing_team.get("short_name") != team_update["short_name"]:
+                needs_update = True
+                changes.append(f"short_name: {existing_team.get('short_name')} → {team_update['short_name']}")
+            
+            if existing_team.get("logo_url") != team_update["logo_url"]:
+                needs_update = True
+                changes.append(f"logo_url: {existing_team.get('logo_url')} → {team_update['logo_url']}")
+            
+            if existing_team.get("country_id") != team_update["country_id"]:
+                needs_update = True
+                changes.append("country_id updated")
+            
+            if existing_team.get("league_id") != team_update["league_id"]:
+                needs_update = True
+                changes.append("league_id updated")
+            
+            if needs_update:
+                # Update existing team
+                result = supabase.table("teams").update(team_update).eq("id", team_id).execute()
+                
+                if result.data:
+                    print(f"🔄 Updated: {team_data['name']}")
+                    for change in changes:
+                        print(f"   - {change}")
+                    return "updated"
+                else:
+                    print(f"❌ Failed to update: {team_data['name']}")
+                    return "failed"
+            else:
+                print(f"⏭️  No changes: {team_data['name']}")
+                return "unchanged"
         
-        if result.data:
-            print(f"✅ Imported: {team_data['name']}")
-            return True
         else:
-            print(f"❌ Failed to import: {team_data['name']}")
-            return False
+            # Team doesn't exist - insert new
+            team_insert = {
+                "id": str(uuid.uuid4()),
+                "created_at": datetime.utcnow().isoformat(),
+                **team_update
+            }
+            
+            result = supabase.table("teams").insert(team_insert).execute()
+            
+            if result.data:
+                print(f"✅ Inserted: {team_data['name']}")
+                return "inserted"
+            else:
+                print(f"❌ Failed to insert: {team_data['name']}")
+                return "failed"
             
     except Exception as e:
-        print(f"❌ Error importing team {team_data.get('name', 'Unknown')}: {e}")
-        return False
+        print(f"❌ Error upserting team {team_data.get('name', 'Unknown')}: {e}")
+        return "failed"
 
 
 def main():
     """Main function to orchestrate the import process."""
-    print("\n🚀 Starting Premier League Teams Import")
+    print("\n🚀 Starting Premier League Teams Import/Update")
     print("=" * 50)
     
     # Step 1: Get country ID (England = GBR)
@@ -196,40 +237,44 @@ def main():
         print("❌ Failed to fetch teams from API")
         return
     
-    # Step 4: Import each team
-    print(f"\n📥 Step 4: Importing {len(teams)} teams...")
+    # Step 4: Upsert each team
+    print(f"\n📥 Step 4: Processing {len(teams)} teams...")
     print("-" * 50)
     
-    success_count = 0
-    skip_count = 0
-    fail_count = 0
+    inserted_count = 0
+    updated_count = 0
+    unchanged_count = 0
+    failed_count = 0
     
     for team_data in teams:
-        result = import_team(team_data, country_id, league_id)
-        if result:
-            if "already exists" in str(result):
-                skip_count += 1
-            else:
-                success_count += 1
+        result = upsert_team(team_data, country_id, league_id)
+        
+        if result == "inserted":
+            inserted_count += 1
+        elif result == "updated":
+            updated_count += 1
+        elif result == "unchanged":
+            unchanged_count += 1
         else:
-            fail_count += 1
+            failed_count += 1
     
     # Summary
     print("\n" + "=" * 50)
-    print("📊 IMPORT SUMMARY")
+    print("📊 IMPORT/UPDATE SUMMARY")
     print("=" * 50)
-    print(f"✅ Successfully imported: {success_count}")
-    print(f"⏭️  Skipped (already exists): {skip_count}")
-    print(f"❌ Failed: {fail_count}")
+    print(f"✨ Newly inserted: {inserted_count}")
+    print(f"🔄 Updated: {updated_count}")
+    print(f"⏭️  Unchanged: {unchanged_count}")
+    print(f"❌ Failed: {failed_count}")
     print(f"📊 Total processed: {len(teams)}")
     print("=" * 50)
     
-    if success_count > 0:
-        print("\n✨ Import completed successfully!")
-    elif skip_count == len(teams):
-        print("\n✨ All teams already exist in database!")
+    if inserted_count > 0 or updated_count > 0:
+        print("\n✨ Import/Update completed successfully!")
+    elif unchanged_count == len(teams):
+        print("\n✅ All teams are up-to-date!")
     else:
-        print("\n⚠️ Import completed with some errors")
+        print("\n⚠️ Import/Update completed with some errors")
 
 
 if __name__ == "__main__":
