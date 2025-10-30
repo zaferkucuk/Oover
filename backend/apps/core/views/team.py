@@ -132,6 +132,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     - active: GET /api/v1/teams/active/
     - top_by_market_value: GET /api/v1/teams/top-by-market-value/?limit=10
     - fetch: POST /api/v1/teams/fetch/ (fetch teams from external API)
+    - sync: POST /api/v1/teams/sync/ (sync existing teams with external API)
     
     Filtering:
     - ?search=manchester (search by name or code)
@@ -612,6 +613,231 @@ class TeamViewSet(viewsets.ModelViewSet):
                 {
                     'success': False,
                     'error': f'Fetch operation failed: {str(e)}'
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @extend_schema(
+        summary="Sync existing teams with external API",
+        description="""
+        Synchronize existing teams in the database with external API data.
+        
+        This endpoint updates existing teams with fresh data from external sources.
+        Use this for periodic updates to keep team information current.
+        
+        **Update Options:**
+        - `fields`: Specify which fields to update (default: all non-critical fields)
+          - Available fields: name, logo, founded, website, market_value, stadium_capacity
+          - Critical fields (id, code, country) are never updated
+        
+        - `force`: Force update even if data hasn't changed (default: false)
+          - When false: Only updates if source data is different
+          - When true: Updates all records regardless of changes
+        
+        - `deactivate_missing`: Deactivate teams not found in external API (default: false)
+          - Useful for handling teams that no longer exist or moved leagues
+          - Sets is_active=false for teams not in API response
+        
+        **Rate Limiting:**
+        - This operation fetches data from external APIs and is subject to rate limits
+        - Football-Data.org: 10 requests per minute
+        - API-Football: 100 requests per day
+        
+        **Note:** This operation only updates existing teams. To add new teams, use the fetch endpoint.
+        """,
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'fields': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'string',
+                            'enum': ['name', 'logo', 'founded', 'website', 'market_value', 'stadium_capacity']
+                        },
+                        'description': 'Specific fields to update (optional, default: all)',
+                        'example': ['market_value', 'logo']
+                    },
+                    'force': {
+                        'type': 'boolean',
+                        'description': 'Force update even if data unchanged (default: false)',
+                        'default': False
+                    },
+                    'deactivate_missing': {
+                        'type': 'boolean',
+                        'description': 'Deactivate teams not found in API (default: false)',
+                        'default': False
+                    }
+                }
+            }
+        },
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'message': {'type': 'string'},
+                    'stats': {
+                        'type': 'object',
+                        'properties': {
+                            'updated': {'type': 'integer'},
+                            'failed': {'type': 'integer'},
+                            'deactivated': {'type': 'integer'}
+                        }
+                    },
+                    'fields': {
+                        'type': 'array',
+                        'items': {'type': 'string'}
+                    },
+                    'options': {
+                        'type': 'object',
+                        'properties': {
+                            'force': {'type': 'boolean'},
+                            'deactivate_missing': {'type': 'boolean'}
+                        }
+                    }
+                },
+                'example': {
+                    'success': True,
+                    'message': 'Successfully synced teams',
+                    'stats': {
+                        'updated': 45,
+                        'failed': 2,
+                        'deactivated': 3
+                    },
+                    'fields': ['market_value', 'logo', 'stadium_capacity'],
+                    'options': {
+                        'force': False,
+                        'deactivate_missing': True
+                    }
+                }
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'error': {'type': 'string'}
+                },
+                'example': {
+                    'success': False,
+                    'error': 'Invalid field specified: invalid_field'
+                }
+            },
+            500: {
+                'type': 'object',
+                'properties': {
+                    'success': {'type': 'boolean'},
+                    'error': {'type': 'string'}
+                },
+                'example': {
+                    'success': False,
+                    'error': 'Sync operation failed: Connection timeout'
+                }
+            }
+        },
+        tags=['Teams - External API']
+    )
+    @action(detail=False, methods=['post'])
+    def sync(self, request):
+        """
+        Sync existing teams with external API data
+        
+        URL: POST /api/v1/teams/sync/
+        
+        Request Body:
+            {
+                "fields": ["market_value", "logo"],  // Optional, specific fields to update
+                "force": false,                      // Optional, force update all records
+                "deactivate_missing": false          // Optional, deactivate teams not in API
+            }
+        
+        Returns:
+            200 OK: Operation statistics
+            400 Bad Request: Invalid parameters
+            500 Internal Server Error: Sync operation failed
+        """
+        try:
+            # Extract parameters
+            fields = request.data.get('fields')
+            force = request.data.get('force', False)
+            deactivate_missing = request.data.get('deactivate_missing', False)
+            
+            # Validate fields if provided
+            valid_fields = ['name', 'logo', 'founded', 'website', 'market_value', 'stadium_capacity']
+            
+            if fields:
+                invalid_fields = [f for f in fields if f not in valid_fields]
+                if invalid_fields:
+                    return Response(
+                        {
+                            'success': False,
+                            'error': f'Invalid field(s) specified: {", ".join(invalid_fields)}. Valid fields: {", ".join(valid_fields)}'
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            # Convert boolean strings if needed
+            if isinstance(force, str):
+                force = force.lower() == 'true'
+            if isinstance(deactivate_missing, str):
+                deactivate_missing = deactivate_missing.lower() == 'true'
+            
+            # Initialize teams service with default provider (football-data)
+            teams_service = TeamsService(provider='football-data')
+            
+            # Execute sync operation
+            logger.info(
+                f"Starting sync_teams operation via API - "
+                f"Fields: {fields or 'all'}, Force: {force}, Deactivate Missing: {deactivate_missing}"
+            )
+            
+            stats = teams_service.sync_teams(
+                fields=fields,
+                force=force,
+                deactivate_missing=deactivate_missing
+            )
+            
+            # Build response message
+            message_parts = [f"Successfully synced teams"]
+            if fields:
+                message_parts.append(f"(fields: {', '.join(fields)})")
+            if force:
+                message_parts.append("(forced)")
+            if deactivate_missing:
+                message_parts.append("(deactivated missing)")
+            
+            message = " ".join(message_parts)
+            
+            # Return success response
+            return Response(
+                {
+                    'success': True,
+                    'message': message,
+                    'stats': stats,
+                    'fields': fields or valid_fields,
+                    'options': {
+                        'force': force,
+                        'deactivate_missing': deactivate_missing
+                    }
+                },
+                status=status.HTTP_200_OK
+            )
+            
+        except ValueError as e:
+            logger.error(f"Validation error in sync_teams API: {str(e)}")
+            return Response(
+                {
+                    'success': False,
+                    'error': str(e)
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logger.error(f"Error in sync_teams API: {str(e)}", exc_info=True)
+            return Response(
+                {
+                    'success': False,
+                    'error': f'Sync operation failed: {str(e)}'
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
