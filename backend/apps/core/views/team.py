@@ -3,7 +3,7 @@ Team ViewSet for Core App
 
 This module contains Django REST Framework ViewSets for the Team model.
 Provides CRUD operations and filtering/searching capabilities.
-Also includes API endpoints for external data operations (fetch, sync).
+Also includes API endpoints for external data operations (fetch, sync, operations).
 
 Author: Oover Development Team
 Date: October 2025
@@ -17,6 +17,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
 from drf_spectacular.types import OpenApiTypes
+from datetime import datetime, timedelta
 import logging
 
 from apps.core.models import Team
@@ -25,7 +26,10 @@ from apps.core.serializers import (
     TeamDetailSerializer,
     TeamCreateSerializer,
     TeamUpdateSerializer,
+    APISyncListSerializer,
+    APISyncDetailSerializer,
 )
+from api_integrations.models import APISync
 from api_integrations.services.teams_service import TeamsService
 
 logger = logging.getLogger(__name__)
@@ -43,6 +47,20 @@ class TeamPagination(PageNumberPagination):
     page_size = 30
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+
+class OperationsPagination(PageNumberPagination):
+    """
+    Custom pagination for operations list views
+    
+    Settings:
+    - page_size: 20 operations per page (default)
+    - page_size_query_param: 'page_size' (client can override)
+    - max_page_size: 50 (maximum allowed)
+    """
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 50
 
 
 @extend_schema_view(
@@ -133,6 +151,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     - top_by_market_value: GET /api/v1/teams/top-by-market-value/?limit=10
     - fetch: POST /api/v1/teams/fetch/ (fetch teams from external API)
     - sync: POST /api/v1/teams/sync/ (sync existing teams with external API)
+    - operations: GET /api/v1/teams/operations/ (list team operation history)
     
     Filtering:
     - ?search=manchester (search by name or code)
@@ -169,6 +188,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         - retrieve → TeamDetailSerializer (comprehensive)
         - create → TeamCreateSerializer (validation)
         - update/partial_update → TeamUpdateSerializer (validation)
+        - operations → APISyncListSerializer (operation history)
         
         Returns:
             Serializer class for current action
@@ -181,6 +201,8 @@ class TeamViewSet(viewsets.ModelViewSet):
             return TeamCreateSerializer
         elif self.action in ['update', 'partial_update']:
             return TeamUpdateSerializer
+        elif self.action == 'operations':
+            return APISyncListSerializer
         return TeamDetailSerializer
     
     def get_queryset(self):
@@ -838,6 +860,215 @@ class TeamViewSet(viewsets.ModelViewSet):
                 {
                     'success': False,
                     'error': f'Sync operation failed: {str(e)}'
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    @extend_schema(
+        summary="List team operations history",
+        description="""
+        Retrieve a paginated list of team API sync operations.
+        
+        This endpoint provides visibility into fetch and sync operations history,
+        including their status, statistics, and timing information.
+        
+        **Use Cases:**
+        - Monitor recent sync operations
+        - Track success/failure rates
+        - Debug sync issues
+        - Audit API usage
+        
+        **Filters:**
+        - `status`: Filter by operation status (pending, in_progress, completed, failed)
+        - `provider`: Filter by API provider (football_data_org, api_football)
+        - `days`: Show operations from last N days (default: 7, max: 90)
+        
+        **Response:**
+        Returns paginated list of operations with:
+        - Operation ID and timestamps
+        - Provider and resource type
+        - Status and duration
+        - Statistics (processed, created, updated, failed)
+        """,
+        parameters=[
+            OpenApiParameter(
+                name='status',
+                description='Filter by operation status',
+                required=False,
+                type=str,
+                enum=['pending', 'in_progress', 'completed', 'failed']
+            ),
+            OpenApiParameter(
+                name='provider',
+                description='Filter by API provider',
+                required=False,
+                type=str,
+                enum=['football_data_org', 'api_football']
+            ),
+            OpenApiParameter(
+                name='days',
+                description='Show operations from last N days (default: 7, max: 90)',
+                required=False,
+                type=int
+            ),
+            OpenApiParameter(
+                name='page',
+                description='Page number for pagination',
+                required=False,
+                type=int
+            ),
+            OpenApiParameter(
+                name='page_size',
+                description='Number of items per page (max: 50)',
+                required=False,
+                type=int
+            ),
+        ],
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'count': {'type': 'integer'},
+                    'next': {'type': 'string', 'nullable': True},
+                    'previous': {'type': 'string', 'nullable': True},
+                    'results': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'id': {'type': 'string'},
+                                'provider': {'type': 'string'},
+                                'resource_type': {'type': 'string'},
+                                'status': {'type': 'string'},
+                                'started_at': {'type': 'string', 'format': 'date-time'},
+                                'completed_at': {'type': 'string', 'format': 'date-time', 'nullable': True},
+                                'duration': {'type': 'number', 'nullable': True},
+                                'records_processed': {'type': 'integer'},
+                                'records_created': {'type': 'integer'},
+                                'records_updated': {'type': 'integer'},
+                                'records_failed': {'type': 'integer'}
+                            }
+                        }
+                    }
+                },
+                'example': {
+                    'count': 45,
+                    'next': 'http://api.example.com/api/v1/teams/operations/?page=2',
+                    'previous': None,
+                    'results': [
+                        {
+                            'id': '550e8400-e29b-41d4-a716-446655440000',
+                            'provider': 'football_data_org',
+                            'resource_type': 'teams',
+                            'status': 'completed',
+                            'started_at': '2025-10-30T18:00:00Z',
+                            'completed_at': '2025-10-30T18:05:30Z',
+                            'duration': 330.5,
+                            'records_processed': 100,
+                            'records_created': 95,
+                            'records_updated': 5,
+                            'records_failed': 0
+                        }
+                    ]
+                }
+            },
+            400: {
+                'type': 'object',
+                'properties': {
+                    'error': {'type': 'string'}
+                },
+                'example': {
+                    'error': 'Invalid status value. Must be one of: pending, in_progress, completed, failed'
+                }
+            }
+        },
+        tags=['Teams - External API']
+    )
+    @action(detail=False, methods=['get'], pagination_class=OperationsPagination)
+    def operations(self, request):
+        """
+        List team API sync operations history
+        
+        URL: GET /api/v1/teams/operations/?status=completed&days=30
+        
+        Query Parameters:
+        - status: Filter by operation status (pending, in_progress, completed, failed)
+        - provider: Filter by API provider (football_data_org, api_football)
+        - days: Show operations from last N days (default: 7, max: 90)
+        - page: Page number for pagination
+        - page_size: Items per page (max: 50)
+        
+        Returns:
+            200 OK: Paginated list of operations
+            400 Bad Request: Invalid parameters
+        """
+        try:
+            # Get filter parameters
+            status_filter = request.query_params.get('status')
+            provider_filter = request.query_params.get('provider')
+            days_filter = request.query_params.get('days', '7')
+            
+            # Validate status
+            valid_statuses = ['pending', 'in_progress', 'completed', 'failed']
+            if status_filter and status_filter not in valid_statuses:
+                return Response(
+                    {
+                        'error': f'Invalid status value. Must be one of: {", ".join(valid_statuses)}'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Validate provider
+            valid_providers = ['football_data_org', 'api_football']
+            if provider_filter and provider_filter not in valid_providers:
+                return Response(
+                    {
+                        'error': f'Invalid provider value. Must be one of: {", ".join(valid_providers)}'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Validate and limit days
+            try:
+                days = int(days_filter)
+                days = min(max(days, 1), 90)  # Between 1 and 90 days
+            except ValueError:
+                days = 7
+            
+            # Build query
+            queryset = APISync.objects.filter(
+                resource_type=APISync.ResourceType.TEAMS
+            )
+            
+            # Apply status filter
+            if status_filter:
+                queryset = queryset.filter(status=status_filter)
+            
+            # Apply provider filter
+            if provider_filter:
+                queryset = queryset.filter(provider=provider_filter)
+            
+            # Apply date range filter
+            since_date = datetime.now() - timedelta(days=days)
+            queryset = queryset.filter(started_at__gte=since_date)
+            
+            # Order by most recent first
+            queryset = queryset.order_by('-started_at')
+            
+            # Apply pagination
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = APISyncListSerializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            
+            serializer = APISyncListSerializer(queryset, many=True)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"Error in operations API: {str(e)}", exc_info=True)
+            return Response(
+                {
+                    'error': f'Failed to retrieve operations: {str(e)}'
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
