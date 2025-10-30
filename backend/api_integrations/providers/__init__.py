@@ -8,12 +8,12 @@ Implementations of specific API providers:
 
 This module exports:
 - VALID_PROVIDERS: List of valid provider names for validation
-- FootballDataProvider: Football-Data.org API provider
-- ApiFootballProvider: API-Football provider
+- FootballDataClient: Football-Data.org API client
+- APIFootballClient: API-Football client
 """
 
-from .football_data_org.provider import FootballDataProvider
-from .api_football.provider import ApiFootballProvider
+from .football_data_org import FootballDataClient
+from .api_football import APIFootballClient
 
 # Valid provider names for validation and selection
 # Used by management commands and API endpoints
@@ -22,9 +22,9 @@ VALID_PROVIDERS = [
     'api-football',   # API-Football via RapidAPI (fallback)
 ]
 
-# Export all providers and constants
+# Export all clients and constants
 __all__ = [
     'VALID_PROVIDERS',
-    'FootballDataProvider',
-    'ApiFootballProvider',
+    'FootballDataClient',
+    'APIFootballClient',
 ]
