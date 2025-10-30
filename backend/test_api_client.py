@@ -10,6 +10,7 @@ Usage:
 
 import sys
 import os
+import json
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -40,9 +41,28 @@ def test_client():
     print(f"\n2. Testing get_teams_by_competition('PL')...")
     
     try:
+        # First, let's see what the raw response looks like
+        print(f"\n   🔍 Making request to: {client.base_url}/competitions/PL")
+        
+        # Get raw response first
+        raw_response = client.get('competitions/PL')
+        
+        print(f"\n   📦 Raw response keys: {list(raw_response.keys())}")
+        print(f"   📊 Response structure:")
+        for key, value in raw_response.items():
+            if key == 'teams':
+                print(f"      - {key}: list with {len(value)} items")
+            elif isinstance(value, dict):
+                print(f"      - {key}: dict with keys {list(value.keys())}")
+            elif isinstance(value, list):
+                print(f"      - {key}: list with {len(value)} items")
+            else:
+                print(f"      - {key}: {type(value).__name__} = {value}")
+        
+        # Now try the method
         teams = client.get_teams_by_competition('PL')
         
-        print(f"   ✅ Success! Fetched {len(teams)} teams")
+        print(f"\n   ✅ get_teams_by_competition returned: {len(teams)} teams")
         
         if teams:
             print(f"\n3. Sample teams:")
@@ -52,8 +72,13 @@ def test_client():
                 print(f"      Founded: {team.get('founded')}")
                 print(f"      Crest: {team.get('crest', 'N/A')[:50]}...")
                 print()
+        else:
+            print(f"\n   ⚠️  No teams returned!")
+            print(f"\n   📝 Full raw response (first 500 chars):")
+            response_str = json.dumps(raw_response, indent=2)
+            print(f"   {response_str[:500]}...")
         
-        return True
+        return len(teams) > 0
         
     except Exception as e:
         print(f"   ❌ Error: {e}")
@@ -69,7 +94,7 @@ if __name__ == '__main__':
     if success:
         print("✅ TEST PASSED - API client is working correctly!")
     else:
-        print("❌ TEST FAILED - Check error details above")
+        print("⚠️  TEST COMPLETED - Check details above")
     print("=" * 60)
     
     sys.exit(0 if success else 1)
