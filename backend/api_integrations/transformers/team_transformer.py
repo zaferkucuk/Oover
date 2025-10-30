@@ -10,6 +10,7 @@ Supports multiple API providers with automatic format detection.
 from typing import Any, Dict, Optional
 import logging
 import uuid
+from django.utils import timezone
 
 from .base import BaseTransformer
 from apps.core.models import Country
@@ -105,6 +106,9 @@ class TeamTransformer(BaseTransformer):
             founded = self._extract_founded(data, provider)
             market_value = None  # Future: extract from Transfermarkt
             
+            # Get current timestamp for both created_at and updated_at
+            now = timezone.now()
+            
             # Build transformed data
             transformed = {
                 'id': str(uuid.uuid4()),  # Generate new UUID for database
@@ -117,6 +121,8 @@ class TeamTransformer(BaseTransformer):
                 'founded': founded,
                 'market_value': market_value,
                 'is_active': True,
+                'created_at': now,
+                'updated_at': now,
             }
             
             self.logger.debug(
