@@ -19,9 +19,14 @@ Example:
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 import json
 import logging
+
+try:
+    from requests import Response
+except ImportError:
+    Response = Any  # Fallback if requests not installed
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +52,7 @@ class BaseResponseParser(ABC):
     # =========================================================================
     
     @abstractmethod
-    def parse(self, response: Any) -> Dict[str, Any]:
+    def parse(self, response: Response) -> Dict[str, Any]:
         """
         Parse successful API response.
         
@@ -65,7 +70,7 @@ class BaseResponseParser(ABC):
         pass
     
     @abstractmethod
-    def parse_error(self, response: Any) -> str:
+    def parse_error(self, response: Response) -> str:
         """
         Parse error response and extract error message.
         
@@ -83,7 +88,7 @@ class BaseResponseParser(ABC):
         pass
     
     @abstractmethod
-    def extract_pagination(self, response: Any) -> Optional[Dict[str, Any]]:
+    def extract_pagination(self, response: Response) -> Optional[Dict[str, Any]]:
         """
         Extract pagination metadata from response.
         
@@ -139,10 +144,10 @@ class BaseResponseParser(ABC):
             return json.loads(text)
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse JSON: {e}")
-            logger.debug(f"Raw response text: {text[:500]}...")  # First 500 chars
-            raise ValueError(f"Invalid JSON response: {e}")
+            logger.debug(f"Raw response text (first 500 chars): {text[:500]}...")
+            raise ValueError(f"Invalid JSON response: {str(e)}")
     
-    def is_error_response(self, response: Any) -> bool:
+    def is_error_response(self, response: Response) -> bool:
         """
         Check if response is an error based on HTTP status code.
         
@@ -168,6 +173,26 @@ class BaseResponseParser(ABC):
                 f"{response.reason if hasattr(response, 'reason') else ''}"
             )
         return is_error
+    
+    def is_success_response(self, response: Response) -> bool:
+        """
+        Check if response is successful (2xx status code).
+        
+        Args:
+            response: HTTP response object
+            
+        Returns:
+            True if response is successful (200 <= status < 300)
+            
+        Example:
+            if self.is_success_response(response):
+                data = self.parse(response)
+        """
+        if not hasattr(response, 'status_code'):
+            logger.warning("Response object has no status_code attribute")
+            return False
+        
+        return 200 <= response.status_code < 300
     
     def extract_data(
         self, 
@@ -203,6 +228,74 @@ class BaseResponseParser(ABC):
         
         return response_dict[key]
     
+    def extract_list(
+        self,
+        response_dict: Dict[str, Any],
+        key: str,
+        default: Optional[List] = None
+    ) -> List[Any]:
+        """
+        Extract list from response, with fallback to default.
+        
+        Args:
+            response_dict: Parsed response dictionary
+            key: Key to extract (e.g., 'teams', 'results')
+            default: Default value if key not found (default: [])
+            
+        Returns:
+            Extracted list, or default if not found
+            
+        Example:
+            teams = self.extract_list(response_dict, 'teams')
+            # Returns: [...] or []
+        """
+        if default is None:
+            default = []
+        
+        data = self.extract_data(response_dict, key)
+        if data is None:
+            return default
+        
+        if not isinstance(data, list):
+            logger.warning(f"Expected list for key '{key}', got {type(data)}")
+            return default
+        
+        return data
+    
+    def extract_item(
+        self,
+        response_dict: Dict[str, Any],
+        key: str,
+        default: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """
+        Extract single item (dict) from response, with fallback to default.
+        
+        Args:
+            response_dict: Parsed response dictionary
+            key: Key to extract (e.g., 'team', 'result')
+            default: Default value if key not found (default: {})
+            
+        Returns:
+            Extracted dict, or default if not found
+            
+        Example:
+            team = self.extract_item(response_dict, 'team')
+            # Returns: {...} or {}
+        """
+        if default is None:
+            default = {}
+        
+        data = self.extract_data(response_dict, key)
+        if data is None:
+            return default
+        
+        if not isinstance(data, dict):
+            logger.warning(f"Expected dict for key '{key}', got {type(data)}")
+            return default
+        
+        return data
+    
     def has_next_page(self, pagination: Optional[Dict[str, Any]]) -> bool:
         """
         Check if there's a next page.
@@ -222,7 +315,7 @@ class BaseResponseParser(ABC):
             return False
         return pagination.get('has_next', False)
     
-    def get_next_page_token(self, pagination: Optional[Dict[str, Any]]) -> Optional[str]:
+    def get_next_page_token(self, pagination: Optional[Dict[str, Any]]) -> Optional[Union[str, int]]:
         """
         Get next page token/number.
         
@@ -260,6 +353,43 @@ class BaseResponseParser(ABC):
         if pagination is None:
             return None
         return pagination.get('total_count')
+    
+    def get_current_page(self, pagination: Optional[Dict[str, Any]]) -> Optional[int]:
+        """
+        Get current page number.
+        
+        Args:
+            pagination: Pagination metadata dict
+            
+        Returns:
+            Current page number, or None if not available
+            
+        Example:
+            pagination = self.extract_pagination(response)
+            page = self.get_current_page(pagination)
+            logger.info(f"Processing page {page}")
+        """
+        if pagination is None:
+            return None
+        return pagination.get('current_page')
+    
+    def validate_response(self, response: Response) -> None:
+        """
+        Validate response and raise error if invalid.
+        
+        Args:
+            response: HTTP response object
+            
+        Raises:
+            ValueError: If response is invalid
+            
+        Example:
+            self.validate_response(response)
+            data = self.parse(response)
+        """
+        if not self.is_success_response(response):
+            error_msg = self.parse_error(response)
+            raise ValueError(f"API request failed: {error_msg}")
 
 
 class JSONResponseParser(BaseResponseParser):
@@ -287,14 +417,14 @@ class JSONResponseParser(BaseResponseParser):
         self.data_key = data_key
         self.error_key = error_key
     
-    def parse(self, response: Any) -> Dict[str, Any]:
+    def parse(self, response: Response) -> Dict[str, Any]:
         """Parse JSON response."""
         data = self.parse_json(response.text)
         if self.data_key:
-            return self.extract_data(data, self.data_key)
+            return self.extract_data(data, self.data_key) or {}
         return data
     
-    def parse_error(self, response: Any) -> str:
+    def parse_error(self, response: Response) -> str:
         """Parse error from JSON response."""
         try:
             data = self.parse_json(response.text)
@@ -302,23 +432,30 @@ class JSONResponseParser(BaseResponseParser):
             
             # Try common error message keys
             if isinstance(error, dict):
-                for key in ['message', 'msg', 'detail', 'description']:
+                for key in ['message', 'msg', 'detail', 'description', 'error_description']:
                     if key in error:
-                        return error[key]
+                        return str(error[key])
             elif isinstance(error, str):
                 return error
             
-            return f"HTTP {response.status_code}: {response.reason}"
+            # Fallback to HTTP status
+            status_text = f"HTTP {response.status_code}"
+            if hasattr(response, 'reason'):
+                status_text += f": {response.reason}"
+            return status_text
         except Exception as e:
             logger.error(f"Failed to parse error response: {e}")
-            return f"HTTP {response.status_code}: {response.reason}"
+            status_text = f"HTTP {response.status_code}"
+            if hasattr(response, 'reason'):
+                status_text += f": {response.reason}"
+            return status_text
     
-    def extract_pagination(self, response: Any) -> Optional[Dict[str, Any]]:
+    def extract_pagination(self, response: Response) -> Optional[Dict[str, Any]]:
         """
         Extract pagination from JSON response.
         
         Looks for common pagination keys:
-        - pagination, paging, page_info
+        - pagination, paging, page_info, meta
         """
         try:
             data = self.parse_json(response.text)
