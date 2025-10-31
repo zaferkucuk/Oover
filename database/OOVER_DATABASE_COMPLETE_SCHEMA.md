@@ -1,7 +1,7 @@
 # 🗄️ OOVER - COMPLETE DATABASE SCHEMA DOCUMENTATION
 
 **Project:** Oover - Sports Prediction Application  
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** October 31, 2025  
 **Database:** Supabase (PostgreSQL)  
 **Tech Stack:** Django REST Framework (Backend) + Next.js (Frontend)
@@ -13,13 +13,14 @@
 1. [Overview](#overview)
 2. [Database Statistics](#database-statistics)
 3. [Core Tables](#core-tables)
-4. [User Management Tables](#user-management-tables)
-5. [Match & Prediction Tables](#match--prediction-tables)
-6. [System Tables](#system-tables)
-7. [Entity Relationship Diagram](#entity-relationship-diagram)
-8. [Data Types & Enums](#data-types--enums)
-9. [Indexes & Constraints](#indexes--constraints)
-10. [Migration History](#migration-history)
+4. [League Characteristics System](#league-characteristics-system)
+5. [User Management Tables](#user-management-tables)
+6. [Match & Prediction Tables](#match--prediction-tables)
+7. [System Tables](#system-tables)
+8. [Entity Relationship Diagram](#entity-relationship-diagram)
+9. [Data Types & Enums](#data-types--enums)
+10. [Indexes & Constraints](#indexes--constraints)
+11. [Migration History](#migration-history)
 
 ---
 
@@ -28,7 +29,7 @@
 The Oover database is designed to support a comprehensive sports prediction application with focus on football/soccer analytics. The schema follows a normalized structure with proper foreign key relationships and supports:
 
 - Multiple sports (currently focused on football)
-- Multiple leagues across different countries
+- Multiple leagues across different countries with characteristic profiling
 - Team management with seasonal tracking
 - Match data with detailed statistics
 - User predictions and analytics
@@ -121,8 +122,8 @@ is_international: false
 
 ---
 
-### 3. **leagues**
-Football leagues and competitions.
+### 3. **leagues** ⭐ UPDATED
+Football leagues and competitions with characteristic profiling.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
@@ -130,8 +131,10 @@ Football leagues and competitions.
 | sport_id | TEXT | FOREIGN KEY → sports.id | Associated sport |
 | country_id | UUID | FOREIGN KEY → countries.id | League country |
 | name | TEXT | NOT NULL | League name (e.g., "Premier League") |
+| code | VARCHAR(10) | NULLABLE | **✨ NEW:** League short code (e.g., "EPL", "LAL") |
 | logo | TEXT | NULLABLE | League logo URL |
 | external_id | TEXT | NULLABLE | External API identifier |
+| characteristics | JSONB | NULLABLE | **✨ NEW:** League playing style characteristics |
 | is_active | BOOLEAN | DEFAULT true | Whether league is currently active |
 | created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
 | updated_at | TIMESTAMP | NULLABLE | Record update timestamp |
@@ -141,21 +144,43 @@ Football leagues and competitions.
 - FOREIGN KEY INDEX on `sport_id`
 - FOREIGN KEY INDEX on `country_id`
 - INDEX on `external_id` (for API sync)
+- **✨ NEW:** INDEX on `code` (for league code searches)
+- **✨ NEW:** GIN INDEX on `characteristics` (for JSONB queries)
 
 **Relationships:**
 - References: `sports.id`, `countries.id`
 - Referenced by: `matches.league_id`, `season_teams.league_id`
 
 **Sample Leagues:**
-- Premier League (England)
-- La Liga (Spain)
-- Bundesliga (Germany)
-- Serie A (Italy)
-- Ligue 1 (France)
-- Süper Lig (Turkey)
-- Championship (England)
+- Premier League (England) - EPL
+- La Liga (Spain) - LAL
+- Bundesliga (Germany) - BUN
+- Serie A (Italy) - SRA
+- Ligue 1 (France) - LIG
+- Süper Lig (Turkey) - TSL
+- Championship (England) - CHA
 
 **Total Records:** 19 leagues
+
+**Sample Data with Characteristics:**
+```json
+{
+  "id": "epl-001",
+  "name": "Premier League",
+  "code": "EPL",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_medium"],
+    "tempo": "high_tempo",
+    "physical": ["high_physical", "high_intensity"],
+    "structure": "standard_league",
+    "competition": "highly_competitive",
+    "financial": "high_budget",
+    "scoring": "high_scoring",
+    "tactical": ["counter_attacking", "possession_based"],
+    "avg_goals_per_match": 2.82
+  }
+}
+```
 
 ---
 
@@ -385,6 +410,196 @@ Aggregated team statistics per season.
 
 **Relationships:**
 - References: `teams.id`
+
+---
+
+## 🎯 LEAGUE CHARACTERISTICS SYSTEM
+
+The league characteristics system allows for detailed profiling of each football league's playing style, which is essential for accurate match prediction models.
+
+### 📊 Characteristic Categories
+
+#### **1. Play Style**
+Offensive and defensive tendencies of the league.
+
+- `offensive_high` - Very attacking-minded (e.g., Bundesliga)
+- `offensive_medium` - Moderate attacking play
+- `offensive_low` - Conservative attacking approach
+- `defensive_high` - Very defensive-minded (e.g., Serie A historically)
+- `defensive_medium` - Moderate defensive organization
+- `defensive_low` - Less emphasis on defense
+
+#### **2. Tempo**
+Speed and rhythm of play.
+
+- `high_tempo` - Fast-paced, end-to-end action (e.g., Premier League)
+- `medium_tempo` - Balanced pace
+- `slow_tempo` - Methodical, controlled play (e.g., La Liga)
+
+#### **3. Physical Attributes**
+Physical and technical characteristics.
+
+- `high_physical` - Very physical, contact-heavy (e.g., Premier League)
+- `high_technical` - Technically skilled players (e.g., La Liga)
+- `high_intensity` - High-energy, pressing style
+
+#### **4. League Structure**
+Number of teams in the league.
+
+- `small_league` - Fewer than 16 teams
+- `standard_league` - 16-20 teams
+- `large_league` - More than 20 teams
+
+#### **5. Competition Level**
+Competitive balance of the league.
+
+- `highly_competitive` - Many title contenders (e.g., Top 5 leagues)
+- `balanced_competition` - Relatively equal teams
+- `dominant_teams` - 1-2 teams consistently dominate
+
+#### **6. Financial Power**
+Average financial resources of clubs.
+
+- `high_budget` - Very wealthy clubs (e.g., Premier League)
+- `medium_budget` - Moderate financial power
+- `low_budget` - Limited financial resources
+
+#### **7. Goal Scoring**
+Average goals per match in the league.
+
+- `high_scoring` - >2.8 goals per match
+- `medium_scoring` - 2.3-2.8 goals per match
+- `low_scoring` - <2.3 goals per match
+
+#### **8. Tactical Features**
+Common tactical approaches in the league.
+
+- `counter_attacking` - Counter-attack focused
+- `possession_based` - Possession-oriented play
+- `unpredictable` - Variable, unpredictable results
+- `organized_defense` - Well-structured defensive systems
+
+---
+
+### 📋 Sample League Profiles
+
+#### **Premier League (England) - EPL**
+```json
+{
+  "code": "EPL",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_medium"],
+    "tempo": "high_tempo",
+    "physical": ["high_physical", "high_intensity"],
+    "structure": "standard_league",
+    "competition": "highly_competitive",
+    "financial": "high_budget",
+    "scoring": "high_scoring",
+    "tactical": ["counter_attacking", "possession_based"],
+    "avg_goals_per_match": 2.82
+  }
+}
+```
+
+#### **La Liga (Spain) - LAL**
+```json
+{
+  "code": "LAL",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_low"],
+    "tempo": "medium_tempo",
+    "physical": ["high_technical"],
+    "structure": "standard_league",
+    "competition": "balanced_competition",
+    "financial": "high_budget",
+    "scoring": "medium_scoring",
+    "tactical": ["possession_based"],
+    "avg_goals_per_match": 2.67
+  }
+}
+```
+
+#### **Serie A (Italy) - SRA**
+```json
+{
+  "code": "SRA",
+  "characteristics": {
+    "play_style": ["defensive_high", "offensive_medium"],
+    "tempo": "slow_tempo",
+    "physical": ["high_technical", "organized_defense"],
+    "structure": "standard_league",
+    "competition": "balanced_competition",
+    "financial": "medium_budget",
+    "scoring": "low_scoring",
+    "tactical": ["organized_defense"],
+    "avg_goals_per_match": 2.45
+  }
+}
+```
+
+#### **Bundesliga (Germany) - BUN**
+```json
+{
+  "code": "BUN",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_low"],
+    "tempo": "high_tempo",
+    "physical": ["high_intensity"],
+    "structure": "standard_league",
+    "competition": "dominant_teams",
+    "financial": "high_budget",
+    "scoring": "high_scoring",
+    "tactical": ["counter_attacking", "possession_based"],
+    "avg_goals_per_match": 3.15
+  }
+}
+```
+
+#### **Süper Lig (Turkey) - TSL**
+```json
+{
+  "code": "TSL",
+  "characteristics": {
+    "play_style": ["offensive_medium", "defensive_medium"],
+    "tempo": "medium_tempo",
+    "physical": ["high_physical"],
+    "structure": "large_league",
+    "competition": "dominant_teams",
+    "financial": "medium_budget",
+    "scoring": "medium_scoring",
+    "tactical": ["counter_attacking", "unpredictable"],
+    "avg_goals_per_match": 2.58
+  }
+}
+```
+
+---
+
+### 🔍 Querying League Characteristics
+
+**PostgreSQL JSONB Query Examples:**
+
+```sql
+-- Find all high-scoring leagues
+SELECT name, code, characteristics->>'avg_goals_per_match' 
+FROM leagues 
+WHERE characteristics->>'scoring' = 'high_scoring';
+
+-- Find leagues with high tempo
+SELECT name, code 
+FROM leagues 
+WHERE characteristics->>'tempo' = 'high_tempo';
+
+-- Find leagues with specific tactical style
+SELECT name, code 
+FROM leagues 
+WHERE characteristics->'tactical' @> '["possession_based"]';
+
+-- Get leagues with high physical intensity
+SELECT name, code 
+FROM leagues 
+WHERE characteristics->'physical' @> '["high_physical"]';
+```
 
 ---
 
@@ -716,8 +931,10 @@ erDiagram
         text sport_id FK
         uuid country_id FK
         text name
+        varchar code
         text logo
         text external_id
+        jsonb characteristics
         boolean is_active
         timestamp created_at
         timestamp updated_at
@@ -932,7 +1149,7 @@ ENUM PredictionOutcome {
 |-----------------|-------------|-------|
 | UUID | Universal unique identifier | Primary keys (countries, seasons) |
 | TEXT | Variable-length text | IDs, names, descriptions |
-| VARCHAR(n) | Limited-length text | Optimized strings (countries.name) |
+| VARCHAR(n) | Limited-length text | Optimized strings (countries.name, leagues.code) |
 | INTEGER | 32-bit integer | Counts, scores |
 | BIGINT | 64-bit integer | Large values (market_value) |
 | DOUBLE PRECISION | 64-bit float | Percentages, averages |
@@ -940,7 +1157,7 @@ ENUM PredictionOutcome {
 | TIMESTAMP | Date + time | No timezone |
 | TIMESTAMPTZ | Date + time | With timezone |
 | DATE | Date only | Season dates |
-| JSONB | Binary JSON | Flexible data storage |
+| JSONB | Binary JSON | Flexible data storage (characteristics, rawData) |
 | ARRAY | PostgreSQL array | Lists (favoriteLeagues) |
 | ENUM | Custom type | Fixed value sets |
 
@@ -1020,6 +1237,10 @@ CREATE INDEX idx_matches_external_id ON matches(externalId);
 CREATE INDEX idx_countries_name ON countries(name);
 CREATE INDEX idx_teams_name ON teams(name);
 
+-- ✨ NEW: League-specific indexes
+CREATE INDEX idx_leagues_code ON leagues(code);
+CREATE INDEX idx_leagues_characteristics ON leagues USING GIN (characteristics);
+
 -- Query optimization indexes
 CREATE INDEX idx_matches_date ON matches(matchDate);
 CREATE INDEX idx_matches_status ON matches(status);
@@ -1054,6 +1275,15 @@ CREATE INDEX idx_data_sync_status ON data_sync_logs(status);
 6. `sessions.0001_initial`
 
 ### Recent Schema Changes
+
+#### **October 31, 2025 Updates:**
+
+1. **✨ NEW: League Characteristics System**
+   - Added `code` column (VARCHAR(10)) to leagues table
+   - Added `characteristics` column (JSONB) to leagues table
+   - Created GIN index on `characteristics` for fast JSONB queries
+   - Created index on `code` for league code searches
+   - **Purpose:** Enable league playing style profiling for prediction models
 
 #### **October 2025 Updates:**
 
@@ -1108,9 +1338,9 @@ CREATE INDEX idx_data_sync_status ON data_sync_logs(status);
    - Allows data recovery
 
 5. **JSONB Usage**
-   - Store flexible/variable data (rawData, metadata)
+   - Store flexible/variable data (rawData, metadata, characteristics)
    - Keep queried fields in structured columns
-   - Index JSONB fields when necessary
+   - Index JSONB fields when necessary using GIN indexes
 
 ### API Integration Strategy
 
@@ -1136,11 +1366,13 @@ CREATE INDEX idx_data_sync_status ON data_sync_logs(status);
    - Index all foreign keys (automatic)
    - Index frequently queried fields
    - Composite indexes for multi-column queries
+   - GIN indexes for JSONB columns
 
 2. **Query Optimization**
    - Use JOIN operations judiciously
    - Limit SELECT * queries
    - Implement pagination for large result sets
+   - Use JSONB operators for efficient filtering
 
 3. **Data Volume Management**
    - Archive old match data (>2 seasons)
@@ -1224,10 +1456,10 @@ CREATE INDEX idx_data_sync_status ON data_sync_logs(status);
 
 ---
 
-**Document Version:** 1.0  
+**Document Version:** 1.1  
 **Last Updated:** October 31, 2025  
 **Status:** ✅ Complete & Current  
-**Total Pages:** 20+
+**Total Pages:** 25+
 
 ---
 
