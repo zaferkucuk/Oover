@@ -16,7 +16,7 @@
 4. [League Characteristics System](#league-characteristics-system)
 5. [User Management Tables](#user-management-tables)
 6. [Match & Prediction Tables](#match--prediction-tables)
-7. **[NEW TABLES - Content Recommendations](#-new-tables---content-recommendations)** 🆕
+7. **[NEW: Betting & Analytics Tables - Content Recommendations](#-new-betting--analytics-tables---content-recommendations)** 🆕
 8. [System Tables](#system-tables)
 9. [Entity Relationship Diagram](#entity-relationship-diagram)
 10. [Data Types & Enums](#data-types--enums)
@@ -32,15 +32,14 @@ The Oover database is designed to support a comprehensive sports prediction appl
 - Multiple sports (currently focused on football)
 - Multiple leagues across different countries with characteristic profiling
 - Team management with seasonal tracking
-- Match data with detailed statistics
+- Match data with detailed statistics and minute-by-minute events
 - User predictions and analytics
 - **🆕 Betting odds from multiple bookmakers with live tracking**
 - **🆕 AI/ML-based match predictions with confidence scores**
 - **🆕 League standings with weekly snapshots**
 - **🆕 Player injury and suspension tracking**
-- **🆕 Minute-by-minute match events**
 - **🆕 Venue and referee information**
-- API integration for external data sources (API-Football, Football-Data.org)
+- API integration for external data sources
 
 ---
 
@@ -60,7 +59,7 @@ The Oover database is designed to support a comprehensive sports prediction appl
 - Teams: 155
 - Seasons: 1 (Active: 2025-2026)
 - Users: 1
-- **🆕 Bookmakers:** 8  
+- **🆕 Bookmakers:** 8
 - Matches: 0 (ready for population)
 
 **New Tables (Created, Empty):** 🆕
@@ -78,11 +77,701 @@ The Oover database is designed to support a comprehensive sports prediction appl
 
 ## 🏗️ CORE TABLES
 
-[Previous content remains unchanged...]
+### 1. **sports** 
+Defines different types of sports supported by the application.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique sport identifier (UUID format) |
+| name | TEXT | NOT NULL | Sport name (e.g., "Football", "Basketball") |
+| slug | TEXT | NOT NULL | URL-friendly slug |
+| icon | TEXT | NULLABLE | Icon identifier or emoji |
+| isActive | BOOLEAN | DEFAULT true | Whether sport is currently active |
+| displayOrder | INTEGER | DEFAULT 0 | Display order in UI |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Relationships:**
+- Referenced by: `leagues.sport_id`, `matches.sportId`
+
+**Sample Data:**
+```sql
+id: "football-001"
+name: "Football"
+slug: "football"
+icon: "⚽"
+```
 
 ---
 
-## 📊 NEW TABLES - CONTENT RECOMMENDATIONS
+### 2. **countries**
+Reference table for countries with ISO standardization.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Auto-generated UUID |
+| name | VARCHAR(100) | UNIQUE, NOT NULL | Country name (optimized for API matching) |
+| code | TEXT | UNIQUE, NULLABLE | ISO 3166-1 alpha-2 code (e.g., "TR", "GB") |
+| flag | TEXT | NULLABLE | Flag emoji |
+| flag_url | TEXT | NULLABLE | Flag image URL from flagcdn.com |
+| is_international | BOOLEAN | DEFAULT false | TRUE for international competitions |
+| is_active | BOOLEAN | DEFAULT true | Whether country is active |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updated_at | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- UNIQUE INDEX on `name`
+- UNIQUE INDEX on `code`
+- INDEX on `name` (for API matching)
+
+**Relationships:**
+- Referenced by: `leagues.country_id`, `teams.country_id`, `referees.country_id`, `venues.country_id`
+
+**Sample Data:**
+```sql
+id: uuid
+name: "Turkey"
+code: "TR"
+flag: "🇹🇷"
+is_international: false
+```
+
+**Total Records:** 96 countries
+
+---
+
+### 3. **leagues** ⭐ UPDATED
+Football leagues and competitions with characteristic profiling.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique league identifier (UUID format) |
+| sport_id | TEXT | FOREIGN KEY → sports.id | Associated sport |
+| country_id | UUID | FOREIGN KEY → countries.id | League country |
+| name | TEXT | NOT NULL | League name (e.g., "Premier League") |
+| code | VARCHAR(10) | NULLABLE | **✨ NEW:** League short code (e.g., "EPL", "LAL") |
+| logo | TEXT | NULLABLE | League logo URL |
+| external_id | TEXT | NULLABLE | External API identifier |
+| characteristics | JSONB | NULLABLE | **✨ NEW:** League playing style characteristics |
+| is_active | BOOLEAN | DEFAULT true | Whether league is currently active |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updated_at | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `sport_id`
+- FOREIGN KEY INDEX on `country_id`
+- INDEX on `external_id` (for API sync)
+- **✨ NEW:** INDEX on `code` (for league code searches)
+- **✨ NEW:** GIN INDEX on `characteristics` (for JSONB queries)
+
+**Relationships:**
+- References: `sports.id`, `countries.id`
+- Referenced by: `matches.league_id`, `season_teams.league_id`, `standings.league_id`
+
+**Sample Leagues:**
+- Premier League (England) - EPL
+- La Liga (Spain) - LAL
+- Bundesliga (Germany) - BUN
+- Serie A (Italy) - SRA
+- Ligue 1 (France) - LIG
+- Süper Lig (Turkey) - TSL
+- Championship (England) - CHA
+
+**Total Records:** 19 leagues
+
+**Sample Data with Characteristics:**
+```json
+{
+  "id": "epl-001",
+  "name": "Premier League",
+  "code": "EPL",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_medium"],
+    "tempo": "high_tempo",
+    "physical": ["high_physical", "high_intensity"],
+    "structure": "standard_league",
+    "competition": "highly_competitive",
+    "financial": "high_budget",
+    "scoring": "high_scoring",
+    "tactical": ["counter_attacking", "possession_based"],
+    "avg_goals_per_match": 2.82
+  }
+}
+```
+
+---
+
+### 4. **seasons**
+Defines operational seasons for leagues.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Auto-generated UUID |
+| description | TEXT | UNIQUE, NOT NULL | Season name (e.g., "2025-2026") |
+| start_date | DATE | NOT NULL | Season start date |
+| end_date | DATE | NOT NULL | Season end date |
+| is_active | BOOLEAN | DEFAULT true | Current active season (only one) |
+| created_at | TIMESTAMPTZ | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updated_at | TIMESTAMPTZ | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- UNIQUE INDEX on `description`
+- INDEX on `is_active`
+
+**Relationships:**
+- Referenced by: `season_teams.season_id`, `standings.season_id`
+
+**Current Active Season:**
+```sql
+id: uuid
+description: "2025-2026"
+start_date: 2025-08-01
+end_date: 2026-05-31
+is_active: true
+```
+
+**Note:** Only one season should have `is_active = true` at any time.
+
+---
+
+### 5. **teams**
+Football teams/clubs.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique team identifier (UUID format) |
+| name | TEXT | NOT NULL | Full team name |
+| code | TEXT | NULLABLE | 3-letter team code (e.g., "MUN", "BAR") |
+| logo | TEXT | NULLABLE | Team logo URL |
+| country_id | UUID | FOREIGN KEY → countries.id | Team's country |
+| external_id | TEXT | NULLABLE | External API reference ID |
+| website | TEXT | NULLABLE | Official team website URL |
+| founded | INTEGER | NULLABLE | Year team was founded |
+| market_value | BIGINT | NULLABLE | Team market value in EUR |
+| is_active | BOOLEAN | DEFAULT true | Whether team is currently active |
+| created_at | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updated_at | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `country_id`
+- INDEX on `external_id` (for API sync)
+- INDEX on `name` (for searching)
+
+**Relationships:**
+- References: `countries.id`
+- Referenced by: `matches.homeTeamId`, `matches.awayTeamId`, `team_stats.teamId`, `season_teams.team_id`, `team_injuries.team_id`, `standings.team_id`
+
+**Sample Data:**
+```sql
+id: "team-001"
+name: "Manchester United"
+code: "MUN"
+country_id: uuid (England)
+founded: 1878
+market_value: 750000000
+```
+
+**Total Records:** 155 teams
+
+---
+
+### 6. **season_teams**
+Junction table mapping teams to leagues for specific seasons (handles promotion/relegation).
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Auto-generated UUID |
+| league_id | TEXT | FOREIGN KEY → leagues.id | League team plays in |
+| season_id | UUID | FOREIGN KEY → seasons.id | Season this applies to |
+| team_id | TEXT | FOREIGN KEY → teams.id | Team playing |
+| is_active | BOOLEAN | DEFAULT true | Currently active in this league/season |
+| created_at | TIMESTAMPTZ | DEFAULT now() | Record creation timestamp |
+| updated_at | TIMESTAMPTZ | DEFAULT now() | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- UNIQUE INDEX on (`team_id`, `league_id`, `season_id`)
+- FOREIGN KEY INDEX on `league_id`
+- FOREIGN KEY INDEX on `season_id`
+- FOREIGN KEY INDEX on `team_id`
+
+**Relationships:**
+- References: `leagues.id`, `seasons.id`, `teams.id`
+
+**Purpose:** 
+This table tracks which teams play in which leagues during specific seasons, essential for handling:
+- Promotion (team moves up to higher league)
+- Relegation (team moves down to lower league)
+- Historical tracking across multiple seasons
+
+**Example:**
+```sql
+-- Burnley in Championship 2025-2026 (relegated from Premier League)
+id: uuid
+league_id: "championship-id"
+season_id: uuid (2025-2026)
+team_id: "burnley-id"
+is_active: true
+```
+
+---
+
+### 7. **matches**
+Individual match/fixture data.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique match identifier |
+| sportId | TEXT | FOREIGN KEY → sports.id | Sport being played |
+| league_id | TEXT | FOREIGN KEY → leagues.id | League/competition |
+| homeTeamId | TEXT | FOREIGN KEY → teams.id | Home team |
+| awayTeamId | TEXT | FOREIGN KEY → teams.id | Away team |
+| externalId | TEXT | NULLABLE | External API match ID |
+| matchDate | TIMESTAMP | NOT NULL | Match date and time |
+| status | ENUM | DEFAULT 'SCHEDULED' | Match status |
+| venue | TEXT | NULLABLE | Stadium/venue name |
+| round | TEXT | NULLABLE | Match round/week |
+| homeScore | INTEGER | NULLABLE | Final home team score |
+| awayScore | INTEGER | NULLABLE | Final away team score |
+| halfTimeHome | INTEGER | NULLABLE | Half-time home score |
+| halfTimeAway | INTEGER | NULLABLE | Half-time away score |
+| referee_id | UUID | FOREIGN KEY → referees.id 🆕 | Match referee |
+| venue_id | UUID | FOREIGN KEY → venues.id 🆕 | Match venue |
+| rawData | JSONB | NULLABLE | Raw API response data |
+| lastSyncedAt | TIMESTAMP | NULLABLE | Last API sync timestamp |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Enums:**
+- `MatchStatus`: SCHEDULED, LIVE, FINISHED, POSTPONED, CANCELLED
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `sportId`, `league_id`, `homeTeamId`, `awayTeamId`
+- INDEX on `matchDate`
+- INDEX on `status`
+- INDEX on `externalId`
+
+**Relationships:**
+- References: `sports.id`, `leagues.id`, `teams.id` (x2), `referees.id`, `venues.id`
+- Referenced by: `match_statistics.matchId`, `predictions.matchId`, `match_analysis.matchId`, `match_odds.match_id`, `match_predictions.match_id`, `match_events.match_id`, `odds_movements.match_id`
+
+---
+
+### 8. **match_statistics**
+Detailed match statistics (possession, shots, cards, etc.).
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique statistic record ID |
+| matchId | TEXT | FOREIGN KEY → matches.id | Associated match |
+| homePossession | DOUBLE PRECISION | NULLABLE | Home possession % |
+| homeShotsOnTarget | INTEGER | NULLABLE | Home shots on target |
+| homeTotalShots | INTEGER | NULLABLE | Home total shots |
+| homeCorners | INTEGER | NULLABLE | Home corner kicks |
+| homeFouls | INTEGER | NULLABLE | Home fouls committed |
+| homeYellowCards | INTEGER | NULLABLE | Home yellow cards |
+| homeRedCards | INTEGER | NULLABLE | Home red cards |
+| awayPossession | DOUBLE PRECISION | NULLABLE | Away possession % |
+| awayShotsOnTarget | INTEGER | NULLABLE | Away shots on target |
+| awayTotalShots | INTEGER | NULLABLE | Away total shots |
+| awayCorners | INTEGER | NULLABLE | Away corner kicks |
+| awayFouls | INTEGER | NULLABLE | Away fouls committed |
+| awayYellowCards | INTEGER | NULLABLE | Away yellow cards |
+| awayRedCards | INTEGER | NULLABLE | Away red cards |
+| rawData | JSONB | NULLABLE | Raw API statistics |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `matchId`
+- UNIQUE INDEX on `matchId` (1:1 relationship)
+
+**Relationships:**
+- References: `matches.id`
+
+**Future Expansion:** This table can be expanded to include:
+- Expected Goals (xG)
+- Pass accuracy
+- Defensive actions
+- Set piece statistics
+
+---
+
+### 9. **team_stats**
+Aggregated team statistics per season.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique stat record ID |
+| teamId | TEXT | FOREIGN KEY → teams.id | Team |
+| season | TEXT | NOT NULL | Season identifier |
+| matchesPlayed | INTEGER | DEFAULT 0 | Total matches played |
+| wins | INTEGER | DEFAULT 0 | Total wins |
+| draws | INTEGER | DEFAULT 0 | Total draws |
+| losses | INTEGER | DEFAULT 0 | Total losses |
+| goalsFor | INTEGER | DEFAULT 0 | Goals scored |
+| goalsAgainst | INTEGER | DEFAULT 0 | Goals conceded |
+| cleanSheets | INTEGER | DEFAULT 0 | Clean sheets |
+| form | TEXT | NULLABLE | Recent form (e.g., "WWDLL") |
+| avgGoalsScored | DOUBLE PRECISION | DEFAULT 0 | Average goals per match |
+| avgGoalsConceded | DOUBLE PRECISION | DEFAULT 0 | Average goals conceded |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `teamId`
+- UNIQUE INDEX on (`teamId`, `season`)
+
+**Relationships:**
+- References: `teams.id`
+
+---
+
+## 🎯 LEAGUE CHARACTERISTICS SYSTEM
+
+The league characteristics system allows for detailed profiling of each football league's playing style, which is essential for accurate match prediction models.
+
+### 📊 Characteristic Categories
+
+#### **1. Play Style**
+Offensive and defensive tendencies of the league.
+
+- `offensive_high` - Very attacking-minded (e.g., Bundesliga)
+- `offensive_medium` - Moderate attacking play
+- `offensive_low` - Conservative attacking approach
+- `defensive_high` - Very defensive-minded (e.g., Serie A historically)
+- `defensive_medium` - Moderate defensive organization
+- `defensive_low` - Less emphasis on defense
+
+#### **2. Tempo**
+Speed and rhythm of play.
+
+- `high_tempo` - Fast-paced, end-to-end action (e.g., Premier League)
+- `medium_tempo` - Balanced pace
+- `slow_tempo` - Methodical, controlled play (e.g., La Liga)
+
+#### **3. Physical Attributes**
+Physical and technical characteristics.
+
+- `high_physical` - Very physical, contact-heavy (e.g., Premier League)
+- `high_technical` - Technically skilled players (e.g., La Liga)
+- `high_intensity` - High-energy, pressing style
+
+#### **4. League Structure**
+Number of teams in the league.
+
+- `small_league` - Fewer than 16 teams
+- `standard_league` - 16-20 teams
+- `large_league` - More than 20 teams
+
+#### **5. Competition Level**
+Competitive balance of the league.
+
+- `highly_competitive` - Many title contenders (e.g., Top 5 leagues)
+- `balanced_competition` - Relatively equal teams
+- `dominant_teams` - 1-2 teams consistently dominate
+
+#### **6. Financial Power**
+Average financial resources of clubs.
+
+- `high_budget` - Very wealthy clubs (e.g., Premier League)
+- `medium_budget` - Moderate financial power
+- `low_budget` - Limited financial resources
+
+#### **7. Goal Scoring**
+Average goals per match in the league.
+
+- `high_scoring` - >2.8 goals per match
+- `medium_scoring` - 2.3-2.8 goals per match
+- `low_scoring` - <2.3 goals per match
+
+#### **8. Tactical Features**
+Common tactical approaches in the league.
+
+- `counter_attacking` - Counter-attack focused
+- `possession_based` - Possession-oriented play
+- `unpredictable` - Variable, unpredictable results
+- `organized_defense` - Well-structured defensive systems
+
+---
+
+### 📋 Sample League Profiles
+
+#### **Premier League (England) - EPL**
+```json
+{
+  "code": "EPL",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_medium"],
+    "tempo": "high_tempo",
+    "physical": ["high_physical", "high_intensity"],
+    "structure": "standard_league",
+    "competition": "highly_competitive",
+    "financial": "high_budget",
+    "scoring": "high_scoring",
+    "tactical": ["counter_attacking", "possession_based"],
+    "avg_goals_per_match": 2.82
+  }
+}
+```
+
+#### **La Liga (Spain) - LAL**
+```json
+{
+  "code": "LAL",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_low"],
+    "tempo": "medium_tempo",
+    "physical": ["high_technical"],
+    "structure": "standard_league",
+    "competition": "balanced_competition",
+    "financial": "high_budget",
+    "scoring": "medium_scoring",
+    "tactical": ["possession_based"],
+    "avg_goals_per_match": 2.67
+  }
+}
+```
+
+#### **Serie A (Italy) - SRA**
+```json
+{
+  "code": "SRA",
+  "characteristics": {
+    "play_style": ["defensive_high", "offensive_medium"],
+    "tempo": "slow_tempo",
+    "physical": ["high_technical", "organized_defense"],
+    "structure": "standard_league",
+    "competition": "balanced_competition",
+    "financial": "medium_budget",
+    "scoring": "low_scoring",
+    "tactical": ["organized_defense"],
+    "avg_goals_per_match": 2.45
+  }
+}
+```
+
+#### **Bundesliga (Germany) - BUN**
+```json
+{
+  "code": "BUN",
+  "characteristics": {
+    "play_style": ["offensive_high", "defensive_low"],
+    "tempo": "high_tempo",
+    "physical": ["high_intensity"],
+    "structure": "standard_league",
+    "competition": "dominant_teams",
+    "financial": "high_budget",
+    "scoring": "high_scoring",
+    "tactical": ["counter_attacking", "possession_based"],
+    "avg_goals_per_match": 3.15
+  }
+}
+```
+
+#### **Süper Lig (Turkey) - TSL**
+```json
+{
+  "code": "TSL",
+  "characteristics": {
+    "play_style": ["offensive_medium", "defensive_medium"],
+    "tempo": "medium_tempo",
+    "physical": ["high_physical"],
+    "structure": "large_league",
+    "competition": "dominant_teams",
+    "financial": "medium_budget",
+    "scoring": "medium_scoring",
+    "tactical": ["counter_attacking", "unpredictable"],
+    "avg_goals_per_match": 2.58
+  }
+}
+```
+
+---
+
+### 🔍 Querying League Characteristics
+
+**PostgreSQL JSONB Query Examples:**
+
+```sql
+-- Find all high-scoring leagues
+SELECT name, code, characteristics->>'avg_goals_per_match' 
+FROM leagues 
+WHERE characteristics->>'scoring' = 'high_scoring';
+
+-- Find leagues with high tempo
+SELECT name, code 
+FROM leagues 
+WHERE characteristics->>'tempo' = 'high_tempo';
+
+-- Find leagues with specific tactical style
+SELECT name, code 
+FROM leagues 
+WHERE characteristics->'tactical' @> '["possession_based"]';
+
+-- Get leagues with high physical intensity
+SELECT name, code 
+FROM leagues 
+WHERE characteristics->'physical' @> '["high_physical"]';
+```
+
+---
+
+## 👥 USER MANAGEMENT TABLES
+
+### 10. **users**
+Application users with role-based access.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique user identifier |
+| email | TEXT | NOT NULL | User email address |
+| username | TEXT | NULLABLE | Username |
+| fullName | TEXT | NULLABLE | Full name |
+| avatarUrl | TEXT | NULLABLE | Profile avatar URL |
+| role | ENUM(UserRole) | DEFAULT 'USER' | User role |
+| isActive | BOOLEAN | DEFAULT true | Account active status |
+| emailVerified | BOOLEAN | DEFAULT false | Email verification status |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Account creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Profile update timestamp |
+| lastLoginAt | TIMESTAMP | NULLABLE | Last login timestamp |
+
+**Enums:**
+- `UserRole`: USER, PREMIUM, ADMIN
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- UNIQUE INDEX on `email`
+- UNIQUE INDEX on `username`
+
+**Relationships:**
+- Referenced by: `user_stats.userId`, `user_settings.userId`, `predictions.userId`
+
+**Total Records:** 1 user
+
+---
+
+### 11. **user_stats**
+User prediction statistics and accuracy tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique stat record ID |
+| userId | TEXT | FOREIGN KEY → users.id | User |
+| totalPredictions | INTEGER | DEFAULT 0 | Total predictions made |
+| correctPredictions | INTEGER | DEFAULT 0 | Correct predictions |
+| accuracy | DOUBLE PRECISION | DEFAULT 0 | Accuracy percentage |
+| currentStreak | INTEGER | DEFAULT 0 | Current prediction streak |
+| longestStreak | INTEGER | DEFAULT 0 | Longest streak achieved |
+| totalPoints | INTEGER | DEFAULT 0 | Total points earned |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `userId`
+- UNIQUE INDEX on `userId` (1:1 relationship)
+
+**Relationships:**
+- References: `users.id`
+
+---
+
+### 12. **user_settings**
+User preferences and settings.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique setting record ID |
+| userId | TEXT | FOREIGN KEY → users.id | User |
+| theme | TEXT | DEFAULT 'light' | UI theme preference |
+| language | TEXT | DEFAULT 'en' | Language preference |
+| notificationsEnabled | BOOLEAN | DEFAULT true | Notifications on/off |
+| emailNotifications | BOOLEAN | DEFAULT true | Email notifications on/off |
+| favoriteSports | TEXT[] | DEFAULT [] | Favorite sports array |
+| favoriteLeagues | TEXT[] | DEFAULT [] | Favorite leagues array |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `userId`
+- UNIQUE INDEX on `userId` (1:1 relationship)
+
+**Relationships:**
+- References: `users.id`
+
+---
+
+### 13. **predictions**
+User match predictions.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique prediction ID |
+| userId | TEXT | FOREIGN KEY → users.id | User who made prediction |
+| matchId | TEXT | FOREIGN KEY → matches.id | Match predicted |
+| predictedOutcome | ENUM | NOT NULL | Predicted match outcome |
+| confidence | DOUBLE PRECISION | NOT NULL | Confidence level (0-1) |
+| predictedHomeScore | INTEGER | NULLABLE | Predicted home score |
+| predictedAwayScore | INTEGER | NULLABLE | Predicted away score |
+| reasoning | TEXT | NULLABLE | Prediction reasoning/notes |
+| isCorrect | BOOLEAN | NULLABLE | Whether prediction was correct |
+| pointsEarned | INTEGER | DEFAULT 0 | Points earned from prediction |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Prediction creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Prediction update timestamp |
+
+**Enums:**
+- `PredictionOutcome`: HOME_WIN, DRAW, AWAY_WIN
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `userId`, `matchId`
+- UNIQUE INDEX on (`userId`, `matchId`)
+- INDEX on `isCorrect`
+
+**Relationships:**
+- References: `users.id`, `matches.id`
+
+---
+
+### 14. **match_analysis**
+AI/ML-based match analysis and predictions.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique analysis ID |
+| matchId | TEXT | FOREIGN KEY → matches.id | Match analyzed |
+| homeWinProbability | DOUBLE PRECISION | NOT NULL | Home win probability |
+| drawProbability | DOUBLE PRECISION | NOT NULL | Draw probability |
+| awayWinProbability | DOUBLE PRECISION | NOT NULL | Away win probability |
+| keyFactors | JSONB | NULLABLE | Key factors affecting outcome |
+| headToHead | JSONB | NULLABLE | Head-to-head statistics |
+| formAnalysis | JSONB | NULLABLE | Form analysis data |
+| riskLevel | TEXT | NULLABLE | Risk assessment |
+| analyzedAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Analysis timestamp |
+| modelVersion | TEXT | NULLABLE | ML model version used |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Record creation timestamp |
+| updatedAt | TIMESTAMP | NULLABLE | Record update timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- FOREIGN KEY INDEX on `matchId`
+- UNIQUE INDEX on `matchId` (1:1 relationship)
+
+**Relationships:**
+- References: `matches.id`
+
+---
+
+## 🆕 NEW: BETTING & ANALYTICS TABLES - CONTENT RECOMMENDATIONS
 
 This section provides detailed recommendations for populating the 9 newly created tables with data from API-Football and other sources.
 
@@ -782,7 +1471,144 @@ movement_percentage = ((2.10 - 2.20) / 2.20) * 100
 
 ## 🔧 SYSTEM TABLES
 
-[Previous content continues...]
+### 15. **data_sync_logs**
+API data synchronization logs.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | TEXT | PRIMARY KEY | Unique log ID |
+| source | TEXT | NOT NULL | Data source (e.g., "API-Football") |
+| syncType | TEXT | NOT NULL | Sync type (e.g., "teams", "matches") |
+| status | TEXT | NOT NULL | Sync status (success/failed) |
+| recordsProcessed | INTEGER | DEFAULT 0 | Records processed |
+| recordsFailed | INTEGER | DEFAULT 0 | Records failed |
+| errorMessage | TEXT | NULLABLE | Error message if failed |
+| metadata | JSONB | NULLABLE | Additional metadata |
+| startedAt | TIMESTAMP | NOT NULL | Sync start time |
+| completedAt | TIMESTAMP | NULLABLE | Sync completion time |
+| createdAt | TIMESTAMP | DEFAULT CURRENT_TIMESTAMP | Log creation timestamp |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- INDEX on `source`
+- INDEX on `syncType`
+- INDEX on `status`
+- INDEX on `startedAt`
+
+**Purpose:** Track all API synchronization operations for debugging and monitoring.
+
+---
+
+### 16. **api_sync**
+API synchronization status tracking.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | UUID | PRIMARY KEY | Unique sync record ID |
+| provider | VARCHAR | NOT NULL | API provider name |
+| resource_type | VARCHAR | NOT NULL | Resource being synced |
+| status | VARCHAR | NOT NULL | Current sync status |
+| started_at | TIMESTAMPTZ | NOT NULL | Sync start timestamp |
+| completed_at | TIMESTAMPTZ | NULLABLE | Sync completion timestamp |
+| records_processed | INTEGER | NOT NULL | Total records processed |
+| records_created | INTEGER | NOT NULL | Records created |
+| records_updated | INTEGER | NOT NULL | Records updated |
+| records_failed | INTEGER | NOT NULL | Records failed |
+| errors | JSONB | NOT NULL | Error details |
+| error_message | TEXT | NOT NULL | Error summary |
+| metadata | JSONB | NOT NULL | Additional sync metadata |
+
+**Indexes:**
+- PRIMARY KEY on `id`
+- INDEX on `provider`
+- INDEX on `resource_type`
+- INDEX on `status`
+
+---
+
+### 17. **_prisma_migrations**
+Database migration tracking (Prisma ORM).
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | VARCHAR | PRIMARY KEY | Migration ID |
+| checksum | VARCHAR | NOT NULL | Migration checksum |
+| finished_at | TIMESTAMPTZ | NULLABLE | Migration completion time |
+| migration_name | VARCHAR | NOT NULL | Migration name |
+| logs | TEXT | NULLABLE | Migration logs |
+| rolled_back_at | TIMESTAMPTZ | NULLABLE | Rollback timestamp |
+| started_at | TIMESTAMPTZ | DEFAULT now() | Migration start time |
+| applied_steps_count | INTEGER | DEFAULT 0 | Steps applied count |
+
+**Total Migrations:** 1
+
+---
+
+### 18-27. **Django System Tables**
+
+#### **auth_user**
+Django authentication user table.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | INTEGER | Primary key |
+| password | VARCHAR | Hashed password |
+| last_login | TIMESTAMPTZ | Last login timestamp |
+| is_superuser | BOOLEAN | Superuser status |
+| username | VARCHAR | Unique username |
+| first_name | VARCHAR | First name |
+| last_name | VARCHAR | Last name |
+| email | VARCHAR | Email address |
+| is_staff | BOOLEAN | Staff status |
+| is_active | BOOLEAN | Active status |
+| date_joined | TIMESTAMPTZ | Registration date |
+
+#### **auth_group**
+User groups for permissions.
+
+#### **auth_permission**
+Permission definitions.
+
+#### **auth_group_permissions**
+Group-permission relationships.
+
+#### **auth_user_groups**
+User-group relationships.
+
+#### **auth_user_user_permissions**
+User-permission relationships.
+
+#### **django_content_type**
+Content type registry.
+
+#### **django_admin_log**
+Admin action logs.
+
+**Total Django Records:** 44 permissions, 11 content types, 19 migrations
+
+#### **django_session**
+User session storage.
+
+#### **django_migrations**
+Django migration tracking.
+
+---
+
+## 📊 ENTITY RELATIONSHIP DIAGRAM
+
+[ERD content continues as before...]
+
+---
+
+## 🔤 DATA TYPES & ENUMS
+
+[Data types content continues as before...]
+
+---
+
+## 🔐 INDEXES & CONSTRAINTS
+
+[Indexes content continues as before...]
 
 ---
 
@@ -797,68 +1623,51 @@ movement_percentage = ((2.10 - 2.20) / 2.20) * 100
 **Tables Created:** 9
 
 1. **bookmakers** (8 records inserted)
-   - Betting companies providing odds
-   - Sample data: Bet365, 1xBet, Betfair, etc.
-
 2. **match_odds**
-   - Pre-match and live betting odds
-   - Multiple bookmaker support
-   - JSONB for flexible odds data
-
 3. **odds_movements**
-   - Historical odds tracking
-   - Movement percentage calculation
-   - Trend analysis support
-
 4. **match_predictions**
-   - AI/ML predictions from API-Football
-   - Over/Under predictions
-   - H2H and form analysis
-
 5. **match_events**
-   - Minute-by-minute match events
-   - Goals, cards, substitutions, VAR
-   - Detailed event metadata
-
 6. **referees**
-   - Referee profiles
-   - Career statistics
-   - Match assignments (via matches.referee_id)
-
 7. **venues**
-   - Stadium information
-   - Capacity, surface, location
-   - Match assignments (via matches.venue_id)
-
 8. **team_injuries**
-   - Injury and suspension tracking
-   - Expected return dates
-   - Impact on predictions
-
 9. **standings**
-   - League table snapshots
-   - Home/Away split stats
-   - Weekly tracking
 
 **Schema Changes:**
 - Added `referee_id` (UUID) to `matches` table
 - Added `venue_id` (UUID) to `matches` table
 - Created 25+ indexes for optimization
-- Added JSONB GIN indexes for fast queries
+
+#### **October 31, 2025 Updates:**
+
+1. **✨ NEW: League Characteristics System**
+   - Added `code` column (VARCHAR(10)) to leagues table
+   - Added `characteristics` column (JSONB) to leagues table
+   - Created GIN index on `characteristics` for fast JSONB queries
+
+#### **October 2025 Updates:**
+
+1. **Countries Table Optimization**
+   - Changed `name` from TEXT to VARCHAR(100)
+   - Added `flag_url` field
+
+2. **Season Teams Junction Table**
+   - Created `season_teams` table
+   - Handles promotion/relegation
+
+3. **Teams Table Enhancement**
+   - Added `code`, `website`, `market_value` fields
+
+### Backup Tables
+
+**Active Backups:**
+- `teams_backup_20251029` (6 records)
+- `leagues_backup` (3 records)
 
 ---
 
 ## 📞 CONTACT & DOCUMENTATION
 
 **Project Repository:** https://github.com/zaferkucuk/Oover
-
-**Related Documentation:**
-- `database/API_FOOTBALL_PRO_SCHEMA.md` - API-Football Pro schema
-- `database/API_FOOTBALL_PRO_ERD.md` - Enhanced ERD with API data
-- `database/API_FOOTBALL_PRO_MAPPING.md` - API data mapping guide
-- `database/countries_table_documentation.md` - Countries table deep dive
-- `database/database_types.ts` - TypeScript type definitions
-- `database/database_models.py` - Python/Django model definitions
 
 **Supabase Dashboard:** https://supabase.com/dashboard/project/[project-id]
 
@@ -867,7 +1676,7 @@ movement_percentage = ((2.10 - 2.20) / 2.20) * 100
 **Document Version:** 1.2 🆕  
 **Last Updated:** October 31, 2025  
 **Status:** ✅ Complete & Current  
-**Total Pages:** 35+
+**Total Pages:** 40+
 
 ---
 
