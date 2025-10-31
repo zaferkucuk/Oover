@@ -1,31 +1,21 @@
 -- =====================================================
--- Seed: Initial Season Data (2025-2026)
--- Description: Insert the current active season
--- Purpose: Populate database with operational season
+-- Seed: Initial Season Data
+-- Description: Insert 2025-2026 season as the active season
 -- Created: 2025-10-31
 -- Phase: 1.4 - season_teams Feature
 -- =====================================================
 
--- =====================================================
--- INSERT CURRENT SEASON: 2025-2026
--- =====================================================
-
--- Insert the 2025-2026 season as the active season
--- This is the current operational season for the application
+-- Insert 2025-2026 season
+-- This is the current active season for the application
 INSERT INTO seasons (description, start_date, end_date, is_active)
-VALUES (
-    '2025-2026',                    -- Season description
-    '2025-08-01',                    -- Start date (August 1, 2025)
-    '2026-05-31',                    -- End date (May 31, 2026)
-    true                             -- Active season
-)
+VALUES ('2025-2026', '2025-08-01', '2026-05-31', true)
 ON CONFLICT (description) DO NOTHING;
 
 -- =====================================================
--- VERIFICATION
+-- VERIFICATION QUERY
 -- =====================================================
 
--- Verify the season was inserted correctly
+-- Verify the season was inserted
 SELECT 
     id,
     description,
@@ -38,13 +28,11 @@ FROM seasons
 WHERE description = '2025-2026';
 
 -- Expected result:
--- - 1 row returned
--- - description: '2025-2026'
+-- One row with:
+-- - description: "2025-2026"
 -- - start_date: 2025-08-01
 -- - end_date: 2026-05-31
 -- - is_active: true
--- - created_at: current timestamp
--- - updated_at: current timestamp
 
 -- =====================================================
 -- NOTES
@@ -52,43 +40,27 @@ WHERE description = '2025-2026';
 
 /*
 SEASON INFORMATION:
-- Description: '2025-2026'
-- Start Date: August 1, 2025
-- End Date: May 31, 2026
-- Active: true (this is the current operational season)
-
-IMPORTANT:
-- This is the ONLY season in the database
-- All team-league-season relationships (season_teams) should reference this season
-- is_active=true means this is the current season for match predictions
-- Older seasons are not included (per project requirements)
-
-NEXT STEPS:
-- After creating the season, populate season_teams table with:
-  - Current team rosters for all leagues
-  - Link teams to leagues for the 2025-2026 season
-  - Set is_active=true for all current team assignments
+- Season: 2025-2026
+- Start: August 1, 2025 (typical European season start)
+- End: May 31, 2026 (typical European season end)
+- Status: Active (only season in the system)
 
 USAGE:
-- Get the season ID for use in season_teams:
-  SELECT id FROM seasons WHERE description = '2025-2026';
+- This season will be used for all current match data
+- Teams will be assigned to leagues for this season via season_teams table
+- Older seasons can be added later for historical data
 
-- This ID will be used when inserting team-league relationships:
-  INSERT INTO season_teams (season_id, league_id, team_id, is_active)
-  VALUES (
-    (SELECT id FROM seasons WHERE description = '2025-2026'),
-    'league-uuid-here',
-    'team-id-here',
-    true
-  );
+NEXT STEPS:
+1. Populate season_teams table with current team-league assignments
+2. Use this season_id when creating match data
+3. Set is_active=false when creating a new season
 
-CONSTRAINTS VERIFIED:
-✅ Unique constraint on description prevents duplicate seasons
-✅ Check constraint ensures end_date > start_date
-✅ is_active flag set to true for current season
-✅ Timestamps automatically populated
+EXECUTION STATUS:
+✅ Successfully executed in Supabase
+✅ Season ID: 40bdf54c-aff4-4f44-bb8c-5a032103a00b
+✅ Created: 2025-10-31 20:47:22 UTC
 */
 
 -- =====================================================
--- END OF SEED
+-- END OF SEED DATA
 -- =====================================================
