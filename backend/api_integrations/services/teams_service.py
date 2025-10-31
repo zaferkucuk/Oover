@@ -24,6 +24,7 @@ Date: October 2025
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 from uuid import UUID
+from datetime import datetime
 
 from django.db import transaction
 from django.db.models import QuerySet, Q
@@ -131,9 +132,8 @@ class TeamsService:
         
         logger.info("Initialized TeamsService with providers and transformers")
     
-    # [Methods remain exactly the same until fetch_teams_from_provider...]
-    
     def get_by_id(self, team_id: str) -> Optional[Team]:
+        """Get team by primary key ID."""
         try:
             return Team.objects.get(id=team_id)
         except Team.DoesNotExist:
@@ -147,6 +147,7 @@ class TeamsService:
         limit: Optional[int] = None,
         offset: Optional[int] = None
     ) -> QuerySet:
+        """List teams with optional filtering, ordering, and pagination."""
         queryset = Team.objects.all()
         if filters:
             queryset = queryset.filter(**filters)
@@ -159,16 +160,19 @@ class TeamsService:
         return queryset
     
     def count(self, filters: Optional[Dict[str, Any]] = None) -> int:
+        """Count teams matching filters."""
         queryset = Team.objects.all()
         if filters:
             queryset = queryset.filter(**filters)
         return queryset.count()
     
     def exists(self, filters: Dict[str, Any]) -> bool:
+        """Check if any team matches filters."""
         return Team.objects.filter(**filters).exists()
     
     @transaction.atomic
     def create(self, data: Dict[str, Any]) -> Team:
+        """Create a new team with validation."""
         is_valid, validation_errors = self.validator.validate(data)
         if not is_valid:
             error_msg = "; ".join(validation_errors)
@@ -180,6 +184,7 @@ class TeamsService:
     
     @transaction.atomic
     def update(self, team_id: str, data: Dict[str, Any]) -> Optional[Team]:
+        """Update existing team with validation."""
         team = self.get_by_id(team_id)
         if not team:
             return None
@@ -196,6 +201,7 @@ class TeamsService:
     
     @transaction.atomic
     def delete(self, team_id: str) -> bool:
+        """Delete a team by ID."""
         team = self.get_by_id(team_id)
         if not team:
             return False
@@ -206,6 +212,7 @@ class TeamsService:
     
     @transaction.atomic
     def bulk_create(self, teams_data: List[Dict[str, Any]]) -> Tuple[List[Team], List[str]]:
+        """Bulk create teams with validation."""
         created_teams = []
         errors = []
         for idx, data in enumerate(teams_data):
@@ -225,6 +232,7 @@ class TeamsService:
         teams_data: List[Dict[str, Any]],
         match_field: str = 'external_id'
     ) -> Tuple[List[Team], List[Team], List[str]]:
+        """Bulk create or update teams based on match_field."""
         created_teams = []
         updated_teams = []
         errors = []
@@ -259,6 +267,7 @@ class TeamsService:
         defaults: Optional[Dict[str, Any]] = None,
         **kwargs
     ) -> Tuple[Team, bool]:
+        """Get existing team or create new one."""
         return Team.objects.get_or_create(defaults=defaults, **kwargs)
     
     @transaction.atomic
@@ -267,9 +276,11 @@ class TeamsService:
         defaults: Optional[Dict[str, Any]] = None,
         **kwargs
     ) -> Tuple[Team, bool]:
+        """Update existing team or create new one."""
         return Team.objects.update_or_create(defaults=defaults, **kwargs)
     
     def get_by_external_id(self, external_id: str) -> Optional[Team]:
+        """Get team by external API identifier."""
         try:
             return Team.objects.get(external_id=external_id)
         except Team.DoesNotExist:
@@ -281,6 +292,7 @@ class TeamsService:
         external_id: str,
         defaults: Dict[str, Any]
     ) -> Tuple[Team, bool]:
+        """Get team by external_id or create with defaults."""
         return self.get_or_create(external_id=external_id, defaults=defaults)
     
     def get_by_country(
@@ -288,18 +300,21 @@ class TeamsService:
         country_id: UUID,
         is_active: Optional[bool] = None
     ) -> QuerySet:
+        """Get teams by country ID."""
         filters = {'country_id': country_id}
         if is_active is not None:
             filters['is_active'] = is_active
         return Team.objects.filter(**filters)
     
     def search_teams(self, query: str, is_active: Optional[bool] = None) -> QuerySet:
+        """Search teams by name or code."""
         filters = Q(name__icontains=query) | Q(code__icontains=query)
         if is_active is not None:
             filters &= Q(is_active=is_active)
         return Team.objects.filter(filters)
     
     def get_active_teams(self, country_id: Optional[UUID] = None) -> QuerySet:
+        """Get all active teams, optionally filtered by country."""
         filters = {'is_active': True}
         if country_id:
             filters['country_id'] = country_id
@@ -307,6 +322,7 @@ class TeamsService:
     
     @transaction.atomic
     def deactivate_team(self, team_id: str) -> bool:
+        """Mark team as inactive."""
         team = self.get_by_id(team_id)
         if not team:
             return False
@@ -317,6 +333,7 @@ class TeamsService:
     
     @transaction.atomic
     def activate_team(self, team_id: str) -> bool:
+        """Mark team as active."""
         team = self.get_by_id(team_id)
         if not team:
             return False
@@ -326,12 +343,32 @@ class TeamsService:
         return True
     
     def validate_country_exists(self, country_id: UUID) -> bool:
+        """Check if country exists in database."""
         try:
             Country.objects.get(id=country_id)
             return True
         except Country.DoesNotExist:
             logger.warning(f"Country not found: {country_id}")
             return False
+    
+    def _get_current_season(self) -> int:
+        """
+        Get current football season year.
+        
+        Football season spans two calendar years (e.g., 2024/2025).
+        We use the year when the season starts (e.g., 2024 for 2024/2025).
+        
+        Logic:
+        - If current month is August (8) or later: use current year
+        - Otherwise: use previous year
+        
+        Returns:
+            Current season year (e.g., 2024 for 2024/2025 season)
+        """
+        now = datetime.now()
+        # If we're in August or later, it's the new season
+        # Otherwise, we're still in the previous season
+        return now.year if now.month >= 8 else now.year - 1
     
     @transaction.atomic
     def fetch_teams_from_provider(
@@ -340,6 +377,7 @@ class TeamsService:
         competition_id: Optional[str] = None,
         country_code: Optional[str] = None,
         limit: Optional[int] = None,
+        season: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Fetch teams from external API provider.
@@ -349,13 +387,15 @@ class TeamsService:
             competition_id: Competition code (e.g., 'PL' for Premier League)
             country_code: Country code for filtering (optional)
             limit: Maximum number of teams to process (applied after fetch)
+            season: Season year for API-Football (e.g., 2024). If not provided, uses current season.
         
         Returns:
             Dictionary with statistics about the fetch operation
         """
         logger.info(
             f"fetch_teams_from_provider called: provider={provider}, "
-            f"competition_id={competition_id}, country_code={country_code}, limit={limit}"
+            f"competition_id={competition_id}, country_code={country_code}, "
+            f"limit={limit}, season={season}"
         )
         stats = {
             'provider': provider,
@@ -386,11 +426,18 @@ class TeamsService:
                     raise ValueError("competition_id required for api-football provider")
                 if not self.fallback_provider:
                     raise ValueError("API-Football provider not configured")
-                logger.info(f"Fetching teams from API-Football: {competition_id}")
                 
-                # API-Football client  - pass competition_id as league_id
+                # Use provided season or get current season
+                if season is None:
+                    season = self._get_current_season()
+                    logger.info(f"Using current season: {season}")
+                
+                logger.info(f"Fetching teams from API-Football: league={competition_id}, season={season}")
+                
+                # API-Football client - pass competition_id as league_id with season
                 api_teams = self.fallback_provider.get_teams_by_league(
-                    league_id=competition_id
+                    league_id=int(competition_id),
+                    season=season
                 )
                 
             else:
