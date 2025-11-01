@@ -25,6 +25,7 @@ class APIFootballClient(BaseAPIClient):
     - Teams in leagues
     - Team details
     - Fixtures/Matches (with comprehensive filtering)
+    - Standings (league tables with rankings)
     
     Authentication:
         Uses X-RapidAPI-Key and X-RapidAPI-Host headers with RapidAPI key.
@@ -46,6 +47,7 @@ class APIFootballClient(BaseAPIClient):
         >>> teams = client.get_teams_by_league(39, 2023)  # Premier League 2023
         >>> team = client.get_team_details(42)  # Arsenal
         >>> fixtures = client.get_fixtures(league_id=39, season=2024)  # PL fixtures
+        >>> standings = client.get_standings(league_id=39, season=2024)  # PL table
     """
     
     def __init__(self, api_key: str, timeout: int = 30, max_retries: int = 3):
@@ -973,3 +975,383 @@ class APIFootballClient(BaseAPIClient):
                 logger.debug(f"Sample fixtures: {'; '.join(sample_info)}")
         
         return fixtures
+    
+    def get_standings(
+        self,
+        league_id: int,
+        season: int,
+        team_id: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get league standings (league tables) from API-Football.
+        
+        Standings are essential for match prediction and team analysis. This endpoint
+        provides complete league table data including:
+        - Team rankings and positions
+        - Points, wins, draws, losses
+        - Goals for/against and goal difference
+        - Recent form (last 5 matches)
+        - Home/away performance breakdown
+        - Promotion/relegation status
+        
+        🎯 CRITICAL: Essential data for prediction algorithms
+        🔄 UPDATE FREQUENCY:
+            - During season: Weekly (after match rounds complete)
+            - Off-season: Monthly (or when needed)
+        
+        📊 TYPICAL DATA: ~20 teams per major league
+        
+        ⚠️ CACHING STRATEGY (IMPORTANT):
+            - Active season: 6 hours (updated after matches)
+            - Off-season: 30 days (relatively stable)
+            - After major match rounds: Refresh immediately
+        
+        Args:
+            league_id: League ID (required)
+                Examples:
+                - 39: Premier League (England)
+                - 140: La Liga (Spain)
+                - 78: Bundesliga (Germany)
+                - 135: Serie A (Italy)
+                - 61: Ligue 1 (France)
+                
+            season: Season year (required)
+                Format: YYYY representing the starting year of the season
+                Examples:
+                - 2024: Represents 2024/25 season
+                - 2023: Represents 2023/24 season
+                Note: Some leagues use calendar year (e.g., MLS uses 2024 for 2024 season)
+                
+            team_id: Optional specific team filter
+                When provided, returns only the standing for this team
+                Useful for quick lookups of a single team's position
+                Example: 42 for Arsenal's position in their league
+        
+        Returns:
+            List containing league standing data with structure:
+            [
+                {
+                    'league': {
+                        'id': 39,
+                        'name': 'Premier League',
+                        'country': 'England',
+                        'logo': 'https://...',
+                        'flag': 'https://...',
+                        'season': 2024,
+                        'standings': [
+                            [  # Primary standings group
+                                {
+                                    'rank': 1,                          # Current position
+                                    'team': {
+                                        'id': 42,
+                                        'name': 'Arsenal',
+                                        'logo': 'https://...'
+                                    },
+                                    'points': 45,                       # Total points
+                                    'goalsDiff': 25,                    # Goal difference
+                                    'group': 'Premier League',          # Group/division name
+                                    'form': 'WWDWW',                   # Last 5 matches (W/D/L)
+                                    'status': 'same',                   # Position trend (up/down/same)
+                                    'description': 'Promotion - Champions League (Group Stage)',
+                                    'all': {                            # Overall stats
+                                        'played': 20,
+                                        'win': 14,
+                                        'draw': 3,
+                                        'lose': 3,
+                                        'goals': {
+                                            'for': 48,
+                                            'against': 23
+                                        }
+                                    },
+                                    'home': {                           # Home stats
+                                        'played': 10,
+                                        'win': 8,
+                                        'draw': 1,
+                                        'lose': 1,
+                                        'goals': {
+                                            'for': 26,
+                                            'against': 10
+                                        }
+                                    },
+                                    'away': {                           # Away stats
+                                        'played': 10,
+                                        'win': 6,
+                                        'draw': 2,
+                                        'lose': 2,
+                                        'goals': {
+                                            'for': 22,
+                                            'against': 13
+                                        }
+                                    },
+                                    'update': '2024-01-14T00:00:00+00:00'
+                                },
+                                ...  # Positions 2-20
+                            ],
+                            # Some leagues have multiple groups/divisions
+                            # For example, Copa Libertadores has Group A, B, C, etc.
+                            # Most major leagues have a single group
+                        ]
+                    }
+                }
+            ]
+        
+        Examples:
+            >>> # 1. Get full Premier League standings
+            >>> standings = client.get_standings(league_id=39, season=2024)
+            >>> league_data = standings[0]
+            >>> table = league_data['league']['standings'][0]  # Main table
+            >>> 
+            >>> # Display top 5 teams
+            >>> for team_data in table[:5]:
+            ...     print(f"{team_data['rank']}. {team_data['team']['name']}: "
+            ...           f"{team_data['points']} pts "
+            ...           f"(Form: {team_data['form']})")
+            >>> # Output:
+            >>> # 1. Arsenal: 45 pts (Form: WWDWW)
+            >>> # 2. Liverpool: 44 pts (Form: WDWWW)
+            >>> # 3. Manchester City: 43 pts (Form: WWLWW)
+            
+            >>> # 2. Get specific team's standing
+            >>> arsenal_standing = client.get_standings(
+            ...     league_id=39,
+            ...     season=2024,
+            ...     team_id=42
+            ... )
+            >>> arsenal = arsenal_standing[0]['league']['standings'][0][0]
+            >>> print(f"Arsenal position: {arsenal['rank']}")
+            >>> print(f"Points: {arsenal['points']}")
+            >>> print(f"Goal difference: {arsenal['goalsDiff']}")
+            
+            >>> # 3. Analyze team form (recent performance)
+            >>> for team_data in table:
+            ...     if team_data['form']:
+            ...         wins = team_data['form'].count('W')
+            ...         if wins >= 4:  # 4+ wins in last 5
+            ...             print(f"{team_data['team']['name']}: Hot streak! "
+            ...                   f"({team_data['form']})")
+            
+            >>> # 4. Find teams in relegation zone
+            >>> relegation_teams = [
+            ...     t for t in table
+            ...     if 'Relegation' in t.get('description', '')
+            ... ]
+            >>> for team_data in relegation_teams:
+            ...     print(f"{team_data['rank']}. {team_data['team']['name']}: "
+            ...           f"{team_data['points']} pts")
+            
+            >>> # 5. Home vs Away performance analysis
+            >>> for team_data in table:
+            ...     home_ppg = (team_data['home']['win'] * 3 + 
+            ...                 team_data['home']['draw']) / team_data['home']['played']
+            ...     away_ppg = (team_data['away']['win'] * 3 + 
+            ...                 team_data['away']['draw']) / team_data['away']['played']
+            ...     
+            ...     if home_ppg > away_ppg + 0.5:  # Significantly better at home
+            ...         print(f"{team_data['team']['name']}: Strong home form "
+            ...               f"(Home: {home_ppg:.2f} ppg, Away: {away_ppg:.2f} ppg)")
+            
+            >>> # 6. Goal scoring analysis
+            >>> top_scorers = sorted(
+            ...     table,
+            ...     key=lambda t: t['all']['goals']['for'],
+            ...     reverse=True
+            ... )[:3]
+            >>> for team_data in top_scorers:
+            ...     goals = team_data['all']['goals']
+            ...     print(f"{team_data['team']['name']}: "
+            ...           f"{goals['for']} goals scored, "
+            ...           f"{goals['against']} conceded")
+            
+            >>> # 7. Points per game calculation
+            >>> for team_data in table:
+            ...     played = team_data['all']['played']
+            ...     points = team_data['points']
+            ...     ppg = points / played if played > 0 else 0
+            ...     print(f"{team_data['team']['name']}: "
+            ...           f"{ppg:.2f} points per game")
+            
+            >>> # 8. Championship race (top 4)
+            >>> champions_league_spots = table[:4]
+            >>> print("Champions League qualification race:")
+            >>> for team_data in champions_league_spots:
+            ...     print(f"{team_data['rank']}. {team_data['team']['name']}: "
+            ...           f"{team_data['points']} pts (Recent: {team_data['form']})")
+            
+            >>> # 9. Multiple leagues comparison
+            >>> leagues_to_check = [
+            ...     (39, 'Premier League'),
+            ...     (140, 'La Liga'),
+            ...     (78, 'Bundesliga')
+            ... ]
+            >>> for league_id, league_name in leagues_to_check:
+            ...     standings = client.get_standings(league_id=league_id, season=2024)
+            ...     leader = standings[0]['league']['standings'][0][0]
+            ...     print(f"{league_name} leader: {leader['team']['name']} "
+            ...           f"({leader['points']} pts)")
+            
+            >>> # 10. Defensive analysis
+            >>> best_defense = sorted(
+            ...     table,
+            ...     key=lambda t: t['all']['goals']['against']
+            ... )[:5]
+            >>> print("Best defensive records:")
+            >>> for team_data in best_defense:
+            ...     print(f"{team_data['team']['name']}: "
+            ...           f"{team_data['all']['goals']['against']} goals conceded "
+            ...           f"in {team_data['all']['played']} games")
+        
+        Common Use Cases:
+            1. **Weekly Updates**: Fetch standings after match rounds complete
+            2. **Team Position**: Quick lookup with team_id filter
+            3. **Form Analysis**: Use 'form' field for recent performance
+            4. **Prediction Features**: Use points, goal diff, form as ML features
+            5. **Relegation Risk**: Identify teams near relegation zone
+            6. **Title Race**: Track top teams and points gaps
+        
+        Data Analysis Applications:
+            - **Match Prediction**: Table position affects outcome probability
+            - **Over/Under Goals**: Goals scored/conceded rates
+            - **Home Advantage**: Compare home vs away performance
+            - **Form Momentum**: Recent results (form field)
+            - **Strength of Schedule**: Analyze opponents based on standings
+        
+        Performance Optimization:
+            - Full league table: 1 API call
+            - Single team standing: 1 API call (same cost)
+            - Recommended: Fetch full table, filter locally
+            - Cache for 6 hours during active season
+            - Update after major match rounds complete
+        
+        Data Structure Notes:
+            - Most leagues return single standings group (main table)
+            - Some competitions have multiple groups (e.g., Champions League)
+            - Access main table: standings[0]['league']['standings'][0]
+            - 'form' shows last 5 matches: W=Win, D=Draw, L=Loss
+            - 'status' indicates position change: up/down/same
+            - 'description' shows qualification/relegation status
+            - Stats broken down by: all/home/away matches
+        
+        Standings Positions Explained:
+            - Premier League (20 teams):
+                * 1-4: Champions League qualification
+                * 5-6: Europa League
+                * 7: Conference League (or FA Cup winner)
+                * 18-20: Relegation to Championship
+            - Varies by league and season rules
+        
+        Historical Data:
+            - Available for past seasons (typically 10+ years)
+            - Use to analyze team progression over time
+            - Compare current season to historical performance
+        
+        Error Handling:
+            - Returns empty list if league/season not found
+            - Invalid league_id raises APIError
+            - Invalid season raises ValidationError
+            - Some leagues may not have standings yet (early season)
+        
+        Rate Limit Considerations:
+            - This endpoint is called less frequently than fixtures
+            - Pro Plan: 7,500 requests/day, 150/minute
+            - Recommended: Weekly updates during season
+            - Cache for 6 hours to minimize API calls
+        
+        Documentation:
+            https://www.api-football.com/documentation-v3#tag/Standings/operation/get-standings
+        """
+        # Log request parameters
+        filter_parts = [f"league={league_id}", f"season={season}"]
+        if team_id is not None:
+            filter_parts.append(f"team={team_id}")
+        
+        filters_str = ", ".join(filter_parts)
+        logger.info(f"Fetching standings ({filters_str})")
+        
+        # Build query parameters
+        params = {
+            'league': league_id,
+            'season': season
+        }
+        if team_id is not None:
+            params['team'] = team_id
+        
+        # Make API request
+        response = self.get('standings', params=params)
+        standings = response.get('response', [])
+        
+        # Validate response
+        if standings is None:
+            logger.warning("API returned None for standings response")
+            standings = []
+        
+        # Log results with context
+        if standings:
+            league_info = standings[0].get('league', {})
+            league_name = league_info.get('name', 'Unknown')
+            season_year = league_info.get('season', season)
+            
+            # Get standings table(s)
+            standings_groups = league_info.get('standings', [])
+            
+            if team_id:
+                # Specific team requested
+                if standings_groups and standings_groups[0]:
+                    team_data = standings_groups[0][0]  # First (only) result
+                    team_name = team_data.get('team', {}).get('name', 'Unknown')
+                    rank = team_data.get('rank', 'N/A')
+                    points = team_data.get('points', 0)
+                    form = team_data.get('form', 'N/A')
+                    
+                    logger.info(
+                        f"Fetched standing for {team_name} in {league_name} {season_year}: "
+                        f"Position {rank}, {points} points (Form: {form})"
+                    )
+                else:
+                    logger.warning(f"Team {team_id} not found in standings")
+            else:
+                # Full league table
+                total_teams = sum(len(group) for group in standings_groups)
+                num_groups = len(standings_groups)
+                
+                if num_groups == 1:
+                    # Single table (most common)
+                    logger.info(
+                        f"Fetched {league_name} {season_year} standings: "
+                        f"{total_teams} teams"
+                    )
+                    
+                    # Log top 3 and bottom 3 for context
+                    if standings_groups[0]:
+                        top_3 = standings_groups[0][:3]
+                        bottom_3 = standings_groups[0][-3:]
+                        
+                        top_info = ", ".join(
+                            f"{t['rank']}. {t['team']['name']} ({t['points']} pts)"
+                            for t in top_3
+                        )
+                        bottom_info = ", ".join(
+                            f"{t['rank']}. {t['team']['name']} ({t['points']} pts)"
+                            for t in bottom_3
+                        )
+                        
+                        logger.debug(f"Top 3: {top_info}")
+                        logger.debug(f"Bottom 3: {bottom_info}")
+                else:
+                    # Multiple groups (e.g., Champions League)
+                    logger.info(
+                        f"Fetched {league_name} {season_year} standings: "
+                        f"{num_groups} groups, {total_teams} teams total"
+                    )
+                    
+                    # Log group names
+                    group_names = [
+                        standings_groups[i][0]['group'] if standings_groups[i] else 'Unknown'
+                        for i in range(num_groups)
+                    ]
+                    logger.debug(f"Groups: {', '.join(group_names)}")
+        else:
+            logger.warning(
+                f"No standings found for league {league_id}, season {season}"
+            )
+        
+        return standings
