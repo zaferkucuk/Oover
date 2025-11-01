@@ -2,16 +2,21 @@
 URL Configuration for Core App
 
 This module defines URL patterns for the core app,
-including routes for Country, League, and Team API endpoints.
+including routes for Country, League, Team, and TeamStatistics API endpoints.
 
 Author: Oover Development Team
-Date: October 2025
+Date: November 2025
 """
 
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from apps.core.views import CountryViewSet, LeagueViewSet, TeamViewSet
+from apps.core.views import (
+    CountryViewSet,
+    LeagueViewSet,
+    TeamViewSet,
+    TeamStatisticsViewSet,
+)
 
 
 # Create router and register viewsets
@@ -19,6 +24,7 @@ router = DefaultRouter()
 router.register(r'countries', CountryViewSet, basename='country')
 router.register(r'leagues', LeagueViewSet, basename='league')
 router.register(r'teams', TeamViewSet, basename='team')
+router.register(r'team-statistics', TeamStatisticsViewSet, basename='team-statistics')
 
 # App name for namespacing
 app_name = 'core'
@@ -88,6 +94,27 @@ External API Operations:
 - GET    /api/teams/operations/           - List team API sync operations history
 
 
+TEAM STATISTICS ENDPOINTS
+--------------------------
+Standard CRUD:
+- GET    /api/team-statistics/            - List all team statistics (paginated)
+- POST   /api/team-statistics/            - Create new team statistics
+- GET    /api/team-statistics/{id}/       - Get team statistics details (with full JSONB data)
+- PUT    /api/team-statistics/{id}/       - Update team statistics (all fields)
+- PATCH  /api/team-statistics/{id}/       - Partial update team statistics
+- DELETE /api/team-statistics/{id}/       - Delete team statistics
+
+Analytics Actions:
+- GET    /api/team-statistics/by_team/?team_id={uuid}
+                                          - Get all statistics for a specific team across seasons
+- GET    /api/team-statistics/by_league/?league_id={uuid}&season=2024-2025
+                                          - Get all team statistics for a league (optional season filter)
+- GET    /api/team-statistics/by_season/?season=2024-2025
+                                          - Get all team statistics for a specific season
+- GET    /api/team-statistics/stats/     - Get aggregate statistics
+                                           (total records, unique teams/leagues/seasons)
+
+
 ===================================
 QUERY PARAMETERS
 ===================================
@@ -101,6 +128,17 @@ Standard Listing Parameters:
 - ?search=keyword                         - Search in name, code, or external_id
 - ?ordering=name,-created_at              - Order by field (- for descending)
 - ?page=1&page_size=20                    - Pagination (default varies by endpoint)
+
+Team Statistics Specific Parameters:
+- ?team=<uuid>                            - Filter by team ID
+- ?league=<uuid>                          - Filter by league ID
+- ?season=2024-2025                       - Filter by season
+- ?matches_played=20                      - Filter by matches played (exact)
+- ?matches_played__gte=10                 - Filter by matches played (minimum)
+- ?matches_played__lte=30                 - Filter by matches played (maximum)
+- ?search=keyword                         - Search in team name, league name, season
+- ?ordering=-season,matches_played        - Order by field (- for descending)
+                                           Default: -season,-updated_at (newest first)
 
 Operations Listing Parameters:
 - ?status=<status>                        - Filter by operation status
@@ -352,6 +390,53 @@ GET /api/teams/search/?q=united
 
 # Filter by market value range
 GET /api/teams/?market_value_min=100000000&market_value_max=1000000000
+
+
+TEAM STATISTICS:
+----------------
+# List all team statistics, ordered by newest season first
+GET /api/team-statistics/?ordering=-season
+
+# Get statistics for a specific team
+GET /api/team-statistics/?team={team_uuid}
+
+# Get statistics for a specific league and season
+GET /api/team-statistics/?league={league_uuid}&season=2024-2025
+
+# Search in team or league names
+GET /api/team-statistics/?search=manchester
+
+# Get all statistics for a team across seasons
+GET /api/team-statistics/by_team/?team_id={team_uuid}
+
+# Get all team statistics for a league in 2024-2025 season
+GET /api/team-statistics/by_league/?league_id={league_uuid}&season=2024-2025
+
+# Get all statistics across all leagues for 2024-2025 season
+GET /api/team-statistics/by_season/?season=2024-2025
+
+# Get aggregate statistics (total records, unique teams/leagues/seasons)
+GET /api/team-statistics/stats/
+
+# Get team statistics details with full JSONB data
+GET /api/team-statistics/{id}/
+
+# Create new team statistics
+POST /api/team-statistics/
+{
+    "team": "team_uuid",
+    "league": "league_uuid",
+    "season": "2024-2025",
+    "matches_played": 20,
+    "statistics": {
+        "goals": {"for": 45, "against": 20},
+        "possession": 58.5,
+        "pass_accuracy": 85.2,
+        "shots": {"on_target": 120, "off_target": 80},
+        "clean_sheets": 8
+    },
+    "external_id": "ext_12345"
+}
 
 
 ===================================
