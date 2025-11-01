@@ -26,6 +26,7 @@ class APIFootballClient(BaseAPIClient):
     - Team details
     - Fixtures/Matches (with comprehensive filtering)
     - Standings (league tables with rankings)
+    - Match Statistics (team & player performance metrics)
     
     Authentication:
         Uses X-RapidAPI-Key and X-RapidAPI-Host headers with RapidAPI key.
@@ -48,6 +49,7 @@ class APIFootballClient(BaseAPIClient):
         >>> team = client.get_team_details(42)  # Arsenal
         >>> fixtures = client.get_fixtures(league_id=39, season=2024)  # PL fixtures
         >>> standings = client.get_standings(league_id=39, season=2024)  # PL table
+        >>> stats = client.get_match_statistics(match_id=215662)  # Match stats
     """
     
     def __init__(self, api_key: str, timeout: int = 30, max_retries: int = 3):
@@ -1355,3 +1357,434 @@ class APIFootballClient(BaseAPIClient):
             )
         
         return standings
+    
+    def get_match_statistics(
+        self,
+        match_id: int,
+        team_id: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get detailed match statistics from API-Football.
+        
+        Match statistics are CRITICAL for prediction algorithms and performance analysis.
+        This endpoint provides comprehensive team and player statistics for completed
+        or ongoing matches:
+        
+        TEAM STATISTICS:
+        - Ball possession percentage
+        - Shot statistics (total, on target, off target, blocked, inside/outside box)
+        - Pass statistics (total, accuracy %, key passes)
+        - Attacking metrics (attacks, dangerous attacks, corners)
+        - Defensive metrics (tackles, blocks, interceptions, fouls)
+        - Goalkeeper statistics (saves, goals conceded)
+        - Advanced metrics (expected goals - xG, when available)
+        
+        PLAYER STATISTICS (when included):
+        - Individual ratings (1-10 scale)
+        - Goals, assists, shots
+        - Pass completion, key passes
+        - Dribbles, tackles, duels
+        - Cards (yellow, red)
+        - Minutes played, position
+        
+        🎯 CRITICAL: Essential for prediction models and post-match analysis
+        🔄 UPDATE FREQUENCY:
+            - Live matches: Every 5-10 minutes (statistics update during match)
+            - Recent completed: 1 hour (final statistics may be adjusted)
+            - Completed matches: 7 days (final statistics are stable)
+        
+        📊 DATA VOLUME: 30-50 statistics per team per match
+        
+        ⚠️ CACHING STRATEGY (IMPORTANT):
+            - Live matches: 5 minutes (rapid updates)
+            - Recent completed (< 24h): 1 hour (adjustments possible)
+            - Completed matches (> 24h): 7 days (stable final data)
+            - Historical matches: 30 days (rarely accessed)
+        
+        Args:
+            match_id: Fixture/Match ID (required)
+                The unique identifier for the match.
+                Get this from get_fixtures() endpoint.
+                Example: 215662
+                
+            team_id: Optional team filter
+                When provided, returns statistics only for this team.
+                Useful for team-specific analysis.
+                Without this parameter, returns statistics for both teams.
+                Example: 33 for Manchester United
+        
+        Returns:
+            List containing match statistics with structure:
+            [
+                {
+                    'team': {
+                        'id': 33,
+                        'name': 'Manchester United',
+                        'logo': 'https://...'
+                    },
+                    'statistics': [
+                        {
+                            'type': 'Shots on Goal',          # Statistic name
+                            'value': 8                         # Statistic value
+                        },
+                        {
+                            'type': 'Shots off Goal',
+                            'value': 5
+                        },
+                        {
+                            'type': 'Total Shots',
+                            'value': 13
+                        },
+                        {
+                            'type': 'Blocked Shots',
+                            'value': 3
+                        },
+                        {
+                            'type': 'Shots insidebox',
+                            'value': 10
+                        },
+                        {
+                            'type': 'Shots outsidebox',
+                            'value': 3
+                        },
+                        {
+                            'type': 'Fouls',
+                            'value': 12
+                        },
+                        {
+                            'type': 'Corner Kicks',
+                            'value': 6
+                        },
+                        {
+                            'type': 'Offsides',
+                            'value': 2
+                        },
+                        {
+                            'type': 'Ball Possession',         # Percentage
+                            'value': '58%'
+                        },
+                        {
+                            'type': 'Yellow Cards',
+                            'value': 2
+                        },
+                        {
+                            'type': 'Red Cards',
+                            'value': 0
+                        },
+                        {
+                            'type': 'Goalkeeper Saves',
+                            'value': 4
+                        },
+                        {
+                            'type': 'Total passes',
+                            'value': 543
+                        },
+                        {
+                            'type': 'Passes accurate',
+                            'value': 487
+                        },
+                        {
+                            'type': 'Passes %',                # Pass accuracy
+                            'value': '90%'
+                        },
+                        {
+                            'type': 'expected_goals',          # xG (when available)
+                            'value': 2.14
+                        }
+                        # Additional statistics...
+                    ]
+                },
+                {
+                    'team': {
+                        'id': 34,
+                        'name': 'Newcastle',
+                        'logo': 'https://...'
+                    },
+                    'statistics': [
+                        # Statistics for away team...
+                    ]
+                }
+            ]
+        
+        Common Statistics Available:
+            - Shots on Goal: Total shots on target
+            - Shots off Goal: Total shots off target
+            - Total Shots: All shot attempts
+            - Blocked Shots: Shots blocked by defenders
+            - Shots insidebox: Shots from inside penalty area
+            - Shots outsidebox: Shots from outside penalty area
+            - Fouls: Total fouls committed
+            - Corner Kicks: Corner kicks won
+            - Offsides: Offside calls against team
+            - Ball Possession: Possession percentage (e.g., '58%')
+            - Yellow Cards: Yellow cards received
+            - Red Cards: Red cards received
+            - Goalkeeper Saves: Saves made by goalkeeper
+            - Total passes: Total pass attempts
+            - Passes accurate: Successful passes
+            - Passes %: Pass completion percentage (e.g., '90%')
+            - expected_goals: Expected goals (xG) when available
+            - Attacks: Total attacking actions
+            - Dangerous Attacks: High-threat attacking actions
+        
+        Examples:
+            >>> # 1. Get statistics for both teams in a match
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> for team_stats in stats:
+            ...     team_name = team_stats['team']['name']
+            ...     print(f"\n{team_name} Statistics:")
+            ...     for stat in team_stats['statistics']:
+            ...         print(f"  {stat['type']}: {stat['value']}")
+            
+            >>> # 2. Get statistics for specific team only
+            >>> man_utd_stats = client.get_match_statistics(
+            ...     match_id=215662,
+            ...     team_id=33
+            ... )
+            >>> # Returns only Manchester United's statistics
+            
+            >>> # 3. Extract possession data
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> for team_stats in stats:
+            ...     team_name = team_stats['team']['name']
+            ...     possession = next(
+            ...         (s['value'] for s in team_stats['statistics']
+            ...          if s['type'] == 'Ball Possession'),
+            ...         None
+            ...     )
+            ...     print(f"{team_name}: {possession} possession")
+            
+            >>> # 4. Calculate shot efficiency
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> for team_stats in stats:
+            ...     team_name = team_stats['team']['name']
+            ...     stats_dict = {
+            ...         s['type']: s['value']
+            ...         for s in team_stats['statistics']
+            ...     }
+            ...     
+            ...     total_shots = stats_dict.get('Total Shots', 0)
+            ...     on_target = stats_dict.get('Shots on Goal', 0)
+            ...     
+            ...     if total_shots > 0:
+            ...         accuracy = (on_target / total_shots) * 100
+            ...         print(f"{team_name}: {accuracy:.1f}% shot accuracy "
+            ...               f"({on_target}/{total_shots})")
+            
+            >>> # 5. Analyze passing statistics
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> for team_stats in stats:
+            ...     team_name = team_stats['team']['name']
+            ...     stats_dict = {s['type']: s['value'] for s in team_stats['statistics']}
+            ...     
+            ...     total_passes = stats_dict.get('Total passes', 0)
+            ...     pass_accuracy = stats_dict.get('Passes %', '0%')
+            ...     
+            ...     print(f"{team_name}: {total_passes} passes, "
+            ...           f"{pass_accuracy} accuracy")
+            
+            >>> # 6. Get xG (expected goals) data
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> for team_stats in stats:
+            ...     team_name = team_stats['team']['name']
+            ...     xg = next(
+            ...         (s['value'] for s in team_stats['statistics']
+            ...          if s['type'] == 'expected_goals'),
+            ...         'N/A'
+            ...     )
+            ...     print(f"{team_name} xG: {xg}")
+            
+            >>> # 7. Defensive statistics analysis
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> for team_stats in stats:
+            ...     team_name = team_stats['team']['name']
+            ...     stats_dict = {s['type']: s['value'] for s in team_stats['statistics']}
+            ...     
+            ...     saves = stats_dict.get('Goalkeeper Saves', 0)
+            ...     blocks = stats_dict.get('Blocked Shots', 0)
+            ...     
+            ...     print(f"{team_name} Defense:")
+            ...     print(f"  Goalkeeper saves: {saves}")
+            ...     print(f"  Blocked shots: {blocks}")
+            
+            >>> # 8. Compare attacking statistics
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> for team_stats in stats:
+            ...     team_name = team_stats['team']['name']
+            ...     stats_dict = {s['type']: s['value'] for s in team_stats['statistics']}
+            ...     
+            ...     corners = stats_dict.get('Corner Kicks', 0)
+            ...     attacks = stats_dict.get('Attacks', 0)
+            ...     dangerous = stats_dict.get('Dangerous Attacks', 0)
+            ...     
+            ...     print(f"{team_name} Attack:")
+            ...     print(f"  Corners: {corners}")
+            ...     print(f"  Total attacks: {attacks}")
+            ...     print(f"  Dangerous attacks: {dangerous}")
+            
+            >>> # 9. Build statistics dictionary for ML features
+            >>> stats = client.get_match_statistics(match_id=215662)
+            >>> features = {}
+            >>> for team_stats in stats:
+            ...     team_id = team_stats['team']['id']
+            ...     features[team_id] = {
+            ...         s['type'].lower().replace(' ', '_'): s['value']
+            ...         for s in team_stats['statistics']
+            ...     }
+            >>> # Use features dict for machine learning models
+            
+            >>> # 10. Analyze multiple matches for a team
+            >>> # First get recent fixtures
+            >>> fixtures = client.get_fixtures(team_id=33, last=5, status='FT')
+            >>> 
+            >>> # Then get statistics for each match
+            >>> team_shots = []
+            >>> for fixture in fixtures:
+            ...     match_id = fixture['fixture']['id']
+            ...     stats = client.get_match_statistics(match_id=match_id, team_id=33)
+            ...     
+            ...     if stats:
+            ...         stats_dict = {s['type']: s['value'] for s in stats[0]['statistics']}
+            ...         total_shots = stats_dict.get('Total Shots', 0)
+            ...         team_shots.append(total_shots)
+            >>> 
+            >>> avg_shots = sum(team_shots) / len(team_shots) if team_shots else 0
+            >>> print(f"Average shots per game (last 5): {avg_shots:.1f}")
+        
+        Common Use Cases:
+            1. **Post-Match Analysis**: Comprehensive review of team performance
+            2. **Prediction Features**: Use historical stats for ML models
+            3. **Performance Metrics**: Track team/player improvement over time
+            4. **Match Reports**: Generate detailed match reports
+            5. **Comparison Analysis**: Compare teams across multiple matches
+            6. **xG Analysis**: Compare actual goals vs expected goals
+        
+        ML Feature Engineering:
+            Common features extracted from match statistics:
+            - Shot efficiency: shots on target / total shots
+            - Pass accuracy: accurate passes / total passes
+            - Possession dominance: absolute difference in possession
+            - Attacking intensity: shots + corners + attacks
+            - Defensive solidity: blocks + saves - fouls
+            - Expected goals (xG) when available
+        
+        Performance Optimization:
+            - Single match: 1 API call
+            - Specific team in match: 1 API call (same cost)
+            - Recommended: Fetch both teams, filter locally
+            - Cache completed matches for 7 days
+            - Cache live matches for 5 minutes
+        
+        Data Availability:
+            - Available for completed matches immediately after final whistle
+            - Some statistics may be updated 1-2 hours after match
+            - Not all matches have complete statistics (coverage varies)
+            - xG data availability depends on league coverage
+            - Historical matches: typically 3-10 years available
+        
+        Data Quality Notes:
+            - Major leagues have comprehensive statistics
+            - Lower leagues may have limited statistics
+            - Some statistics are estimated (possession calculated from passes)
+            - Player-level statistics require separate endpoint
+            - Statistics format is consistent across all leagues
+            - Values can be integers, floats, or strings (percentages)
+        
+        Error Handling:
+            - Returns empty list if no statistics available
+            - Invalid match_id raises APIError
+            - Statistics may be incomplete for recent/live matches
+            - Some statistics may have null/None values
+        
+        Rate Limit Considerations:
+            - Moderate frequency endpoint (after each match)
+            - Pro Plan: 7,500 requests/day, 150/minute
+            - Recommended: Fetch after match completion, cache 7 days
+            - For live tracking: Poll every 5-10 minutes
+        
+        Documentation:
+            https://www.api-football.com/documentation-v3#tag/Fixtures/operation/get-fixtures-statistics
+        """
+        # Log request parameters
+        filter_parts = [f"match={match_id}"]
+        if team_id is not None:
+            filter_parts.append(f"team={team_id}")
+        
+        filters_str = ", ".join(filter_parts)
+        logger.info(f"Fetching match statistics ({filters_str})")
+        
+        # Build query parameters
+        params = {'fixture': match_id}
+        if team_id is not None:
+            params['team'] = team_id
+        
+        # Make API request
+        response = self.get('fixtures/statistics', params=params)
+        statistics = response.get('response', [])
+        
+        # Validate response
+        if statistics is None:
+            logger.warning("API returned None for match statistics response")
+            statistics = []
+        
+        # Log results with context
+        if statistics:
+            if team_id:
+                # Specific team requested
+                if statistics:
+                    team_name = statistics[0].get('team', {}).get('name', 'Unknown')
+                    num_stats = len(statistics[0].get('statistics', []))
+                    logger.info(
+                        f"Fetched match statistics for {team_name} "
+                        f"in match {match_id}: {num_stats} statistics"
+                    )
+                    
+                    # Log sample statistics for context
+                    if statistics[0].get('statistics'):
+                        sample_stats = statistics[0]['statistics'][:3]
+                        stats_summary = ", ".join(
+                            f"{s['type']}: {s['value']}"
+                            for s in sample_stats
+                        )
+                        logger.debug(f"Sample stats: {stats_summary}")
+            else:
+                # Both teams
+                num_teams = len(statistics)
+                logger.info(
+                    f"Fetched match statistics for match {match_id}: "
+                    f"{num_teams} teams"
+                )
+                
+                # Log team names and stat counts
+                for team_stats in statistics:
+                    team_name = team_stats.get('team', {}).get('name', 'Unknown')
+                    num_stats = len(team_stats.get('statistics', []))
+                    logger.debug(f"  {team_name}: {num_stats} statistics")
+                
+                # Log possession comparison if available
+                if len(statistics) == 2:
+                    team1_stats = {
+                        s['type']: s['value']
+                        for s in statistics[0].get('statistics', [])
+                    }
+                    team2_stats = {
+                        s['type']: s['value']
+                        for s in statistics[1].get('statistics', [])
+                    }
+                    
+                    possession1 = team1_stats.get('Ball Possession', 'N/A')
+                    possession2 = team2_stats.get('Ball Possession', 'N/A')
+                    
+                    if possession1 != 'N/A' and possession2 != 'N/A':
+                        team1_name = statistics[0].get('team', {}).get('name', 'Team 1')
+                        team2_name = statistics[1].get('team', {}).get('name', 'Team 2')
+                        logger.debug(
+                            f"Possession: {team1_name} {possession1} - "
+                            f"{possession2} {team2_name}"
+                        )
+        else:
+            logger.warning(
+                f"No statistics found for match {match_id}"
+            )
+        
+        return statistics
