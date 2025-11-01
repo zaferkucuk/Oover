@@ -6,10 +6,12 @@ Provides serialization/deserialization for API endpoints.
 
 Author: Oover Development Team
 Date: October 2025
+Updated: November 2025 - Added stadium and color fields
 """
 
 from rest_framework import serializers
 from apps.core.models import Team, Country
+import re
 
 
 class TeamListSerializer(serializers.ModelSerializer):
@@ -24,6 +26,8 @@ class TeamListSerializer(serializers.ModelSerializer):
     Includes:
     - Basic team info (id, code, name, logo)
     - Nested country name (for display)
+    - Stadium information
+    - Team colors
     - Status flags (is_active)
     - Market value (formatted)
     """
@@ -41,6 +45,10 @@ class TeamListSerializer(serializers.ModelSerializer):
             'country_name',
             'country_code',
             'logo',
+            'stadium_name',
+            'stadium_capacity',
+            'primary_color',
+            'secondary_color',
             'market_value',
             'market_value_formatted',
             'is_active',
@@ -60,6 +68,8 @@ class TeamDetailSerializer(serializers.ModelSerializer):
     Includes:
     - All team fields
     - Nested country details (full object)
+    - Stadium information
+    - Team colors
     - Formatted market value
     - Timestamps
     """
@@ -77,6 +87,10 @@ class TeamDetailSerializer(serializers.ModelSerializer):
             'country',
             'country_details',
             'logo',
+            'stadium_name',
+            'stadium_capacity',
+            'primary_color',
+            'secondary_color',
             'founded',
             'website',
             'market_value',
@@ -120,6 +134,8 @@ class TeamCreateSerializer(serializers.ModelSerializer):
     - Validates external_id format
     - Validates website URL format (if provided)
     - Validates market_value range (if provided)
+    - Validates stadium_capacity is positive (if provided)
+    - Validates primary_color and secondary_color are valid hex colors (if provided)
     """
     
     class Meta:
@@ -130,6 +146,10 @@ class TeamCreateSerializer(serializers.ModelSerializer):
             'name',
             'country',
             'logo',
+            'stadium_name',
+            'stadium_capacity',
+            'primary_color',
+            'secondary_color',
             'founded',
             'website',
             'market_value',
@@ -203,6 +223,117 @@ class TeamCreateSerializer(serializers.ModelSerializer):
             )
         
         return code
+    
+    def validate_stadium_name(self, value):
+        """
+        Validate stadium name
+        
+        Rules:
+        - Optional field
+        - Trim whitespace
+        
+        Args:
+            value: Stadium name to validate
+            
+        Returns:
+            str: Validated stadium name
+        """
+        if not value:
+            return value
+        
+        return value.strip()
+    
+    def validate_stadium_capacity(self, value):
+        """
+        Validate stadium capacity
+        
+        Rules:
+        - Must be positive integer if provided
+        - Reasonable maximum: 150,000 (largest stadiums)
+        
+        Args:
+            value: Stadium capacity to validate
+            
+        Returns:
+            int: Validated capacity
+            
+        Raises:
+            ValidationError: If validation fails
+        """
+        if value is None:
+            return value
+        
+        if value < 1:
+            raise serializers.ValidationError(
+                "Stadium capacity must be a positive number"
+            )
+        
+        if value > 150000:
+            raise serializers.ValidationError(
+                "Stadium capacity cannot exceed 150,000"
+            )
+        
+        return value
+    
+    def validate_primary_color(self, value):
+        """
+        Validate primary color hex code
+        
+        Rules:
+        - Must be valid hex color format if provided
+        - Format: #RRGGBB (e.g., #FF0000 for red)
+        
+        Args:
+            value: Hex color code to validate
+            
+        Returns:
+            str: Validated hex color (uppercase)
+            
+        Raises:
+            ValidationError: If validation fails
+        """
+        if not value:
+            return value
+        
+        color = value.strip().upper()
+        
+        # Check hex color format (#RRGGBB)
+        if not re.match(r'^#[0-9A-F]{6}$', color):
+            raise serializers.ValidationError(
+                "Primary color must be a valid hex color code (e.g., #FF0000)"
+            )
+        
+        return color
+    
+    def validate_secondary_color(self, value):
+        """
+        Validate secondary color hex code
+        
+        Rules:
+        - Must be valid hex color format if provided
+        - Format: #RRGGBB (e.g., #0000FF for blue)
+        
+        Args:
+            value: Hex color code to validate
+            
+        Returns:
+            str: Validated hex color (uppercase)
+            
+        Raises:
+            ValidationError: If validation fails
+        """
+        if not value:
+            return value
+        
+        color = value.strip().upper()
+        
+        # Check hex color format (#RRGGBB)
+        if not re.match(r'^#[0-9A-F]{6}$', color):
+            raise serializers.ValidationError(
+                "Secondary color must be a valid hex color code (e.g., #0000FF)"
+            )
+        
+        return color
     
     def validate_founded(self, value):
         """
@@ -333,6 +464,8 @@ class TeamUpdateSerializer(serializers.ModelSerializer):
     Allows updating:
     - code, name, logo, founded, website, market_value
     - country (can be changed)
+    - stadium_name, stadium_capacity
+    - primary_color, secondary_color
     - external_id
     - is_active status
     
@@ -348,6 +481,10 @@ class TeamUpdateSerializer(serializers.ModelSerializer):
             'name',
             'country',
             'logo',
+            'stadium_name',
+            'stadium_capacity',
+            'primary_color',
+            'secondary_color',
             'founded',
             'website',
             'market_value',
@@ -391,6 +528,58 @@ class TeamUpdateSerializer(serializers.ModelSerializer):
             )
         
         return code
+    
+    def validate_stadium_name(self, value):
+        """Validate stadium name on update"""
+        if not value:
+            return value
+        
+        return value.strip()
+    
+    def validate_stadium_capacity(self, value):
+        """Validate stadium capacity on update"""
+        if value is None:
+            return value
+        
+        if value < 1:
+            raise serializers.ValidationError(
+                "Stadium capacity must be a positive number"
+            )
+        
+        if value > 150000:
+            raise serializers.ValidationError(
+                "Stadium capacity cannot exceed 150,000"
+            )
+        
+        return value
+    
+    def validate_primary_color(self, value):
+        """Validate primary color on update"""
+        if not value:
+            return value
+        
+        color = value.strip().upper()
+        
+        if not re.match(r'^#[0-9A-F]{6}$', color):
+            raise serializers.ValidationError(
+                "Primary color must be a valid hex color code (e.g., #FF0000)"
+            )
+        
+        return color
+    
+    def validate_secondary_color(self, value):
+        """Validate secondary color on update"""
+        if not value:
+            return value
+        
+        color = value.strip().upper()
+        
+        if not re.match(r'^#[0-9A-F]{6}$', color):
+            raise serializers.ValidationError(
+                "Secondary color must be a valid hex color code (e.g., #0000FF)"
+            )
+        
+        return color
     
     def validate_founded(self, value):
         """Validate foundation year on update"""
