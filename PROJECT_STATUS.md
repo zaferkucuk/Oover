@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-11-01 19:05 UTC
+**Last Updated**: 2025-11-01 19:15 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -10,27 +10,28 @@
 
 **🎯 ACTIVE FEATURE**: backend_sync
 **✅ LAST COMPLETED**: Phase 4.2 - Create team_statistics serializer (✅ DONE) 🎊
-**📍 CURRENT STATUS**: Phase 4 in progress (2/6 tasks complete)
+**📍 CURRENT STATUS**: Phase 4 in progress (2/4 tasks complete)
 **🔗 Active Branch**: `main`
 
 **💬 Quick Start Message for Next Session**:
 ```
-🎯 ACTIVE FEATURE: backend_sync (80% complete)
+🎯 ACTIVE FEATURE: backend_sync (74% complete)
 
 ✅ PHASE 1 COMPLETE: Backend Analysis (100%)
 ✅ PHASE 2 COMPLETE: Django Models Sync (100%)
 ✅ PHASE 3 COMPLETE: Type Generation (100%)
-🔄 PHASE 4 IN PROGRESS: API Endpoints (33% - 2/6 tasks)
+🔄 PHASE 4 IN PROGRESS: API Endpoints (50% - 2/4 tasks)
   ✅ Updated existing serializers (Country, League, Team)
   ✅ Created team_statistics serializer with JSONB handling
-  📝 NEXT: Create player_statistics serializer
+  ❌ Phase 4.3 CANCELLED: player_statistics (not needed for project)
+  📝 NEXT: Create ViewSet for team_statistics
 
-🎯 NEXT: Phase 4.3 - Create player_statistics serializer (15 min)
-- Handle JSONB statistics field
-- Add validation for player, team, league relationships
+🎯 NEXT: Phase 4.3 - Create ViewSet for team_statistics (5 min)
+- Create TeamStatisticsViewSet with CRUD operations
+- Add filtering, ordering, pagination
 
-📊 FEATURE PROGRESS: 80% (17/25 tasks)
-⏱️ TIME SPENT: 140/195 minutes
+📊 FEATURE PROGRESS: 74% (17/23 tasks)
+⏱️ TIME SPENT: 140/175 minutes
 ```
 
 ---
@@ -39,11 +40,11 @@
 
 | Feature | Priority | Status | Progress | Estimated Time | Started | Completed | Time Spent |
 |---------|----------|--------|----------|---------------|---------|-----------|------------|
-| **backend_sync** | 🔴 CRITICAL | 🔄 ACTIVE | 80% (17/25) | 195 min | 2025-11-01 | TBD | 140 min |
+| **backend_sync** | 🔴 CRITICAL | 🔄 ACTIVE | 74% (17/23) | 175 min | 2025-11-01 | TBD | 140 min |
 | database_update | 🔴 CRITICAL | ✅ COMPLETE | 100% (22/22) | 180 min | 2025-11-01 | 2025-11-01 | 150 min |
 
-**Current Focus**: backend_sync (80% - Phase 4.2 Complete, 4.3 Next)
-**Next Task**: Create serializer for player_statistics with JSONB handling (Phase 4.3)
+**Current Focus**: backend_sync (74% - Phase 4.2 Complete, 4.3 Next)
+**Next Task**: Create ViewSet for team_statistics (Phase 4.3)
 
 ---
 
@@ -54,8 +55,8 @@
 **Type**: Backend Development (Django Models, API, Types)
 **Start Date**: 2025-11-01 16:00 UTC
 **Estimated Completion**: TBD
-**Total Estimated Time**: ~195 minutes
-**Time Spent**: 140 minutes (72% of estimated)
+**Total Estimated Time**: ~175 minutes (revised from 195 - player stats removed)
+**Time Spent**: 140 minutes (80% of estimated)
 
 ### 📋 FEATURE OVERVIEW
 
@@ -68,11 +69,15 @@ After completing database_update feature, the database schema has significant ch
 - 2 completely new tables (team_statistics, player_statistics)
 - Multiple JSONB columns requiring special handling
 
+**Scope Revision (2025-11-01 19:15)**:
+- ❌ **REMOVED**: Player statistics functionality (not needed for project)
+- ✅ **KEPT**: Team statistics, all core entities (countries, leagues, teams, matches, standings, events)
+
 **Scope**:
 - ✅ Analyze existing Django models for gaps
 - ✅ Update existing models with new columns (Country, League, Team)
 - ✅ Create new models for matches, standings, match_events
-- ✅ Create new models for statistics tables (team_statistics, player_statistics)
+- ✅ Create new models for team_statistics (player_statistics kept in DB but no backend logic)
 - ✅ Generate TypeScript types from updated schema
 - ✅ Create/update Zod schemas for all tables
 - 🔄 Create/update API endpoints for new data structures (IN PROGRESS)
@@ -82,7 +87,7 @@ After completing database_update feature, the database schema has significant ch
 1. ✅ Backend analysis report (models status, gaps, impact)
 2. ✅ Updated Django models (countries, leagues, teams) - 8 new fields
 3. ✅ New Django models (Match, Standing, MatchEvent) - 3 complete models
-4. ✅ New Django models (TeamStatistics, PlayerStatistics) - 2 complete models
+4. ✅ New Django model (TeamStatistics) - 1 complete model
 5. ✅ Updated TypeScript types (database.types.ts, zod schemas)
 6. 🔄 Updated/new API endpoints (REST viewsets, serializers) - IN PROGRESS
 7. 📝 Integration tests and validation
@@ -93,7 +98,7 @@ After completing database_update feature, the database schema has significant ch
 - All models validated with `python manage.py check` (pending)
 - TypeScript types regenerated and validated ✅
 - Serializers updated for all modified models ✅
-- Serializers created for new statistics models (1/2 done)
+- Serializers created for team_statistics ✅
 - API endpoints functional and tested (pending)
 - No breaking changes to existing frontend code (pending)
 
@@ -106,13 +111,13 @@ After completing database_update feature, the database schema has significant ch
 | 1: Analysis & Gap Assessment | ✅ COMPLETE | 100% | 4/4 | 15 min | 10 min |
 | 2: Django Models Sync | ✅ COMPLETE | 100% | 8/8 | 60 min | 65 min |
 | 3: Type Generation | ✅ COMPLETE | 100% | 3/3 | 30 min | 30 min |
-| 4: API Endpoints | 🔄 ACTIVE | 33% | 2/6 | 60 min | 35 min |
+| 4: API Endpoints | 🔄 ACTIVE | 50% | 2/4 | 40 min | 35 min |
 | 5: Testing & Validation | 📝 PENDING | 0% | 0/4 | 30 min | 0 min |
-| **TOTAL** | **🔄 ACTIVE** | **80%** | **17/25** | **195 min** | **140 min** |
+| **TOTAL** | **🔄 ACTIVE** | **74%** | **17/23** | **175 min** | **140 min** |
 
-**Time Progress**: 140/195 minutes (72%)
-**Task Completion**: 17/25 tasks (68%)
-**Status**: 🔄 **Phase 4 Active - Task 4.2 Complete**
+**Time Progress**: 140/175 minutes (80%)
+**Task Completion**: 17/23 tasks (74%)
+**Status**: 🔄 **Phase 4 Active - Task 4.2 Complete, 4.3 Next**
 
 ---
 
@@ -161,6 +166,8 @@ After completing database_update feature, the database schema has significant ch
 - ✅ 2 JSONB fields implemented for flexible statistics
 - ✅ Total: ~1,550 lines of production code
 
+**Note**: PlayerStatistics model created but no backend API logic will be implemented (not needed for project scope).
+
 ---
 
 ### 📋 PHASE 3: TYPE GENERATION & FRONTEND TYPES ✅
@@ -182,9 +189,9 @@ After completing database_update feature, the database schema has significant ch
 
 ### 📋 PHASE 4: API ENDPOINTS DEVELOPMENT 🔄
 
-**Status**: 🔄 **ACTIVE - 33% (2/6 tasks)**
+**Status**: 🔄 **ACTIVE - 50% (2/4 tasks)**
 **Objective**: Create and update REST API endpoints for new/updated models
-**Duration**: ~60 minutes (estimated) | **35 minutes (actual so far)**
+**Duration**: ~40 minutes (estimated) | **35 minutes (actual so far)**
 **Priority**: HIGH (enables frontend to use new data)
 
 #### Tasks:
@@ -193,10 +200,11 @@ After completing database_update feature, the database schema has significant ch
 |------|-------------|----------|-------------|--------|
 | 4.1 | Update existing serializers for modified models | 20 min | 20 min | ✅ DONE |
 | 4.2 | Create serializer for `team_statistics` (handle JSONB) | 15 min | 15 min | ✅ DONE |
-| 4.3 | Create serializer for `player_statistics` (handle JSONB) | 15 min | - | 📝 TODO |
-| 4.4 | Create ViewSet for `team_statistics` | 5 min | - | 📝 TODO |
-| 4.5 | Create ViewSet for `player_statistics` | 5 min | - | 📝 TODO |
-| 4.6 | Update URL routing for new endpoints | 5 min | - | 📝 TODO |
+| 4.3 | Create ViewSet for `team_statistics` | 5 min | - | 📝 TODO |
+| 4.4 | Update URL routing for new endpoints | 5 min | - | 📝 TODO |
+
+**~~Old 4.3~~**: ~~Create serializer for `player_statistics`~~ - ❌ **CANCELLED** (not needed)
+**~~Old 4.5~~**: ~~Create ViewSet for `player_statistics`~~ - ❌ **CANCELLED** (not needed)
 
 #### ✅ TASK 4.1 COMPLETED:
 
@@ -311,7 +319,7 @@ After completing database_update feature, the database schema has significant ch
 - ✅ standings (1 new column, 1 trigger, 1 function)
 - ✅ match_events (2 new columns, 2 indexes)
 - ✅ team_statistics (NEW TABLE: 10 columns, 7 indexes including GIN)
-- ✅ player_statistics (NEW TABLE: 13 columns, 9 indexes including GIN)
+- ✅ player_statistics (NEW TABLE: 13 columns, 9 indexes including GIN) - *DB only, no backend API*
 
 **Total Database Changes**:
 - ✅ 23 new columns added
@@ -322,6 +330,15 @@ After completing database_update feature, the database schema has significant ch
 ---
 
 ## 🎉 Recent Achievements
+
+### 2025-11-01 19:15 📋 **SCOPE REVISION - PLAYER STATS REMOVED**
+- ❌ **CANCELLED**: Phase 4.3 (player_statistics serializer)
+- ❌ **CANCELLED**: Phase 4.5 (player_statistics ViewSet)
+- 📊 **REVISED**: Task count 25 -> 23 tasks
+- 📉 **UPDATED**: Progress 80% -> 74% (17/23)
+- ⏱️ **SAVED**: 20 minutes (15 min serializer + 5 min viewset)
+- 🎯 **NEW EST**: 175 minutes total (down from 195)
+- 🔗 **Commit**: [will be added after push]
 
 ### 2025-11-01 19:05 🎊 **PHASE 4.2 COMPLETE - TEAM STATISTICS SERIALIZER!**
 - ✅ **CREATED**: TeamStatistics serializer (4 classes, 410 lines)
@@ -391,25 +408,25 @@ After completing database_update feature, the database schema has significant ch
 
 ### Immediate Action (NOW) 🎯
 
-**🎯 NEXT TASK: Phase 4.3 - Create player_statistics serializer**
+**🎯 NEXT TASK: Phase 4.3 - Create ViewSet for team_statistics**
 
 **What to do**:
-- Create new file: `/backend/apps/core/serializers/player_statistics.py`
-- Handle JSONB `statistics` field with proper serialization
-- Create serializers: List, Detail, Create, Update
-- Add validation for player_id, team_id, league_id relationships
-- Add position validation
-- Support for player performance metrics
+- Create ViewSet in `/backend/apps/core/views/team_statistics.py`
+- Use TeamStatisticsListSerializer for list view
+- Use TeamStatisticsDetailSerializer for detail view
+- Use TeamStatisticsCreateSerializer for create
+- Use TeamStatisticsUpdateSerializer for update
+- Add filtering: by team, league, season
+- Add ordering: by season, matches_played
+- Add pagination
 
-**Estimated Time**: 15 minutes
+**Estimated Time**: 5 minutes
 
-**Remaining Phase 4 Tasks (25 min)**:
+**Remaining Phase 4 Tasks (10 min)**:
 1. ✅ Update existing serializers for modified models (20 min) - DONE
 2. ✅ Create serializer for `team_statistics` with JSONB handling (15 min) - DONE
-3. 📝 Create serializer for `player_statistics` with JSONB handling (15 min) - NEXT
-4. 📝 Create ViewSet for `team_statistics` (5 min)
-5. 📝 Create ViewSet for `player_statistics` (5 min)
-6. 📝 Update URL routing for new endpoints (5 min)
+3. 📝 Create ViewSet for `team_statistics` (5 min) - NEXT
+4. 📝 Update URL routing for new endpoints (5 min)
 
 **After Phase 4 Completion**: 
 - Phase 5: Testing & Validation (30 min)
@@ -433,26 +450,21 @@ backend/apps/core/serializers/country.py            # Country serializer (✅ PH
 backend/apps/core/serializers/league.py             # League serializer (✅ PHASE 4.1 COMPLETE)
 backend/apps/core/serializers/team.py               # Team serializer (✅ PHASE 4.1 COMPLETE)
 backend/apps/core/serializers/team_statistics.py    # TeamStats serializer (✅ PHASE 4.2 COMPLETE)
-backend/apps/core/serializers/                      # DRF serializers (Phase 4 - IN PROGRESS)
 backend/apps/core/views/                            # API views (Phase 4 - NEXT)
 backend/apps/core/urls.py                           # URL routing (Phase 4 - NEXT)
 ```
 
-### Phase 4.2 Final Summary
+### Scope Changes Summary
 
-**Completed (2/6 tasks)** ✅:
-- ✅ Updated Country, League, Team serializers (Phase 4.1)
-- ✅ Created TeamStatistics serializer with full JSONB support (Phase 4.2)
+**Removed from Scope (2025-11-01 19:15)**:
+- ❌ PlayerStatistics serializer (backend/serializers/player_statistics.py)
+- ❌ PlayerStatistics ViewSet (backend/views/player_statistics.py)
+- ❌ Player statistics API endpoints
+- ❌ Player statistics tests
 
-**Quality Metrics**:
-- ✅ JSONB field properly validated with structure checks
-- ✅ Season format validation (YYYY or YYYY-YYYY)
-- ✅ Computed properties for quick access to common stats
-- ✅ Proper relationship validation (team, league)
-- ✅ Uniqueness constraints enforced
-- ✅ External_id conflict detection
-- ✅ ~410 lines of production serializer code
-- ✅ Ready for ViewSet integration
+**Reason**: Project does not require player-level statistics tracking
+
+**Note**: PlayerStatistics model and database table remain (created in Phase 2) but will not have backend API logic or endpoints.
 
 ---
 
