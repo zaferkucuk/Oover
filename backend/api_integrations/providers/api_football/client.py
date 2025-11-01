@@ -20,6 +20,7 @@ class APIFootballClient(BaseAPIClient):
     Client for API-Football v3 via RapidAPI.
     
     Provides methods to fetch:
+    - Countries (with flags and codes)
     - Leagues (optionally filtered by country)
     - Teams in leagues
     - Team details
@@ -29,6 +30,7 @@ class APIFootballClient(BaseAPIClient):
     
     Rate Limits:
         - Free tier: 100 requests/day
+        - Pro Plan: 7,500 requests/day, 150 requests/minute
         - Response headers include rate limit info (X-RateLimit-*)
     
     Documentation:
@@ -38,6 +40,7 @@ class APIFootballClient(BaseAPIClient):
     Example:
         >>> from django.conf import settings
         >>> client = APIFootballClient(settings.API_FOOTBALL_CONFIG['api_key'])
+        >>> countries = client.get_countries()  # Get all countries
         >>> leagues = client.get_leagues(country='England')
         >>> teams = client.get_teams_by_league(39, 2023)  # Premier League 2023
         >>> team = client.get_team_details(42)  # Arsenal
@@ -130,6 +133,82 @@ class APIFootballClient(BaseAPIClient):
         return data
     
     # ==================== Endpoint Methods ====================
+    
+    def get_countries(
+        self,
+        name: Optional[str] = None,
+        code: Optional[str] = None,
+        search: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Get all available countries from API-Football.
+        
+        Returns countries with details:
+        - Country name, code (ISO 3166-1 alpha-2)
+        - Country flag image URL
+        
+        This endpoint is typically called once to populate the countries table,
+        as countries rarely change. Results should be cached for extended periods
+        (recommended: 1 year).
+        
+        Args:
+            name: Optional exact country name filter (e.g., 'England', 'Spain')
+            code: Optional ISO code filter (e.g., 'GB', 'ES')
+            search: Optional search term for partial matching
+        
+        Returns:
+            List of country dictionaries with structure:
+            {
+                'name': 'England',
+                'code': 'GB',  # ISO 3166-1 alpha-2 code
+                'flag': 'https://media.api-sports.io/flags/gb.svg'
+            }
+            
+        Example:
+            >>> # Get all countries
+            >>> countries = client.get_countries()
+            >>> print(f"Total countries: {len(countries)}")
+            
+            >>> # Filter by name
+            >>> england = client.get_countries(name='England')
+            >>> print(england[0]['code'])  # 'GB'
+            
+            >>> # Filter by code
+            >>> spain = client.get_countries(code='ES')
+            >>> print(spain[0]['name'])  # 'Spain'
+            
+            >>> # Search for countries
+            >>> german = client.get_countries(search='german')
+            >>> # Returns Germany and any countries with 'german' in name
+        
+        Notes:
+            - This endpoint typically returns ~200 countries
+            - Use caching to minimize API calls (1 year TTL recommended)
+            - Countries are relatively static data
+            - Some countries may not have active leagues
+        
+        Documentation:
+            https://www.api-football.com/documentation-v3#tag/Countries/operation/get-countries
+        """
+        logger.info(
+            f"Fetching countries (name={name}, code={code}, search={search})"
+        )
+        
+        # Build query parameters
+        params = {}
+        if name:
+            params['name'] = name
+        if code:
+            params['code'] = code
+        if search:
+            params['search'] = search
+        
+        # Make API request
+        response = self.get('countries', params=params if params else None)
+        countries = response.get('response', [])
+        
+        logger.info(f"Fetched {len(countries)} countries")
+        return countries
     
     def get_leagues(
         self, 
