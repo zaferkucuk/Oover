@@ -9,6 +9,7 @@ from .team_transformer import TeamTransformer
 from .country_transformer import CountryTransformer
 from .league_transformer import LeagueTransformer
 from .match_transformer import MatchTransformer
+from .standing_transformer import StandingTransformer
 from .validators import validate_team_data
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     'CountryTransformer',
     'LeagueTransformer',
     'MatchTransformer',
+    'StandingTransformer',
     'validate_team_data',
 ]
