@@ -1,6 +1,6 @@
 # 🚀 OOVER PROJECT STATUS
 
-**Last Updated**: 2025-11-01 20:22 UTC
+**Last Updated**: 2025-11-01 20:35 UTC
 **Project**: Sport Prediction App (Oover)
 **Tech Stack**: Next.js + Django + Supabase
 
@@ -9,32 +9,34 @@
 ## ⚡ CURRENT CONTEXT (Quick Start)
 
 **🎯 ACTIVE FEATURE**: api_football_integration  
-**✅ LAST COMPLETED**: Phase 2 Task 2.2 - LeagueTransformer (✅ COMPLETE!)  
-**📍 CURRENT STATUS**: Phase 2 in progress (2/4 tasks done)  
+**✅ LAST COMPLETED**: Phase 2 Task 2.3 - LeaguesService (✅ COMPLETE!)  
+**📍 CURRENT STATUS**: Phase 2 in progress (3/4 tasks done - 75%)  
 **🔗 Active Branch**: `main`
 
 **💬 Quick Start Message for Next Session**:
 ```
-✅ TASK 2.2 COMPLETE: LeagueTransformer Created!
+✅ TASK 2.3 COMPLETE: LeaguesService Created!
 
-✅ COMPLETED (20 minutes):
-   ✅ Task 2.2: LeagueTransformer for API-Football league data
+✅ COMPLETED (25 minutes):
+   ✅ Task 2.3: LeaguesService for league data management
    
-📊 TASK 2.2 ACHIEVEMENTS:
-   • Created LeagueTransformer class (600+ lines)
-   • Transform league API response to model format
-   • Validate league data (ID, name, type, country)
-   • Handle season data and current season detection
-   • Normalize league names and generate external_id
-   • Extract and validate logo URLs
-   • Detect tier from league name patterns (1-4)
-   • Detect confederation from country codes (UEFA, CONMEBOL, etc.)
-   • Added to transformers/__init__.py exports
+📊 TASK 2.3 ACHIEVEMENTS:
+   • Created LeaguesService class (750+ lines)
+   • Complete CRUD operations (get, list, create, update, delete)
+   • Bulk operations (bulk_create, bulk_upsert_leagues)
+   • League-specific queries (by external_id, country, tier, confederation)
+   • fetch_leagues_from_api() main integration method
+   • Transform → Validate → Save pipeline
+   • Duplicate detection via external_id
+   • Transaction-safe operations with @transaction.atomic
+   • Country resolution (UUID to code conversion)
+   • Added to services/__init__.py exports
+   • Comprehensive error handling and statistics
 
-📝 NEXT: Task 2.3 - Leagues Service (25 min)
-   Create leagues_service.py following CountriesService pattern
+📝 NEXT: Task 2.4 - Management Command (10 min)
+   Create fetch_leagues.py CLI command following fetch_countries.py pattern
 
-Ready to continue Phase 2! 🚀
+Ready to complete Phase 2! 🚀
 ```
 
 ---
@@ -43,18 +45,18 @@ Ready to continue Phase 2! 🚀
 
 | Feature | Priority | Status | Progress | Estimated Time | Started | Completed | Time Spent |
 |---------|----------|--------|----------|---------------|---------|-----------|------------|
-| **api_football_integration** | 🔴 CRITICAL | 🚀 IN PROGRESS | 27% (Phase 2 halfway) | ~8 hours | 2025-11-01 | - | 110 min |
+| **api_football_integration** | 🔴 CRITICAL | 🚀 IN PROGRESS | 33% (Phase 2 75% done) | ~8 hours | 2025-11-01 | - | 135 min |
 | backend_sync | 🔴 CRITICAL | ✅ COMPLETE | 100% (essential) | 175 min | 2025-11-01 | 2025-11-01 | 152 min |
 | database_update | 🔴 CRITICAL | ✅ COMPLETE | 100% (22/22) | 180 min | 2025-11-01 | 2025-11-01 | 150 min |
 
-**Current Focus**: Phase 2 - Leagues Infrastructure (Task 2.2 ✅, Task 2.3 next)  
-**Next Task**: Task 2.3 - Leagues Service
+**Current Focus**: Phase 2 - Leagues Infrastructure (Task 2.3 ✅, Task 2.4 next)  
+**Next Task**: Task 2.4 - Management Command (fetch_leagues.py)
 
 ---
 
 ## 🆕 FEATURE: api_football_integration (API-Football Pro Plan Data Integration)
 
-**Status**: 🚀 **IN PROGRESS** (Phase 1 ✅ COMPLETE, Phase 2 🚀 50% complete)  
+**Status**: 🚀 **IN PROGRESS** (Phase 1 ✅ COMPLETE, Phase 2 🚀 75% complete)  
 **Priority**: CRITICAL (Core data source for the application)  
 **Type**: Backend Development (API Integration, Data Collection)  
 **Start Date**: 2025-11-01 14:00 UTC  
@@ -108,7 +110,7 @@ Ready to continue Phase 2! 🚀
 │  │  Services                        │  │
 │  │  ✅ TeamsService                 │  │
 │  │  ✅ CountriesService - DONE ✓    │  │
-│  │  ⏭️ LeaguesService - NEXT        │  │
+│  │  ✅ LeaguesService - DONE ✓      │  │
 │  │  ⚠️ MatchesService - ADD         │  │
 │  │  ⚠️ StandingsService - ADD       │  │
 │  └──────────────────────────────────┘  │
@@ -117,7 +119,7 @@ Ready to continue Phase 2! 🚀
 │  │  Management Commands             │  │
 │  │  ✅ fetch_teams.py               │  │
 │  │  ✅ fetch_countries.py - DONE ✓  │  │
-│  │  ⏸️ fetch_leagues.py - PENDING   │  │
+│  │  ⏭️ fetch_leagues.py - NEXT      │  │
 │  │  ⚠️ fetch_matches.py - ADD       │  │
 │  │  ⚠️ fetch_standings.py - ADD     │  │
 │  └──────────────────────────────────┘  │
@@ -184,10 +186,10 @@ Ready to continue Phase 2! 🚀
 |------|--------|----------|-------------|---------|
 | 2.1: Enhance Client Endpoint | ✅ | 20 min | Enhanced get_leagues() with advanced filtering | [3f7fac1](https://github.com/zaferkucuk/Oover/commit/3f7fac1f97b0e51105f0ff94ab882a332a71f466) |
 | 2.2: League Transformer | ✅ | 20 min | Create league_transformer.py | [9181db5](https://github.com/zaferkucuk/Oover/commit/9181db5edbb0b0e8bdcb927518deace58217e43c) |
-| 2.3: Leagues Service | ⏭️ | 25 min | Create leagues_service.py | - |
-| 2.4: Management Command | ⏸️ | 10 min | Create fetch_leagues.py | - |
+| 2.3: Leagues Service | ✅ | 25 min | Create leagues_service.py | [63a43d8](https://github.com/zaferkucuk/Oover/commit/63a43d8b67c4c1a5a61ad598d32247b2d840e4b8) |
+| 2.4: Management Command | ⏭️ | 10 min | Create fetch_leagues.py | - |
 
-**Progress**: 2/4 tasks complete (50%) 🚀
+**Progress**: 3/4 tasks complete (75%) 🚀
 
 **Task 2.1 Achievements** ✅:
 - ✅ Enhanced `get_leagues()` method with 3 new filters
@@ -210,7 +212,22 @@ Ready to continue Phase 2! 🚀
 - ✅ Added to transformers/__init__.py exports
 - ✅ Follows CountryTransformer pattern
 
-**Status**: 🚀 **IN PROGRESS** (40/75 minutes, 53% complete)
+**Task 2.3 Achievements** ✅:
+- ✅ Created `LeaguesService` class (750+ lines)
+- ✅ Complete CRUD operations (get, list, create, update, delete)
+- ✅ Bulk operations (bulk_create, bulk_upsert_leagues)
+- ✅ League-specific queries (get_by_external_id, get_by_country, get_by_tier, get_by_confederation)
+- ✅ Additional utilities (get_current_leagues, search_leagues, get_top_leagues)
+- ✅ `fetch_leagues_from_api()` main integration method
+- ✅ Transform → Validate → Save pipeline
+- ✅ Duplicate detection via external_id
+- ✅ Country resolution (converts UUID to code for API calls)
+- ✅ Transaction-safe operations with @transaction.atomic
+- ✅ Comprehensive error handling and statistics tracking
+- ✅ Added to services/__init__.py exports
+- ✅ Follows CountriesService pattern for consistency
+
+**Status**: 🚀 **IN PROGRESS** (65/75 minutes, 87% complete)
 
 ---
 
@@ -293,15 +310,15 @@ Ready to continue Phase 2! 🚀
 |-------|--------|----------|---------------|------------|---------|
 | **Phase 0: Pro Plan Config** | ✅ COMPLETE | 100% | 10 min | 10 min | 3 |
 | **Phase 1: Countries** | ✅ COMPLETE | 100% (4/4) | 60 min | 60 min | 4 |
-| **Phase 2: Leagues** | 🚀 IN PROGRESS | 50% (2/4) | 75 min | 40 min | 3 |
+| **Phase 2: Leagues** | 🚀 IN PROGRESS | 75% (3/4) | 75 min | 65 min | 5 |
 | **Phase 3: Matches** | ⏸️ PENDING | 0% | 90 min | 0 min | 0 |
 | **Phase 4: Standings** | ⏸️ PENDING | 0% | 75 min | 0 min | 0 |
 | **Phase 5: Statistics** | ⏸️ PENDING | 0% | 90 min | 0 min | 0 |
 | **Phase 6: Orchestration** | ⏸️ PENDING | 0% | 60 min | 0 min | 0 |
 | **Phase 7: Documentation** | ⏸️ PENDING | 0% | 45 min | 0 min | 0 |
-| **TOTAL** | 🚀 IN PROGRESS | **27%** | **~8 hours** | **110 min** | **10** |
+| **TOTAL** | 🚀 IN PROGRESS | **33%** | **~8 hours** | **135 min** | **12** |
 
-**Feature Status**: 🚀 **IN PROGRESS** (Phase 1 ✅ COMPLETE, Phase 2 🚀 50% complete)
+**Feature Status**: 🚀 **IN PROGRESS** (Phase 1 ✅ COMPLETE, Phase 2 🚀 75% complete)
 
 ---
 
@@ -377,6 +394,23 @@ Ready to continue Phase 2! 🚀
 
 ## 🎉 Recent Achievements
 
+### 2025-11-01 20:35 ✅ **TASK 2.3 COMPLETE - LeaguesService!**
+- ✅ **SERVICE**: Created LeaguesService class (750+ lines)
+- ✅ **CRUD**: Complete operations (get, list, create, update, delete)
+- ✅ **BULK**: Operations (bulk_create, bulk_upsert_leagues)
+- ✅ **QUERIES**: League-specific (by external_id, country, tier, confederation)
+- ✅ **UTILITIES**: get_current_leagues, search_leagues, get_top_leagues
+- ✅ **INTEGRATION**: fetch_leagues_from_api() main method
+- ✅ **PIPELINE**: Transform → Validate → Save
+- ✅ **DETECTION**: Duplicate via external_id
+- ✅ **RESOLUTION**: Country UUID to code conversion
+- ✅ **TRANSACTIONS**: @transaction.atomic for safety
+- ✅ **ERROR HANDLING**: Comprehensive logging and statistics
+- ✅ **EXPORTS**: Added to services/__init__.py
+- ✅ **PATTERN**: Follows CountriesService for consistency
+- ⏱️ **TIME**: 25 minutes (exactly on estimate)
+- 🔗 **COMMITS**: [63a43d8](https://github.com/zaferkucuk/Oover/commit/63a43d8b67c4c1a5a61ad598d32247b2d840e4b8), [4a3fc22](https://github.com/zaferkucuk/Oover/commit/4a3fc22f85fea7e1d463f2ac4be68fb3a65e0b82)
+
 ### 2025-11-01 20:22 ✅ **TASK 2.2 COMPLETE - LeagueTransformer!**
 - ✅ **TRANSFORMER**: Created LeagueTransformer class (600+ lines)
 - ✅ **TRANSFORM**: API-Football league response → League model format
@@ -420,35 +454,40 @@ Ready to continue Phase 2! 🚀
 
 ### Immediate Action (NOW) 🎯
 
-**🎯 PHASE 2: Leagues Infrastructure (continuing...)**
+**🎯 PHASE 2: Leagues Infrastructure (completing...)**
 
-**Task 2.3: Leagues Service (25 minutes) - NEXT!**
+**Task 2.4: Management Command (10 minutes) - NEXT!**
 
 **What to do:**
-- Create `leagues_service.py` in services directory
-- Follow CountriesService pattern
-- Implement CRUD operations (get, list, create, update, delete)
-- Implement bulk operations (bulk_create, bulk_upsert)
-- Create `fetch_leagues_from_api()` main integration method
-- Implement Transform → Validate → Save pipeline
-- Add duplicate detection via external_id
-- Comprehensive error handling and statistics
-- Transaction-safe operations with @transaction.atomic
+- Create `fetch_leagues.py` in management/commands directory
+- Follow fetch_countries.py pattern
+- Implement CLI command with arguments:
+  - `--league-id`: Fetch specific league
+  - `--current`: Fetch only current season leagues
+  - `--search`: Search by league name
+  - `--country`: Filter by country code
+  - `--season`: Filter by season year
+  - `--limit`: Limit number of leagues
+  - `--dry-run`: Preview without saving
+  - `--verbose`: Detailed output
+- Call LeaguesService.fetch_leagues_from_api()
+- Display statistics (fetched, saved, created, updated, failed)
+- Error handling and user-friendly output
 
 **File to create:**
 ```
-backend/api_integrations/services/leagues_service.py
+backend/apps/core/management/commands/fetch_leagues.py
 ```
 
 **Why this matters:**
-- Service layer orchestrates the entire data flow
-- Handles business logic and database operations
-- Provides reusable methods for league management
-- Blueprint for future service classes
+- CLI tool for manual league data collection
+- Essential for initial population and seasonal updates
+- Completes Phase 2 infrastructure
+- Template for future management commands
 
-**After this:** Task 2.4 - Management Command (fetch_leagues.py)
+**After this:** Phase 2 COMPLETE! Then Phase 3 - Fixtures/Matches
 
-**Ready to start Task 2.3?**
+**Ready to start Task 2.4?**
 
 ---
 
@@ -463,7 +502,7 @@ backend/api_integrations/services/leagues_service.py
 
 **Priority Data Sources** (in order):
 1. Countries (one-time sync, ~200 countries) ✅ COMPLETE
-2. Leagues (seasonal updates, ~800 leagues) 🚀 IN PROGRESS (Task 2.2 ✅)
+2. Leagues (seasonal updates, ~800 leagues) 🚀 IN PROGRESS (Task 2.3 ✅)
 3. Teams (seasonal updates, ~10,000 teams) ✅ WORKING
 4. Fixtures (daily updates, current + upcoming)
 5. Standings (weekly updates, current season)
