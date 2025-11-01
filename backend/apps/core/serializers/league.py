@@ -6,6 +6,7 @@ Provides serialization/deserialization for API endpoints.
 
 Author: Oover Development Team
 Date: October 2025
+Updated: November 2025 - Added tier and confederation fields
 """
 
 from rest_framework import serializers
@@ -25,6 +26,7 @@ class LeagueListSerializer(serializers.ModelSerializer):
     - Basic league info (id, name, logo, external_id)
     - Nested country name (for display)
     - Nested sport name (for filtering)
+    - League tier and confederation
     - Status flags (is_active)
     """
     
@@ -42,6 +44,8 @@ class LeagueListSerializer(serializers.ModelSerializer):
             'sport_name',
             'logo',
             'external_id',
+            'tier',
+            'confederation',
             'is_active',
         ]
         read_only_fields = ['id']
@@ -61,6 +65,7 @@ class LeagueDetailSerializer(serializers.ModelSerializer):
     - All league fields
     - Nested country details (full object)
     - Nested sport details (full object)
+    - Tier and confederation information
     - Timestamps
     """
     
@@ -79,6 +84,8 @@ class LeagueDetailSerializer(serializers.ModelSerializer):
             'sport_details',
             'logo',
             'external_id',
+            'tier',
+            'confederation',
             'is_active',
             'created_at',
             'updated_at',
@@ -128,6 +135,8 @@ class LeagueCreateSerializer(serializers.ModelSerializer):
     - Ensures sport_id exists
     - Ensures country_id exists (if provided)
     - Validates external_id format
+    - Validates tier is positive integer (if provided)
+    - Validates confederation format (if provided)
     """
     
     class Meta:
@@ -138,6 +147,8 @@ class LeagueCreateSerializer(serializers.ModelSerializer):
             'country',
             'logo',
             'external_id',
+            'tier',
+            'confederation',
             'is_active',
         ]
     
@@ -163,6 +174,53 @@ class LeagueCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "League name must be at least 2 characters long"
             )
+        return value.strip()
+    
+    def validate_tier(self, value):
+        """
+        Validate league tier
+        
+        Rules:
+        - Must be positive integer if provided
+        - Typically 1-4 for major leagues
+        
+        Args:
+            value: League tier to validate
+            
+        Returns:
+            int: Validated tier
+            
+        Raises:
+            ValidationError: If validation fails
+        """
+        if value is None:
+            return value
+        
+        if value < 1:
+            raise serializers.ValidationError(
+                "League tier must be a positive integer"
+            )
+        
+        return value
+    
+    def validate_confederation(self, value):
+        """
+        Validate confederation name
+        
+        Rules:
+        - Optional field
+        - Trim whitespace
+        - Common values: UEFA, CONMEBOL, AFC, CAF, CONCACAF, OFC
+        
+        Args:
+            value: Confederation name to validate
+            
+        Returns:
+            str: Validated confederation name
+        """
+        if not value:
+            return value
+        
         return value.strip()
     
     def validate(self, attrs):
@@ -214,6 +272,7 @@ class LeagueUpdateSerializer(serializers.ModelSerializer):
     Allows updating:
     - name, logo, external_id
     - country (can be changed)
+    - tier, confederation
     - is_active status
     
     Does NOT allow updating:
@@ -229,6 +288,8 @@ class LeagueUpdateSerializer(serializers.ModelSerializer):
             'country',
             'logo',
             'external_id',
+            'tier',
+            'confederation',
             'is_active',
         ]
     
@@ -238,6 +299,25 @@ class LeagueUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "League name must be at least 2 characters long"
             )
+        return value.strip()
+    
+    def validate_tier(self, value):
+        """Validate league tier on update"""
+        if value is None:
+            return value
+        
+        if value < 1:
+            raise serializers.ValidationError(
+                "League tier must be a positive integer"
+            )
+        
+        return value
+    
+    def validate_confederation(self, value):
+        """Validate confederation name on update"""
+        if not value:
+            return value
+        
         return value.strip()
     
     def validate(self, attrs):
