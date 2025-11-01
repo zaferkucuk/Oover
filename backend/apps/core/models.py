@@ -9,7 +9,7 @@ IMPORTANT: Column names use snake_case to match PostgreSQL/Supabase convention.
 
 Author: Oover Development Team
 Date: November 2025
-Last Updated: 2025-11-01 (Added Match, Standing, MatchEvent models)
+Last Updated: 2025-11-01 (Added TeamStatistics and PlayerStatistics models)
 """
 
 import uuid
@@ -1077,3 +1077,466 @@ class MatchEvent(models.Model):
     def is_substitution(self):
         """Check if event is a substitution"""
         return self.event_type == 'substitution'
+
+
+class TeamStatistics(models.Model):
+    """
+    TeamStatistics model - maps to 'team_statistics' table in Supabase
+    
+    Stores aggregated team performance statistics for a specific season.
+    Uses JSONB field for flexible statistical data storage.
+    
+    Database Table: team_statistics
+    Primary Key: id (UUID)
+    Foreign Keys: team_id, league_id
+    
+    Statistics Field (JSONB):
+    Flexible structure for various team metrics:
+    {
+        "goals": {
+            "for": {"total": 65, "home": 38, "away": 27, "average": 2.4},
+            "against": {"total": 28, "home": 12, "away": 16, "average": 1.0}
+        },
+        "shots": {
+            "total": 450, "on_target": 180, "off_target": 150, "blocked": 120
+        },
+        "possession": {"average": 58.5, "home": 62.0, "away": 55.0},
+        "passes": {
+            "total": 15000, "accurate": 12750, "accuracy": 85.0
+        },
+        "corners": {"total": 150, "home": 85, "away": 65},
+        "fouls": {"committed": 280, "drawn": 320},
+        "cards": {"yellow": 45, "red": 2},
+        "clean_sheets": 12,
+        "failed_to_score": 3,
+        "discipline": {"cards_per_match": 1.7, "fouls_per_match": 10.2}
+    }
+    
+    Note: This is an unmanaged model (managed=False) because the table
+    is created and managed in Supabase, not by Django migrations.
+    """
+    
+    # Primary Key
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text="UUID primary key (auto-generated)"
+    )
+    
+    # Foreign Keys
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        db_column='team_id',
+        related_name='team_statistics',
+        help_text="Team these statistics belong to"
+    )
+    
+    league = models.ForeignKey(
+        League,
+        on_delete=models.CASCADE,
+        db_column='league_id',
+        related_name='team_statistics',
+        help_text="League/competition for these statistics"
+    )
+    
+    # Season
+    season = models.CharField(
+        max_length=20,
+        help_text="Season identifier (e.g., '2024-2025', '2025')"
+    )
+    
+    # JSONB Statistics Field
+    statistics = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Flexible JSON structure for team performance statistics"
+    )
+    
+    # External Reference
+    external_id = models.TextField(
+        null=True,
+        blank=True,
+        help_text="External API identifier"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        default=timezone.now,
+        help_text="Record creation timestamp"
+    )
+    
+    updated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Record last update timestamp"
+    )
+    
+    class Meta:
+        db_table = 'team_statistics'
+        managed = False  # Table is managed in Supabase
+        verbose_name = 'Team Statistics'
+        verbose_name_plural = 'Team Statistics'
+        ordering = ['league', 'season', 'team']
+        indexes = [
+            models.Index(fields=['team'], name='idx_team_stats_team'),
+            models.Index(fields=['league'], name='idx_team_stats_league'),
+            models.Index(fields=['season'], name='idx_team_stats_season'),
+            models.Index(fields=['league', 'season'], name='idx_team_stats_league_season'),
+            models.Index(fields=['team', 'season'], name='idx_team_stats_team_season'),
+        ]
+        # Unique constraint: one statistics record per team per league per season
+        constraints = [
+            models.UniqueConstraint(
+                fields=['team', 'league', 'season'],
+                name='unique_team_league_season_stats'
+            )
+        ]
+        
+    def __str__(self):
+        """String representation of team statistics"""
+        return f"{self.team.name} - {self.league.name} ({self.season})"
+    
+    def __repr__(self):
+        """Developer-friendly representation"""
+        return f"<TeamStatistics: {self.team.name} in {self.league.name} {self.season}>"
+    
+    @property
+    def goals_for(self):
+        """
+        Extract total goals scored from statistics
+        
+        Returns:
+            int: Total goals or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('goals', {}).get('for', {}).get('total')
+    
+    @property
+    def goals_against(self):
+        """
+        Extract total goals conceded from statistics
+        
+        Returns:
+            int: Total goals conceded or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('goals', {}).get('against', {}).get('total')
+    
+    @property
+    def goal_difference(self):
+        """
+        Calculate goal difference
+        
+        Returns:
+            int: Goal difference or None
+        """
+        goals_for = self.goals_for
+        goals_against = self.goals_against
+        
+        if goals_for is None or goals_against is None:
+            return None
+        
+        return goals_for - goals_against
+    
+    @property
+    def clean_sheets(self):
+        """
+        Extract clean sheets from statistics
+        
+        Returns:
+            int: Number of clean sheets or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('clean_sheets')
+    
+    @property
+    def average_possession(self):
+        """
+        Extract average possession from statistics
+        
+        Returns:
+            float: Average possession percentage or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('possession', {}).get('average')
+    
+    @property
+    def pass_accuracy(self):
+        """
+        Extract pass accuracy from statistics
+        
+        Returns:
+            float: Pass accuracy percentage or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('passes', {}).get('accuracy')
+
+
+class PlayerStatistics(models.Model):
+    """
+    PlayerStatistics model - maps to 'player_statistics' table in Supabase
+    
+    Stores individual player performance statistics for a specific season.
+    Uses JSONB field for flexible statistical data storage.
+    
+    Database Table: player_statistics
+    Primary Key: id (UUID)
+    Foreign Keys: player_id (text), team_id, league_id
+    
+    Statistics Field (JSONB):
+    Flexible structure for various player metrics:
+    {
+        "appearances": {"total": 28, "starts": 25, "substitutions": 3},
+        "minutes_played": 2340,
+        "goals": {
+            "total": 18,
+            "home": 10,
+            "away": 8,
+            "penalties": 3,
+            "freekicks": 2
+        },
+        "assists": {
+            "total": 7,
+            "key_passes": 42
+        },
+        "shots": {
+            "total": 85,
+            "on_target": 45,
+            "accuracy": 52.9
+        },
+        "passes": {
+            "total": 1250,
+            "accurate": 1050,
+            "accuracy": 84.0,
+            "key_passes": 42
+        },
+        "dribbles": {
+            "attempts": 120,
+            "successful": 75,
+            "success_rate": 62.5
+        },
+        "tackles": {
+            "total": 45,
+            "successful": 32,
+            "blocks": 12
+        },
+        "duels": {
+            "total": 185,
+            "won": 110,
+            "win_rate": 59.5
+        },
+        "fouls": {
+            "committed": 25,
+            "drawn": 38
+        },
+        "cards": {
+            "yellow": 5,
+            "red": 0
+        },
+        "rating": 7.8
+    }
+    
+    Note: This is an unmanaged model (managed=False) because the table
+    is created and managed in Supabase, not by Django migrations.
+    """
+    
+    # Primary Key
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        help_text="UUID primary key (auto-generated)"
+    )
+    
+    # Player ID (text UUID, not FK since players table may not exist yet)
+    player_id = models.TextField(
+        help_text="Player identifier (text UUID)"
+    )
+    
+    # Foreign Keys
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.CASCADE,
+        db_column='team_id',
+        related_name='player_statistics',
+        help_text="Team player belongs to for this season"
+    )
+    
+    league = models.ForeignKey(
+        League,
+        on_delete=models.CASCADE,
+        db_column='league_id',
+        related_name='player_statistics',
+        help_text="League/competition for these statistics"
+    )
+    
+    # Season
+    season = models.CharField(
+        max_length=20,
+        help_text="Season identifier (e.g., '2024-2025', '2025')"
+    )
+    
+    # Player Position
+    position = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text="Player position (e.g., 'Forward', 'Midfielder', 'Defender', 'Goalkeeper')"
+    )
+    
+    # JSONB Statistics Field
+    statistics = models.JSONField(
+        null=True,
+        blank=True,
+        help_text="Flexible JSON structure for player performance statistics"
+    )
+    
+    # External Reference
+    external_id = models.TextField(
+        null=True,
+        blank=True,
+        help_text="External API identifier"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(
+        default=timezone.now,
+        help_text="Record creation timestamp"
+    )
+    
+    updated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Record last update timestamp"
+    )
+    
+    class Meta:
+        db_table = 'player_statistics'
+        managed = False  # Table is managed in Supabase
+        verbose_name = 'Player Statistics'
+        verbose_name_plural = 'Player Statistics'
+        ordering = ['league', 'season', 'team', 'player_id']
+        indexes = [
+            models.Index(fields=['player_id'], name='idx_player_stats_player'),
+            models.Index(fields=['team'], name='idx_player_stats_team'),
+            models.Index(fields=['league'], name='idx_player_stats_league'),
+            models.Index(fields=['season'], name='idx_player_stats_season'),
+            models.Index(fields=['position'], name='idx_player_stats_position'),
+            models.Index(fields=['league', 'season'], name='idx_player_stats_league_season'),
+            models.Index(fields=['team', 'season'], name='idx_player_stats_team_season'),
+            models.Index(fields=['player_id', 'season'], name='idx_player_stats_player_season'),
+        ]
+        # Unique constraint: one statistics record per player per team per league per season
+        constraints = [
+            models.UniqueConstraint(
+                fields=['player_id', 'team', 'league', 'season'],
+                name='unique_player_team_league_season_stats'
+            )
+        ]
+        
+    def __str__(self):
+        """String representation of player statistics"""
+        return f"Player {self.player_id} - {self.team.name} ({self.season})"
+    
+    def __repr__(self):
+        """Developer-friendly representation"""
+        return f"<PlayerStatistics: Player {self.player_id} in {self.team.name} {self.season}>"
+    
+    @property
+    def goals(self):
+        """
+        Extract total goals from statistics
+        
+        Returns:
+            int: Total goals or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('goals', {}).get('total')
+    
+    @property
+    def assists(self):
+        """
+        Extract total assists from statistics
+        
+        Returns:
+            int: Total assists or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('assists', {}).get('total')
+    
+    @property
+    def appearances(self):
+        """
+        Extract total appearances from statistics
+        
+        Returns:
+            int: Total appearances or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('appearances', {}).get('total')
+    
+    @property
+    def minutes_played(self):
+        """
+        Extract minutes played from statistics
+        
+        Returns:
+            int: Minutes played or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('minutes_played')
+    
+    @property
+    def rating(self):
+        """
+        Extract average rating from statistics
+        
+        Returns:
+            float: Average rating or None
+        """
+        if not self.statistics:
+            return None
+        return self.statistics.get('rating')
+    
+    @property
+    def goals_per_match(self):
+        """
+        Calculate goals per match
+        
+        Returns:
+            float: Goals per match or None
+        """
+        goals = self.goals
+        appearances = self.appearances
+        
+        if goals is None or appearances is None or appearances == 0:
+            return None
+        
+        return round(goals / appearances, 2)
+    
+    @property
+    def goal_contributions(self):
+        """
+        Calculate total goal contributions (goals + assists)
+        
+        Returns:
+            int: Total goal contributions or None
+        """
+        goals = self.goals
+        assists = self.assists
+        
+        if goals is None or assists is None:
+            return None
+        
+        return goals + assists
