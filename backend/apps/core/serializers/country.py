@@ -6,6 +6,7 @@ API endpoints for country data in the Oover sport prediction application.
 
 Author: Oover Development Team
 Date: October 2025
+Updated: November 2025 - Added region and fifa_code fields
 """
 
 from rest_framework import serializers
@@ -19,6 +20,8 @@ class CountrySerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100, required=True)
     code = serializers.CharField(max_length=10, required=True)
     flag = serializers.CharField(max_length=50, required=True)
+    region = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
+    fifa_code = serializers.CharField(max_length=3, required=False, allow_null=True, allow_blank=True)
     is_international = serializers.BooleanField(default=False, required=False)
     is_active = serializers.BooleanField(default=True, required=False)
     created_at = serializers.DateTimeField(read_only=True)
@@ -49,6 +52,60 @@ class CountrySerializer(serializers.Serializer):
                 "Country code must be alphanumeric"
             )
         return value
+    
+    def validate_fifa_code(self, value: str) -> str:
+        """
+        Validate FIFA country code format
+        
+        Rules:
+        - Must be exactly 3 characters if provided
+        - Should be uppercase letters only
+        - Examples: USA, GER, BRA, ENG
+        
+        Args:
+            value: FIFA code to validate
+            
+        Returns:
+            str: Validated FIFA code (uppercase)
+            
+        Raises:
+            ValidationError: If validation fails
+        """
+        if not value:
+            return value
+        
+        code = value.strip().upper()
+        
+        if len(code) != 3:
+            raise serializers.ValidationError(
+                "FIFA code must be exactly 3 characters"
+            )
+        
+        if not code.isalpha():
+            raise serializers.ValidationError(
+                "FIFA code must contain only letters"
+            )
+        
+        return code
+    
+    def validate_region(self, value: str) -> str:
+        """
+        Validate region name format
+        
+        Rules:
+        - Trim whitespace
+        - Optional field
+        
+        Args:
+            value: Region name to validate
+            
+        Returns:
+            str: Validated region name
+        """
+        if not value:
+            return value
+        
+        return value.strip()
 
 
 class CountryCreateSerializer(CountrySerializer):
@@ -63,8 +120,29 @@ class CountryUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100, required=False)
     code = serializers.CharField(max_length=10, required=False)
     flag = serializers.CharField(max_length=50, required=False)
+    region = serializers.CharField(max_length=100, required=False, allow_null=True, allow_blank=True)
+    fifa_code = serializers.CharField(max_length=3, required=False, allow_null=True, allow_blank=True)
     is_international = serializers.BooleanField(required=False)
     is_active = serializers.BooleanField(required=False)
+    
+    def validate_fifa_code(self, value: str) -> str:
+        """Validate FIFA code on update"""
+        if not value:
+            return value
+        
+        code = value.strip().upper()
+        
+        if len(code) != 3:
+            raise serializers.ValidationError(
+                "FIFA code must be exactly 3 characters"
+            )
+        
+        if not code.isalpha():
+            raise serializers.ValidationError(
+                "FIFA code must contain only letters"
+            )
+        
+        return code
     
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         update_fields = {k: v for k, v in attrs.items() if k != 'id'}
